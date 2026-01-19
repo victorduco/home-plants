@@ -60,7 +60,7 @@ async def _ha_request(
 
 
 async def _get_config_entries(domain: str) -> tuple[list[dict[str, Any]], str | None]:
-    _, data, error = await _ha_request("GET", "/api/config/config_entries/entries")
+    _, data, error = await _ha_request("GET", "/api/config/config_entries/entry")
     if error:
         return [], error
     if not isinstance(data, list):
@@ -68,23 +68,13 @@ async def _get_config_entries(domain: str) -> tuple[list[dict[str, Any]], str | 
     return [entry for entry in data if entry.get("domain") == domain], None
 
 
-async def _get_entity_registry() -> tuple[list[dict[str, Any]], str | None]:
-    _, data, error = await _ha_request("GET", "/api/config/entity_registry/list")
+async def _get_states_list() -> tuple[list[dict[str, Any]], str | None]:
+    _, data, error = await _ha_request("GET", "/api/states")
     if error:
         return [], error
     if not isinstance(data, list):
-        return [], "Unexpected entity registry response"
+        return [], "Unexpected states response"
     return data, None
-
-
-async def _get_states(entity_ids: Iterable[str]) -> dict[str, dict[str, Any]]:
-    states: dict[str, dict[str, Any]] = {}
-    for entity_id in entity_ids:
-        _, data, error = await _ha_request("GET", f"/api/states/{entity_id}")
-        if error or not isinstance(data, dict):
-            continue
-        states[entity_id] = data
-    return states
 
 
 def _match_entry(entries: list[dict[str, Any]], identifier: str) -> dict[str, Any] | None:
@@ -101,45 +91,68 @@ def _match_entry(entries: list[dict[str, Any]], identifier: str) -> dict[str, An
     return None
 
 
+def _plant_friendly_names(title: str) -> dict[str, str]:
+    return {
+        "status": f"{title} Status",
+        "soil_moisture": f"{title} Soil Moisture",
+        "location_x": f"{title} Location X",
+        "location_y": f"{title} Location Y",
+        "last_watered": f"{title} Last Watered",
+    }
+
+
+def _find_entity_ids(title: str, states: Iterable[dict[str, Any]]) -> dict[str, str]:
+    names = _plant_friendly_names(title)
+    matched: dict[str, str] = {}
+    for state in states:
+        friendly = state.get("attributes", {}).get("friendly_name", "")
+        for key, name in names.items():
+            if friendly == name:
+                entity_id = state.get("entity_id")
+                if entity_id:
+                    matched[key] = entity_id
+    return matched
+
+
 def _parse_plant_states(
     entry: dict[str, Any],
-    registry: list[dict[str, Any]],
-    states: dict[str, dict[str, Any]],
+    states: list[dict[str, Any]],
 ) -> dict[str, Any]:
     entry_id = entry.get("entry_id")
     title = entry.get("title")
-    entity_ids = [
-        item.get("entity_id")
-        for item in registry
-        if item.get("config_entry_id") == entry_id
-    ]
-    entity_ids = [eid for eid in entity_ids if eid]
     info: dict[str, Any] = {
         "entry_id": entry_id,
         "name": title,
         "entities": [],
     }
-    for entity_id in entity_ids:
-        state = states.get(entity_id)
-        if not state:
+    if not title:
+        return info
+    names = _plant_friendly_names(title)
+    for state in states:
+        entity_id = state.get("entity_id")
+        if not entity_id:
+            continue
+        attributes = state.get("attributes", {})
+        friendly = attributes.get("friendly_name", "")
+        if friendly not in names.values():
             continue
         info["entities"].append(
             {
                 "entity_id": entity_id,
                 "state": state.get("state"),
-                "attributes": state.get("attributes", {}),
+                "attributes": attributes,
             }
         )
-        if entity_id.endswith("_last_watered"):
+        if friendly == names["last_watered"]:
             info["last_watered"] = state.get("state")
-        elif entity_id.endswith("_soil_moisture"):
+        elif friendly == names["soil_moisture"]:
             info["soil_moisture"] = state.get("state")
-        elif entity_id.endswith("_location_x"):
+        elif friendly == names["location_x"]:
             info["location_x"] = state.get("state")
-        elif entity_id.endswith("_location_y"):
+        elif friendly == names["location_y"]:
             info["location_y"] = state.get("state")
-        elif entity_id.startswith("sensor."):
-            info.setdefault("status", state.get("state"))
+        elif friendly == names["status"]:
+            info["status"] = state.get("state")
     return info
 
 
@@ -154,16 +167,10 @@ def register_plants_tools(mcp: FastMCP) -> None:
             return {"status": "error", "error": error}
         if not entries:
             return {"status": "success", "plants": []}
-        registry, error = await _get_entity_registry()
+        states, error = await _get_states_list()
         if error:
             return {"status": "error", "error": error}
-        entity_ids = [
-            item.get("entity_id")
-            for item in registry
-            if item.get("config_entry_id") in {e.get("entry_id") for e in entries}
-        ]
-        states = await _get_states([eid for eid in entity_ids if eid])
-        plants = [_parse_plant_states(entry, registry, states) for entry in entries]
+        plants = [_parse_plant_states(entry, states) for entry in entries]
         return {"status": "success", "plants": plants}
 
     @mcp.tool
@@ -175,18 +182,13 @@ def register_plants_tools(mcp: FastMCP) -> None:
         entry = _match_entry(entries, identifier)
         if not entry:
             return {"status": "error", "error": "Plant not found"}
-        registry, error = await _get_entity_registry()
+        title = entry.get("title", "")
+        states, error = await _get_states_list()
         if error:
             return {"status": "error", "error": error}
-        entry_id = entry.get("entry_id")
-        entity_ids = [
-            item.get("entity_id")
-            for item in registry
-            if item.get("config_entry_id") == entry_id
-        ]
-        entity_ids = [eid for eid in entity_ids if eid]
-        moisture_id = next((eid for eid in entity_ids if eid.endswith("_soil_moisture")), None)
-        watered_id = next((eid for eid in entity_ids if eid.endswith("_last_watered")), None)
+        entity_ids = _find_entity_ids(title, states)
+        moisture_id = entity_ids.get("soil_moisture")
+        watered_id = entity_ids.get("last_watered")
         now = datetime.now(timezone.utc).isoformat()
         results = {}
         if watered_id:
@@ -196,6 +198,8 @@ def register_plants_tools(mcp: FastMCP) -> None:
                 json={"entity_id": watered_id, "value": now},
             )
             results["last_watered"] = "ok" if not error else error
+        else:
+            results["last_watered"] = "missing"
         if moisture_id:
             _, _, error = await _ha_request(
                 "POST",
@@ -203,6 +207,8 @@ def register_plants_tools(mcp: FastMCP) -> None:
                 json={"entity_id": moisture_id, "value": 100},
             )
             results["soil_moisture"] = "ok" if not error else error
+        else:
+            results["soil_moisture"] = "missing"
         return {"status": "success", "plant": entry.get("title"), "results": results}
 
     @mcp.tool
@@ -271,17 +277,13 @@ def register_plants_tools(mcp: FastMCP) -> None:
             )
             results["name"] = "ok" if not error else error
         if location_x is not None or location_y is not None:
-            registry, error = await _get_entity_registry()
+            title = entry.get("title", "")
+            states, error = await _get_states_list()
             if error:
                 return {"status": "error", "error": error}
-            entity_ids = [
-                item.get("entity_id")
-                for item in registry
-                if item.get("config_entry_id") == entry_id
-            ]
-            entity_ids = [eid for eid in entity_ids if eid]
+            entity_ids = _find_entity_ids(title, states)
             if location_x is not None:
-                target = next((eid for eid in entity_ids if eid.endswith("_location_x")), None)
+                target = entity_ids.get("location_x")
                 if target:
                     _, _, error = await _ha_request(
                         "POST",
@@ -292,7 +294,7 @@ def register_plants_tools(mcp: FastMCP) -> None:
                 else:
                     results["location_x"] = "missing"
             if location_y is not None:
-                target = next((eid for eid in entity_ids if eid.endswith("_location_y")), None)
+                target = entity_ids.get("location_y")
                 if target:
                     _, _, error = await _ha_request(
                         "POST",
