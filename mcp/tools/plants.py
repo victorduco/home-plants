@@ -34,33 +34,47 @@ async def _ha_request(
         "Content-Type": "application/json",
     }
     url = f"{ha_url}{path}"
-    async with httpx.AsyncClient(timeout=15) as client:
-        response = await client.request(
-            method,
-            url,
-            headers=headers,
-            params=params,
-            json=json,
-        )
+    try:
+        async with httpx.AsyncClient(timeout=15) as client:
+            response = await client.request(
+                method,
+                url,
+                headers=headers,
+                params=params,
+                json=json,
+            )
+    except httpx.HTTPError as exc:
+        return 0, None, f"Home Assistant request failed: {exc}"
     if response.status_code >= 400:
         return response.status_code, None, response.text
     if not response.content:
         return response.status_code, None, None
-    return response.status_code, response.json(), None
+    try:
+        return response.status_code, response.json(), None
+    except ValueError:
+        return (
+            response.status_code,
+            None,
+            f"Unexpected non-JSON response: {response.text}",
+        )
 
 
-async def _get_config_entries(domain: str) -> list[dict[str, Any]]:
+async def _get_config_entries(domain: str) -> tuple[list[dict[str, Any]], str | None]:
     _, data, error = await _ha_request("GET", "/api/config/config_entries/entries")
-    if error or not isinstance(data, list):
-        return []
-    return [entry for entry in data if entry.get("domain") == domain]
+    if error:
+        return [], error
+    if not isinstance(data, list):
+        return [], "Unexpected config entries response"
+    return [entry for entry in data if entry.get("domain") == domain], None
 
 
-async def _get_entity_registry() -> list[dict[str, Any]]:
+async def _get_entity_registry() -> tuple[list[dict[str, Any]], str | None]:
     _, data, error = await _ha_request("GET", "/api/config/entity_registry/list")
-    if error or not isinstance(data, list):
-        return []
-    return data
+    if error:
+        return [], error
+    if not isinstance(data, list):
+        return [], "Unexpected entity registry response"
+    return data, None
 
 
 async def _get_states(entity_ids: Iterable[str]) -> dict[str, dict[str, Any]]:
@@ -135,10 +149,14 @@ def register_plants_tools(mcp: FastMCP) -> None:
     @mcp.tool
     async def get_plants_status() -> dict[str, Any]:
         """Return full info for all plants (empty if none)."""
-        entries = await _get_config_entries("plants")
+        entries, error = await _get_config_entries("plants")
+        if error:
+            return {"status": "error", "error": error}
         if not entries:
             return {"status": "success", "plants": []}
-        registry = await _get_entity_registry()
+        registry, error = await _get_entity_registry()
+        if error:
+            return {"status": "error", "error": error}
         entity_ids = [
             item.get("entity_id")
             for item in registry
@@ -151,11 +169,15 @@ def register_plants_tools(mcp: FastMCP) -> None:
     @mcp.tool
     async def water_plant(identifier: str) -> dict[str, Any]:
         """Set last watered to now and soil moisture to 100%."""
-        entries = await _get_config_entries("plants")
+        entries, error = await _get_config_entries("plants")
+        if error:
+            return {"status": "error", "error": error}
         entry = _match_entry(entries, identifier)
         if not entry:
             return {"status": "error", "error": "Plant not found"}
-        registry = await _get_entity_registry()
+        registry, error = await _get_entity_registry()
+        if error:
+            return {"status": "error", "error": error}
         entry_id = entry.get("entry_id")
         entity_ids = [
             item.get("entity_id")
@@ -210,7 +232,9 @@ def register_plants_tools(mcp: FastMCP) -> None:
     @mcp.tool
     async def delete_plant(identifier: str) -> dict[str, Any]:
         """Delete a plant entry."""
-        entries = await _get_config_entries("plants")
+        entries, error = await _get_config_entries("plants")
+        if error:
+            return {"status": "error", "error": error}
         entry = _match_entry(entries, identifier)
         if not entry:
             return {"status": "error", "error": "Plant not found"}
@@ -231,7 +255,9 @@ def register_plants_tools(mcp: FastMCP) -> None:
         location_y: float | None = None,
     ) -> dict[str, Any]:
         """Edit plant name or location coordinates."""
-        entries = await _get_config_entries("plants")
+        entries, error = await _get_config_entries("plants")
+        if error:
+            return {"status": "error", "error": error}
         entry = _match_entry(entries, identifier)
         if not entry:
             return {"status": "error", "error": "Plant not found"}
@@ -245,7 +271,9 @@ def register_plants_tools(mcp: FastMCP) -> None:
             )
             results["name"] = "ok" if not error else error
         if location_x is not None or location_y is not None:
-            registry = await _get_entity_registry()
+            registry, error = await _get_entity_registry()
+            if error:
+                return {"status": "error", "error": error}
             entity_ids = [
                 item.get("entity_id")
                 for item in registry

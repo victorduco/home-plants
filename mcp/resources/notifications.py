@@ -36,13 +36,19 @@ def register_notification_resources(mcp: FastMCP) -> None:
         }
         url = f"{ha_url}/api/services"
 
-        async with httpx.AsyncClient(timeout=10) as client:
-            response = await client.get(url, headers=headers)
+        try:
+            async with httpx.AsyncClient(timeout=10) as client:
+                response = await client.get(url, headers=headers)
+        except httpx.HTTPError as exc:
+            return f"Failed to fetch services: {exc}"
 
         if response.status_code != 200:
             return f"Failed to fetch services: HTTP {response.status_code}: {response.text}"
 
-        services: list[dict[str, Any]] = response.json()
+        try:
+            services: list[dict[str, Any]] = response.json()
+        except ValueError:
+            return f"Failed to decode services response: {response.text}"
         notify_domain = next(
             (item for item in services if item.get("domain") == "notify"),
             None,
