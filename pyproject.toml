@@ -13,3 +13,8 @@ dependencies = [
 [build-system]
 requires = ["setuptools>=68.0", "wheel"]
 build-backend = "setuptools.build_meta"
+
+[tool.setuptools.packages.find]
+where = ["."]
+include = ["mcp*", "ha_integration*"]
+exclude = ["policy_materializer*", "tests*"]
