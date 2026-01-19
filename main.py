@@ -3,9 +3,9 @@
 from dotenv import load_dotenv
 from fastmcp import FastMCP
 
-from mcp.prompts import register_prompts
-from mcp.resources import register_resources
-from mcp.tools import register_tools
+from plants_mcp.prompts import register_prompts
+from plants_mcp.resources import register_resources
+from plants_mcp.tools import register_tools
 
 load_dotenv()
 
