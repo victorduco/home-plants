@@ -1,0 +1,16 @@
+{
+  "config": {
+    "step": {
+      "user": {
+        "title": "Add plant",
+        "description": "Create a plant entry.",
+        "data": {
+          "name": "Plant name"
+        }
+      }
+    },
+    "error": {
+      "required": "Name is required"
+    }
+  }
+}
