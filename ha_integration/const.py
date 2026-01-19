@@ -3,8 +3,15 @@
 from homeassistant.const import Platform
 
 DOMAIN = "plants"
-PLATFORMS: list[Platform] = [Platform.SENSOR, Platform.NUMBER, Platform.DATETIME]
+PLATFORMS: list[Platform] = [
+    Platform.SENSOR,
+    Platform.NUMBER,
+    Platform.DATETIME,
+    Platform.SWITCH,
+]
 STORAGE_VERSION = 1
 DEFAULT_SOIL_MOISTURE = 50.0
 DEFAULT_LOCATION_X = 0.0
 DEFAULT_LOCATION_Y = 0.0
+DEFAULT_LAMP_POSITION_X = 0.0
+DEFAULT_LAMP_POSITION_Y = 0.0

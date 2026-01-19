@@ -2,15 +2,25 @@
   "config": {
     "step": {
       "user": {
-        "title": "Add plant",
-        "description": "Create a plant entry.",
+        "title": "Add plants integration",
+        "description": "Create a single Plants entry.",
         "data": {
-          "name": "Plant name"
+          "name": "Default plant name"
         }
       }
     },
     "error": {
       "required": "Name is required"
+    },
+    "abort": {
+      "single_instance_allowed": "Only one Plants entry is allowed."
+    }
+  },
+  "services": {
+    "error": {
+      "entry_not_found": "No Plants entry found.",
+      "plant_not_found": "Plant not found.",
+      "lamp_not_found": "Lamp not found."
     }
   }
 }
