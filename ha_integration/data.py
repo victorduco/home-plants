@@ -22,6 +22,12 @@ class Plant:
     moisture_entity_id: str | None
     light_entity_id: str | None
     water_entity_id: str | None
+    watering_frequency_recommendation: str | None
+    soil_moisture_recommendation: str | None
+    air_temperature_recommendation: str | None
+    air_humidity_recommendation: str | None
+    other_recommendations: str | None
+    todo_list: str | None
 
 
 @dataclass
@@ -41,12 +47,17 @@ class PlantsData:
             for name in DEFAULT_PLANTS:
                 plant_id = str(uuid4())
                 plants[plant_id] = Plant(
-                plant_id=plant_id,
-                name=name,
-                moisture_entity_id=None,
-                light_entity_id=None,
-                water_entity_id=None,
-            )
+                    plant_id=plant_id,
+                    name=name,
+                    moisture_entity_id=None,
+                    light_entity_id=None,
+                    water_entity_id=None,
+                    watering_frequency_recommendation=None,
+                    soil_moisture_recommendation=None,
+                    air_temperature_recommendation=None,
+                    air_humidity_recommendation=None,
+                    other_recommendations=None,
+                )
             data = cls(store=store, plants=plants)
             await data.async_save()
             return data
@@ -65,6 +76,18 @@ class PlantsData:
                 moisture_entity_id=item.get("moisture_entity_id"),
                 light_entity_id=item.get("light_entity_id"),
                 water_entity_id=item.get("water_entity_id"),
+                watering_frequency_recommendation=item.get(
+                    "watering_frequency_recommendation"
+                ),
+                soil_moisture_recommendation=item.get(
+                    "soil_moisture_recommendation"
+                ),
+                air_temperature_recommendation=item.get(
+                    "air_temperature_recommendation"
+                ),
+                air_humidity_recommendation=item.get("air_humidity_recommendation"),
+                other_recommendations=item.get("other_recommendations"),
+                todo_list=item.get("todo_list"),
             )
         return plants
 
@@ -78,6 +101,20 @@ class PlantsData:
                     "moisture_entity_id": plant.moisture_entity_id,
                     "light_entity_id": plant.light_entity_id,
                     "water_entity_id": plant.water_entity_id,
+                    "watering_frequency_recommendation": (
+                        plant.watering_frequency_recommendation
+                    ),
+                    "soil_moisture_recommendation": (
+                        plant.soil_moisture_recommendation
+                    ),
+                    "air_temperature_recommendation": (
+                        plant.air_temperature_recommendation
+                    ),
+                    "air_humidity_recommendation": (
+                        plant.air_humidity_recommendation
+                    ),
+                    "other_recommendations": plant.other_recommendations,
+                    "todo_list": plant.todo_list,
                 }
                 for plant in self.plants.values()
             ],
@@ -97,6 +134,12 @@ class PlantsData:
             moisture_entity_id=moisture_entity_id,
             light_entity_id=None,
             water_entity_id=None,
+            watering_frequency_recommendation=None,
+            soil_moisture_recommendation=None,
+            air_temperature_recommendation=None,
+            air_humidity_recommendation=None,
+            other_recommendations=None,
+            todo_list=None,
         )
         self.plants[plant_id] = plant
         return plant

@@ -6,6 +6,7 @@ from homeassistant.components.select import SelectEntity
 from homeassistant.config_entries import ConfigEntry
 from homeassistant.core import HomeAssistant
 from homeassistant.helpers.device_registry import DeviceInfo
+from homeassistant.helpers.entity import EntityCategory
 
 from .const import DOMAIN
 from .data import PlantsData
@@ -45,6 +46,7 @@ class PlantLightSelect(SelectEntity):
             manufacturer="Custom",
             model="Plant",
         )
+        self._attr_entity_category = EntityCategory.CONFIG
 
     @property
     def options(self) -> list[str]:
@@ -85,6 +87,7 @@ class PlantMoistureSelect(SelectEntity):
             manufacturer="Custom",
             model="Plant",
         )
+        self._attr_entity_category = EntityCategory.CONFIG
 
     @property
     def options(self) -> list[str]:
@@ -125,6 +128,7 @@ class PlantWaterSelect(SelectEntity):
             manufacturer="Custom",
             model="Plant",
         )
+        self._attr_entity_category = EntityCategory.CONFIG
 
     @property
     def options(self) -> list[str]:

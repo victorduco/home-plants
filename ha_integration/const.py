@@ -7,6 +7,7 @@ PLATFORMS: list[Platform] = [
     Platform.SENSOR,
     Platform.SELECT,
     Platform.SWITCH,
+    Platform.TEXT,
 ]
 STORAGE_VERSION = 1
 DEFAULT_SOIL_MOISTURE = 50.0
