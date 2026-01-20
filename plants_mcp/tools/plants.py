@@ -141,6 +141,25 @@ def _parse_plants_from_states(
     return plants
 
 
+def _collect_entity_ids(payload: Any) -> set[str]:
+    entity_ids: set[str] = set()
+    if isinstance(payload, dict):
+        for key, value in payload.items():
+            if key == "entity_id":
+                if isinstance(value, str):
+                    entity_ids.add(value)
+                elif isinstance(value, list):
+                    entity_ids.update(
+                        item for item in value if isinstance(item, str)
+                    )
+            else:
+                entity_ids.update(_collect_entity_ids(value))
+    elif isinstance(payload, list):
+        for item in payload:
+            entity_ids.update(_collect_entity_ids(item))
+    return entity_ids
+
+
 async def _select_option(entity_id: str, option: str) -> str | None:
     _, _, error = await _ha_request(
         "POST",
@@ -201,6 +220,53 @@ def register_plants_tools(mcp: FastMCP) -> None:
             if state.get("entity_id", "").startswith(("light.", "switch."))
         )
         return {"status": "success", "options": options}
+
+    @mcp.tool
+    async def get_plants_automation_status() -> dict[str, Any]:
+        """Return configured outlet entities and matching automations."""
+        states, error = await _get_states_list()
+        if error:
+            return {"status": "error", "error": error}
+        plants = _parse_plants_from_states(states)
+        outlet_entities: set[str] = set()
+        for plant in plants.values():
+            for key in ("light_outlet", "water_outlet"):
+                value = plant.get(key)
+                if value and value != "None":
+                    outlet_entities.add(value)
+        outlets = sorted(outlet_entities)
+        if not outlets:
+            return {"status": "success", "outlets": [], "automations": []}
+
+        _, automations, error = await _ha_request(
+            "GET",
+            "/api/config/automation/config",
+        )
+        if error:
+            return {"status": "error", "error": error}
+        if not isinstance(automations, list):
+            return {"status": "error", "error": "Unexpected automation response"}
+
+        matched = []
+        for automation in automations:
+            entity_ids = _collect_entity_ids(automation)
+            relevant = sorted(entity_ids.intersection(outlet_entities))
+            if not relevant:
+                continue
+            matched.append(
+                {
+                    "id": automation.get("id"),
+                    "alias": automation.get("alias"),
+                    "enabled": automation.get("enabled"),
+                    "matched_entities": relevant,
+                }
+            )
+        matched.sort(key=lambda item: item.get("alias") or "")
+        return {
+            "status": "success",
+            "outlets": outlets,
+            "automations": matched,
+        }
 
     @mcp.tool
     async def get_watering_history(
