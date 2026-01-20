@@ -207,7 +207,7 @@ def register_plants_tools(mcp: FastMCP) -> None:
         identifier: str,
         days: int = 60,
     ) -> dict[str, Any]:
-        """Return watering history for a plant (switch ON/OFF changes)."""
+        """Return watering history for a plant (manual + automatic)."""
         if days <= 0:
             return {"status": "error", "error": "Days must be positive"}
         states, error = await _get_states_list()
@@ -217,16 +217,22 @@ def register_plants_tools(mcp: FastMCP) -> None:
         plant_name = _match_plant_name(plants.keys(), identifier)
         if not plant_name:
             return {"status": "error", "error": "Plant not found"}
-        switch_entity_id = plants[plant_name].get("water_power_entity_id")
-        if not switch_entity_id:
-            return {"status": "error", "error": "Water switch not found"}
+        auto_switch_id = plants[plant_name].get("water_power_entity_id")
+        manual_switch_id = plants[plant_name].get("manual_watering_entity_id")
+        if not auto_switch_id and not manual_switch_id:
+            return {"status": "error", "error": "Water switches not found"}
         end_time = datetime.now(timezone.utc)
         start_time = end_time - timedelta(days=days)
+        filter_ids = [
+            entity_id
+            for entity_id in (auto_switch_id, manual_switch_id)
+            if entity_id
+        ]
         _, history, error = await _ha_request(
             "GET",
             f"/api/history/period/{start_time.isoformat()}",
             params={
-                "filter_entity_id": switch_entity_id,
+                "filter_entity_id": ",".join(filter_ids),
                 "end_time": end_time.isoformat(),
                 "minimal_response": "1",
             },
@@ -234,18 +240,29 @@ def register_plants_tools(mcp: FastMCP) -> None:
         if error:
             return {"status": "error", "error": error}
         entries = []
-        if isinstance(history, list) and history:
-            for item in history[0]:
-                entries.append(
-                    {
-                        "state": item.get("state"),
-                        "last_changed": item.get("last_changed"),
-                    }
-                )
+        if isinstance(history, list):
+            for entity_states in history:
+                for item in entity_states:
+                    state = item.get("state")
+                    if state != "on":
+                        continue
+                    entity_id = item.get("entity_id")
+                    if not entity_id:
+                        continue
+                    entry_type = "automatic" if entity_id == auto_switch_id else "manual"
+                    entries.append(
+                        {
+                            "type": entry_type,
+                            "state": state,
+                            "last_changed": item.get("last_changed"),
+                        }
+                    )
+        entries.sort(key=lambda item: item.get("last_changed", ""), reverse=True)
         return {
             "status": "success",
             "plant": plant_name,
-            "water_switch": switch_entity_id,
+            "water_switch": auto_switch_id,
+            "manual_switch": manual_switch_id,
             "history": entries,
         }
 
