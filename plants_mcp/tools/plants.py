@@ -58,15 +58,6 @@ async def _ha_request(
         )
 
 
-async def _get_config_entries(domain: str) -> tuple[list[dict[str, Any]], str | None]:
-    _, data, error = await _ha_request("GET", "/api/config/config_entries/entry")
-    if error:
-        return [], error
-    if not isinstance(data, list):
-        return [], "Unexpected config entries response"
-    return [entry for entry in data if entry.get("domain") == domain], None
-
-
 async def _get_states_list() -> tuple[list[dict[str, Any]], str | None]:
     _, data, error = await _ha_request("GET", "/api/states")
     if error:
@@ -147,50 +138,6 @@ def _parse_plants_from_states(
     return plants
 
 
-async def _get_plants_entry_id() -> tuple[str | None, str | None]:
-    entries, error = await _get_config_entries("plants")
-    if error:
-        return None, error
-    if not entries:
-        return None, "Plants config entry not found"
-    entry_id = entries[0].get("entry_id")
-    if not entry_id:
-        return None, "Plants entry_id missing"
-    return entry_id, None
-
-
-async def _run_options_flow(
-    entry_id: str,
-    next_step_id: str,
-    user_input: dict[str, Any],
-) -> tuple[dict[str, Any] | None, str | None]:
-    _, start, error = await _ha_request(
-        "POST",
-        "/api/config/config_entries/options/flow",
-        json={"entry_id": entry_id},
-    )
-    if error or not isinstance(start, dict):
-        return None, error or "Failed to start options flow"
-    flow_id = start.get("flow_id")
-    if not flow_id:
-        return None, "Missing flow_id"
-    _, _, error = await _ha_request(
-        "POST",
-        f"/api/config/config_entries/options/flow/{flow_id}",
-        json={"next_step_id": next_step_id},
-    )
-    if error:
-        return None, error
-    _, finish, error = await _ha_request(
-        "POST",
-        f"/api/config/config_entries/options/flow/{flow_id}",
-        json=user_input,
-    )
-    if error or not isinstance(finish, dict):
-        return None, error or "Failed to finish options flow"
-    return finish, None
-
-
 async def _select_option(entity_id: str, option: str) -> str | None:
     _, _, error = await _ha_request(
         "POST",
@@ -245,30 +192,24 @@ def register_plants_tools(mcp: FastMCP) -> None:
         name: str,
         moisture_entity_id: str = "",
     ) -> dict[str, Any]:
-        """Create a new plant device via the options flow."""
+        """Create a new plant device via the Plants service."""
         if not name.strip():
             return {"status": "error", "error": "Name is required"}
-        entry_id, error = await _get_plants_entry_id()
-        if error or not entry_id:
-            return {"status": "error", "error": error or "Plants entry not found"}
         user_input: dict[str, Any] = {"name": name.strip()}
         if moisture_entity_id.strip():
             user_input["moisture_entity_id"] = moisture_entity_id.strip()
-        finish, error = await _run_options_flow(
-            entry_id,
-            "add_plant",
-            user_input,
+        _, _, error = await _ha_request(
+            "POST",
+            "/api/services/plants/add_plant",
+            json=user_input,
         )
         if error:
             return {"status": "error", "error": error}
-        return {"status": "success", "result": finish}
+        return {"status": "success", "name": name.strip()}
 
     @mcp.tool
     async def delete_plant(identifier: str) -> dict[str, Any]:
-        """Delete a plant device via the options flow."""
-        entry_id, error = await _get_plants_entry_id()
-        if error:
-            return {"status": "error", "error": error}
+        """Delete a plant device via the Plants service."""
         states, error = await _get_states_list()
         if error:
             return {"status": "error", "error": error}
@@ -276,14 +217,14 @@ def register_plants_tools(mcp: FastMCP) -> None:
         plant_name = _match_plant_name(plants.keys(), identifier)
         if not plant_name:
             return {"status": "error", "error": "Plant not found"}
-        finish, error = await _run_options_flow(
-            entry_id,
-            "remove_plant",
-            {"plant_label": plant_name},
+        _, _, error = await _ha_request(
+            "POST",
+            "/api/services/plants/remove_plant",
+            json={"name": plant_name},
         )
         if error:
             return {"status": "error", "error": error}
-        return {"status": "success", "deleted": plant_name, "result": finish}
+        return {"status": "success", "deleted": plant_name}
 
     @mcp.tool
     async def set_plant_moisture_source(

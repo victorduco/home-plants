@@ -2,8 +2,11 @@
 
 from __future__ import annotations
 
+import voluptuous as vol
+
 from homeassistant.config_entries import ConfigEntry
 from homeassistant.core import HomeAssistant
+from homeassistant.helpers import config_validation as cv
 from homeassistant.helpers import device_registry as dr
 
 from .const import DOMAIN, PLATFORMS
@@ -23,6 +26,35 @@ async def async_setup_entry(hass: HomeAssistant, entry: ConfigEntry) -> bool:
             manufacturer="Custom",
             model="Plant",
         )
+    if not hass.services.async_has_service(DOMAIN, "add_plant"):
+        async def async_handle_add(call) -> None:
+            await _handle_add_plant(hass, entry, call)
+
+        hass.services.async_register(
+            DOMAIN,
+            "add_plant",
+            async_handle_add,
+            schema=vol.Schema(
+                {
+                    vol.Required("name"): cv.string,
+                    vol.Optional("moisture_entity_id"): cv.entity_id,
+                }
+            ),
+        )
+    if not hass.services.async_has_service(DOMAIN, "remove_plant"):
+        async def async_handle_remove(call) -> None:
+            await _handle_remove_plant(hass, entry, call)
+
+        hass.services.async_register(
+            DOMAIN,
+            "remove_plant",
+            async_handle_remove,
+            schema=vol.Schema(
+                {
+                    vol.Required("name"): cv.string,
+                }
+            ),
+        )
     await hass.config_entries.async_forward_entry_setups(entry, PLATFORMS)
     return True
 
@@ -33,3 +65,35 @@ async def async_unload_entry(hass: HomeAssistant, entry: ConfigEntry) -> bool:
     if unload_ok and DOMAIN in hass.data:
         hass.data.pop(DOMAIN, None)
     return unload_ok
+
+
+async def _handle_add_plant(
+    hass: HomeAssistant,
+    entry: ConfigEntry,
+    call,
+) -> None:
+    data: PlantsData = hass.data[DOMAIN]["data"]
+    data.add_plant(
+        name=call.data["name"],
+        moisture_entity_id=call.data.get("moisture_entity_id"),
+    )
+    await data.async_save()
+    await hass.config_entries.async_reload(entry.entry_id)
+
+
+async def _handle_remove_plant(
+    hass: HomeAssistant,
+    entry: ConfigEntry,
+    call,
+) -> None:
+    data: PlantsData = hass.data[DOMAIN]["data"]
+    name = call.data["name"].strip().lower()
+    plant_id = None
+    for pid, plant in data.plants.items():
+        if plant.name.lower() == name:
+            plant_id = pid
+            break
+    if plant_id:
+        data.remove_plant(plant_id)
+        await data.async_save()
+        await hass.config_entries.async_reload(entry.entry_id)
