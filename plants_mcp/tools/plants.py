@@ -2,6 +2,7 @@
 
 from __future__ import annotations
 
+from datetime import datetime, timedelta, timezone
 import os
 from typing import Any, Iterable
 
@@ -198,6 +199,53 @@ def register_plants_tools(mcp: FastMCP) -> None:
             if state.get("entity_id", "").startswith(("light.", "switch."))
         )
         return {"status": "success", "options": options}
+
+    @mcp.tool
+    async def get_watering_history(
+        identifier: str,
+        days: int = 7,
+    ) -> dict[str, Any]:
+        """Return watering history for a plant (switch ON/OFF changes)."""
+        if days <= 0:
+            return {"status": "error", "error": "Days must be positive"}
+        states, error = await _get_states_list()
+        if error:
+            return {"status": "error", "error": error}
+        plants = _parse_plants_from_states(states)
+        plant_name = _match_plant_name(plants.keys(), identifier)
+        if not plant_name:
+            return {"status": "error", "error": "Plant not found"}
+        switch_entity_id = plants[plant_name].get("water_power_entity_id")
+        if not switch_entity_id:
+            return {"status": "error", "error": "Water switch not found"}
+        end_time = datetime.now(timezone.utc)
+        start_time = end_time - timedelta(days=days)
+        _, history, error = await _ha_request(
+            "GET",
+            f"/api/history/period/{start_time.isoformat()}",
+            params={
+                "filter_entity_id": switch_entity_id,
+                "end_time": end_time.isoformat(),
+                "minimal_response": "1",
+            },
+        )
+        if error:
+            return {"status": "error", "error": error}
+        entries = []
+        if isinstance(history, list) and history:
+            for item in history[0]:
+                entries.append(
+                    {
+                        "state": item.get("state"),
+                        "last_changed": item.get("last_changed"),
+                    }
+                )
+        return {
+            "status": "success",
+            "plant": plant_name,
+            "water_switch": switch_entity_id,
+            "history": entries,
+        }
 
     @mcp.tool
     async def water_plant(identifier: str) -> dict[str, Any]:
