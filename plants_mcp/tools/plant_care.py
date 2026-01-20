@@ -25,10 +25,54 @@ def register_plant_care_tools(mcp: FastMCP) -> None:
         states, error = await get_states_list()
         if error:
             return {"status": "error", "error": error}
-        plants = list(parse_plants_from_states(states).values())
+        raw_plants = parse_plants_from_states(states)
+        plants = []
+        for plant_name, plant in raw_plants.items():
+            grouped = {
+                "controls": [],
+                "configuration": [],
+                "sensors": [],
+                "recommendations": [],
+            }
+            for entity in plant.get("entities", []):
+                entity_id = entity.get("entity_id", "")
+                attributes = entity.get("attributes", {})
+                name = attributes.get("friendly_name", entity_id)
+                unit = attributes.get("unit_of_measurement") or ""
+                value = entity.get("state")
+                display = f"{value} {unit}".strip() if value is not None else ""
+                entity_category = attributes.get("entity_category")
+                if entity_category == "diagnostic":
+                    category = "recommendations"
+                elif entity_category == "config":
+                    category = "configuration"
+                elif entity_id.startswith("switch."):
+                    category = "controls"
+                else:
+                    category = "sensors"
+                grouped[category].append(
+                    {
+                        "name": name,
+                        "value": display,
+                    }
+                )
+            for key in grouped:
+                grouped[key].sort(key=lambda item: item.get("name") or "")
+            plants.append({"name": plant_name, "fields": grouped})
         plants.sort(key=lambda plant: plant.get("name", ""))
 
         weather_entities = []
+        weather_blacklist = {
+            "sensor.openweathermap_apparent_temperature",
+            "sensor.openweathermap_dew_point_temperature",
+            "sensor.openweathermap_wind_speed",
+            "sensor.openweathermap_wind_gust_speed",
+            "sensor.openweathermap_wind_direction",
+            "sensor.openweathermap_pressure",
+            "sensor.openweathermap_snow_intensity",
+            "sensor.openweathermap_precipitation_kind",
+            "sensor.openweathermap_weather_code",
+        }
         for state in states:
             entity_id = state.get("entity_id", "")
             if not entity_id:
@@ -38,13 +82,30 @@ def register_plant_care_tools(mcp: FastMCP) -> None:
                 or "openweathermap" in entity_id
                 or entity_id == "sun.sun"
             ):
+                if entity_id in weather_blacklist:
+                    continue
                 attributes = state.get("attributes", {})
+                if entity_id == "sun.sun":
+                    for key, label in (
+                        ("next_rising", "Sun Next Rising"),
+                        ("next_setting", "Sun Next Setting"),
+                    ):
+                        if key in attributes:
+                            weather_entities.append(
+                                {"name": label, "value": attributes.get(key)}
+                            )
+                    continue
                 unit = attributes.get("unit_of_measurement") or ""
                 value = state.get("state")
                 display = f"{value} {unit}".strip() if value is not None else ""
+                name = attributes.get("friendly_name", entity_id)
+                if name.startswith("OpenWeatherMap "):
+                    name = name.replace("OpenWeatherMap ", "", 1)
+                if name == "OpenWeatherMap":
+                    name = "Weather"
                 weather_entities.append(
                     {
-                        "name": attributes.get("friendly_name", entity_id),
+                        "name": name,
                         "value": display,
                     }
                 )
