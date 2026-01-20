@@ -3,6 +3,7 @@
 from __future__ import annotations
 
 from datetime import datetime, timedelta, timezone
+import asyncio
 import os
 from typing import Any, Iterable
 
@@ -75,6 +76,7 @@ PLANT_SUFFIXES = {
     "water_outlet": "Water Outlet",
     "light_power": "Light Power",
     "water_power": "Water Power",
+    "manual_watering": "Manual Watering",
 }
 
 
@@ -248,8 +250,13 @@ def register_plants_tools(mcp: FastMCP) -> None:
         }
 
     @mcp.tool
-    async def water_plant(identifier: str) -> dict[str, Any]:
-        """Turn on the watering outlet for a plant."""
+    async def water_plant(
+        identifier: str,
+        duration_seconds: int,
+    ) -> dict[str, Any]:
+        """Turn on the watering outlet for a plant for a set duration."""
+        if duration_seconds <= 0:
+            return {"status": "error", "error": "Duration must be positive"}
         states, error = await _get_states_list()
         if error:
             return {"status": "error", "error": error}
@@ -260,10 +267,40 @@ def register_plants_tools(mcp: FastMCP) -> None:
         plant = plants[plant_name]
         switch_entity_id = plant.get("water_power_entity_id")
         if not switch_entity_id:
-            return {"status": "error", "error": "Water switch not found"}
+            return {
+                "status": "error",
+                "error": (
+                    "No watering device is configured for this plant. "
+                    "You can only water it manually."
+                ),
+            }
+        outlet_state = next(
+            (
+                state
+                for state in states
+                if state.get("entity_id") == switch_entity_id
+            ),
+            None,
+        )
+        if not outlet_state or outlet_state.get("state") == "unavailable":
+            return {
+                "status": "error",
+                "error": (
+                    "The watering device for this plant is unavailable. "
+                    "You can only water it manually."
+                ),
+            }
         _, _, error = await _ha_request(
             "POST",
             "/api/services/switch/turn_on",
+            json={"entity_id": switch_entity_id},
+        )
+        if error:
+            return {"status": "error", "error": error}
+        await asyncio.sleep(duration_seconds)
+        _, _, error = await _ha_request(
+            "POST",
+            "/api/services/switch/turn_off",
             json={"entity_id": switch_entity_id},
         )
         if error:
@@ -272,6 +309,41 @@ def register_plants_tools(mcp: FastMCP) -> None:
             "status": "success",
             "plant": plant_name,
             "water_switch": switch_entity_id,
+            "duration_seconds": duration_seconds,
+        }
+
+    @mcp.tool
+    async def manual_water_plant(
+        identifier: str,
+        state: str = "on",
+    ) -> dict[str, Any]:
+        """Toggle the manual watering switch for a plant."""
+        state_value = state.strip().lower()
+        if state_value not in {"on", "off"}:
+            return {"status": "error", "error": "State must be 'on' or 'off'"}
+        states, error = await _get_states_list()
+        if error:
+            return {"status": "error", "error": error}
+        plants = _parse_plants_from_states(states)
+        plant_name = _match_plant_name(plants.keys(), identifier)
+        if not plant_name:
+            return {"status": "error", "error": "Plant not found"}
+        switch_entity_id = plants[plant_name].get("manual_watering_entity_id")
+        if not switch_entity_id:
+            return {"status": "error", "error": "Manual watering switch not found"}
+        service = "turn_on" if state_value == "on" else "turn_off"
+        _, _, error = await _ha_request(
+            "POST",
+            f"/api/services/switch/{service}",
+            json={"entity_id": switch_entity_id},
+        )
+        if error:
+            return {"status": "error", "error": error}
+        return {
+            "status": "success",
+            "plant": plant_name,
+            "manual_switch": switch_entity_id,
+            "state": state_value,
         }
 
     @mcp.tool
