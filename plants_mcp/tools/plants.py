@@ -203,7 +203,7 @@ def register_plants_tools(mcp: FastMCP) -> None:
     @mcp.tool
     async def get_watering_history(
         identifier: str,
-        days: int = 7,
+        days: int = 60,
     ) -> dict[str, Any]:
         """Return watering history for a plant (switch ON/OFF changes)."""
         if days <= 0:
