@@ -100,6 +100,14 @@ def _match_plant_name(names: Iterable[str], identifier: str) -> str | None:
     return None
 
 
+def _sanitize_attributes(attributes: dict[str, Any]) -> dict[str, Any]:
+    if "options" not in attributes:
+        return attributes
+    cleaned = dict(attributes)
+    cleaned.pop("options", None)
+    return cleaned
+
+
 def _parse_plants_from_states(
     states: Iterable[dict[str, Any]],
 ) -> dict[str, dict[str, Any]]:
@@ -131,7 +139,7 @@ def _parse_plants_from_states(
             {
                 "entity_id": entity_id,
                 "state": state.get("state"),
-                "attributes": attributes,
+                "attributes": _sanitize_attributes(attributes),
             }
         )
         plant_info[f"{matched_key}_entity_id"] = entity_id
