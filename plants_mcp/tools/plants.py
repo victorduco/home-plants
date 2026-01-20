@@ -161,6 +161,45 @@ def register_plants_tools(mcp: FastMCP) -> None:
         return {"status": "success", "plants": plants}
 
     @mcp.tool
+    async def list_moisture_sources() -> dict[str, Any]:
+        """List available moisture source entities."""
+        states, error = await _get_states_list()
+        if error:
+            return {"status": "error", "error": error}
+        options = sorted(
+            state.get("entity_id")
+            for state in states
+            if state.get("entity_id", "").startswith(("sensor.", "number.", "input_number."))
+        )
+        return {"status": "success", "options": options}
+
+    @mcp.tool
+    async def list_light_outlets() -> dict[str, Any]:
+        """List available light outlet entities."""
+        states, error = await _get_states_list()
+        if error:
+            return {"status": "error", "error": error}
+        options = sorted(
+            state.get("entity_id")
+            for state in states
+            if state.get("entity_id", "").startswith(("light.", "switch."))
+        )
+        return {"status": "success", "options": options}
+
+    @mcp.tool
+    async def list_water_outlets() -> dict[str, Any]:
+        """List available water outlet entities."""
+        states, error = await _get_states_list()
+        if error:
+            return {"status": "error", "error": error}
+        options = sorted(
+            state.get("entity_id")
+            for state in states
+            if state.get("entity_id", "").startswith(("light.", "switch."))
+        )
+        return {"status": "success", "options": options}
+
+    @mcp.tool
     async def water_plant(identifier: str) -> dict[str, Any]:
         """Turn on the watering outlet for a plant."""
         states, error = await _get_states_list()

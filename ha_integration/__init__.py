@@ -8,6 +8,7 @@ from homeassistant.config_entries import ConfigEntry
 from homeassistant.core import HomeAssistant
 from homeassistant.helpers import config_validation as cv
 from homeassistant.helpers import device_registry as dr
+from homeassistant.helpers import entity_registry as er
 
 from .const import DOMAIN, PLATFORMS
 from .data import PlantsData
@@ -26,7 +27,8 @@ async def async_setup_entry(hass: HomeAssistant, entry: ConfigEntry) -> bool:
             manufacturer="Custom",
             model="Plant",
         )
-    if not hass.services.async_has_service(DOMAIN, "add_plant"):
+    services = hass.services.async_services()
+    if DOMAIN not in services or "add_plant" not in services[DOMAIN]:
         async def async_handle_add(call) -> None:
             await _handle_add_plant(hass, entry, call)
 
@@ -41,7 +43,8 @@ async def async_setup_entry(hass: HomeAssistant, entry: ConfigEntry) -> bool:
                 }
             ),
         )
-    if not hass.services.async_has_service(DOMAIN, "remove_plant"):
+    services = hass.services.async_services()
+    if DOMAIN not in services or "remove_plant" not in services[DOMAIN]:
         async def async_handle_remove(call) -> None:
             await _handle_remove_plant(hass, entry, call)
 
@@ -93,7 +96,33 @@ async def _handle_remove_plant(
         if plant.name.lower() == name:
             plant_id = pid
             break
+    device_registry = dr.async_get(hass)
+    entity_registry = er.async_get(hass)
     if plant_id:
+        device = device_registry.async_get_device(
+            identifiers={(DOMAIN, f"plant_{plant_id}")}
+        )
+        if device:
+            for entry_item in er.async_entries_for_device(
+                entity_registry,
+                device.id,
+                include_disabled_entities=True,
+            ):
+                entity_registry.async_remove(entry_item.entity_id)
+            device_registry.async_remove_device(device.id)
         data.remove_plant(plant_id)
         await data.async_save()
         await hass.config_entries.async_reload(entry.entry_id)
+        return
+
+    # If storage is already missing the plant, still clean stale registry entries.
+    for device in device_registry.devices.values():
+        if device.name and device.name.lower() == name:
+            if any(identifier[0] == DOMAIN for identifier in device.identifiers):
+                for entry_item in er.async_entries_for_device(
+                    entity_registry,
+                    device.id,
+                    include_disabled_entities=True,
+                ):
+                    entity_registry.async_remove(entry_item.entity_id)
+                device_registry.async_remove_device(device.id)
