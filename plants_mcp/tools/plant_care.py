@@ -44,8 +44,8 @@ def register_plant_care_tools(mcp: FastMCP) -> None:
                 display = f"{value} {unit}".strip() if value is not None else ""
                 weather_entities.append(
                     {
-                        "entity_id": entity_id,
-                        "friendly_name": display,
+                        "name": attributes.get("friendly_name", entity_id),
+                        "value": display,
                     }
                 )
         weather_entities.sort(key=lambda item: item.get("entity_id") or "")
