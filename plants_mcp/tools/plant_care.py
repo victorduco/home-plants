@@ -38,13 +38,14 @@ def register_plant_care_tools(mcp: FastMCP) -> None:
                 or "openweathermap" in entity_id
                 or entity_id == "sun.sun"
             ):
+                attributes = state.get("attributes", {})
+                unit = attributes.get("unit_of_measurement") or ""
+                value = state.get("state")
+                display = f"{value} {unit}".strip() if value is not None else ""
                 weather_entities.append(
                     {
                         "entity_id": entity_id,
-                        "state": state.get("state"),
-                        "attributes": sanitize_attributes(
-                            state.get("attributes", {})
-                        ),
+                        "friendly_name": display,
                     }
                 )
         weather_entities.sort(key=lambda item: item.get("entity_id") or "")
