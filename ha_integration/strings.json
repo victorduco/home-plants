@@ -2,25 +2,52 @@
   "config": {
     "step": {
       "user": {
-        "title": "Add plants integration",
-        "description": "Create a single Plants entry.",
-        "data": {
-          "name": "Default plant name"
-        }
+        "title": "Set up Plants",
+        "description": "Create the Plants hub."
       }
     },
-    "error": {
-      "required": "Name is required"
-    },
     "abort": {
-      "single_instance_allowed": "Only one Plants entry is allowed."
+      "single_instance_allowed": "Only one Plants hub is allowed."
     }
   },
-  "services": {
-    "error": {
-      "entry_not_found": "No Plants entry found.",
-      "plant_not_found": "Plant not found.",
-      "lamp_not_found": "Lamp not found."
+  "options": {
+    "step": {
+      "init": {
+        "title": "Manage devices",
+        "menu_options": {
+          "add_plant": "Add plant",
+          "remove_plant": "Remove plant",
+          "set_moisture_entity": "Set moisture entity",
+          "set_light_entity": "Set light outlet"
+        }
+      },
+      "add_plant": {
+        "title": "Add plant",
+        "data": {
+          "name": "Plant name",
+          "moisture_entity_id": "Moisture entity (optional)"
+        }
+      },
+      "remove_plant": {
+        "title": "Remove plant",
+        "data": {
+          "plant_label": "Plant"
+        }
+      },
+      "set_moisture_entity": {
+        "title": "Set moisture entity",
+        "data": {
+          "plant_label": "Plant",
+          "moisture_entity_id": "Moisture entity (optional)"
+        }
+      },
+      "set_light_entity": {
+        "title": "Set light outlet",
+        "data": {
+          "plant_label": "Plant",
+          "light_entity_id": "Light outlet (optional)"
+        }
+      }
     }
   }
 }

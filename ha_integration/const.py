@@ -5,8 +5,7 @@ from homeassistant.const import Platform
 DOMAIN = "plants"
 PLATFORMS: list[Platform] = [
     Platform.SENSOR,
-    Platform.NUMBER,
-    Platform.DATETIME,
+    Platform.SELECT,
     Platform.SWITCH,
 ]
 STORAGE_VERSION = 1
@@ -15,3 +14,4 @@ DEFAULT_LOCATION_X = 0.0
 DEFAULT_LOCATION_Y = 0.0
 DEFAULT_LAMP_POSITION_X = 0.0
 DEFAULT_LAMP_POSITION_Y = 0.0
+LAMP_PLANT_SLOTS = 4
