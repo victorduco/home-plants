@@ -7,6 +7,7 @@ from typing import Any
 from fastmcp import FastMCP
 
 from .common import (
+    PLANT_SUFFIXES,
     delay,
     get_states_list,
     ha_request,
@@ -18,6 +19,12 @@ from .common import (
 
 def register_plant_care_tools(mcp: FastMCP) -> None:
     """Register plant care tools."""
+
+    def _strip_plant_name(friendly_name: str) -> str:
+        for suffix in PLANT_SUFFIXES.values():
+            if friendly_name.endswith(f" {suffix}"):
+                return suffix
+        return friendly_name
 
     @mcp.tool
     async def plant_care___full_status() -> dict[str, Any]:
@@ -41,24 +48,26 @@ def register_plant_care_tools(mcp: FastMCP) -> None:
                 unit = attributes.get("unit_of_measurement") or ""
                 value = entity.get("state")
                 display = f"{value} {unit}".strip() if value is not None else ""
-                entity_category = attributes.get("entity_category")
-                if entity_category == "diagnostic":
+                domain = entity_id.split(".", 1)[0] if entity_id else ""
+                if domain == "text":
                     category = "recommendations"
-                elif entity_category == "config":
+                elif domain == "select":
                     category = "configuration"
-                elif entity_id.startswith("switch."):
+                elif domain == "switch":
                     category = "controls"
                 else:
                     category = "sensors"
                 grouped[category].append(
                     {
-                        "name": name,
+                        "name": _strip_plant_name(name),
                         "value": display,
                     }
                 )
-            for key in grouped:
-                grouped[key].sort(key=lambda item: item.get("name") or "")
-            plants.append({"name": plant_name, "fields": grouped})
+            normalized = {}
+            for key, items in grouped.items():
+                items.sort(key=lambda item: item.get("name") or "")
+                normalized[key] = {item["name"]: item["value"] for item in items}
+            plants.append({"name": plant_name, "fields": normalized})
         plants.sort(key=lambda plant: plant.get("name", ""))
 
         weather_entities = []
