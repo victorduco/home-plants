@@ -11,13 +11,22 @@ import uuid
 import httpx
 
 PLANT_SUFFIXES = {
-    "moisture": "Moisture",
-    "moisture_source": "Moisture Source",
-    "light_outlet": "Light Outlet",
-    "water_outlet": "Water Outlet",
-    "light_power": "Light Power",
-    "water_power": "Water Power",
-    "manual_watering": "Manual Watering",
+    "moisture": "Soil Moisture State",
+    "moisture_source": "Soil Moisture Device Source",
+    "humidity": "Air Humidity Meter",
+    "humidity_source": "Air Humidity Meter Source",
+    "air_temperature": "Air Temperature Meter",
+    "air_temperature_source": "Air Temperature Meter Source",
+    "light_outlet": "Grow Light Device Source",
+    "water_outlet": "Auto Watering Device Source",
+    "light_power": "Grow Light Control",
+    "water_power": "Auto Watering Control",
+    "manual_watering": "Manual Watering Control",
+    "light_state": "Grow Light State",
+    "auto_watering_state": "Auto Watering State",
+    "humidifier_state": "Air Humidifier State",
+    "humidifier_control": "Air Humidifier Control",
+    "humidifier_source": "Air Humidifier Device Source",
     "watering_frequency_recommendation": (
         "Watering Frequency Recommendation (e.g., once a week)"
     ),

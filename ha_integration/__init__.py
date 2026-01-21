@@ -13,12 +13,36 @@ from homeassistant.helpers import entity_registry as er
 from .const import DOMAIN, PLATFORMS
 from .data import PlantsData
 
+LEGACY_ENTITY_SUFFIXES: dict[str, tuple[str, ...]] = {
+    "sensor": (
+        "light_device",
+        "auto_watering_device",
+        "moisture_device",
+        "humidifier_device",
+        "moisture_state",
+    ),
+    "switch": ("moisture_device_control",),
+}
+
+
+def _cleanup_legacy_entities(
+    entity_registry: er.EntityRegistry,
+    plant_id: str,
+) -> None:
+    for domain, suffixes in LEGACY_ENTITY_SUFFIXES.items():
+        for suffix in suffixes:
+            unique_id = f"plant_{plant_id}_{suffix}"
+            entity_id = entity_registry.async_get_entity_id(domain, DOMAIN, unique_id)
+            if entity_id:
+                entity_registry.async_remove(entity_id)
+
 
 async def async_setup_entry(hass: HomeAssistant, entry: ConfigEntry) -> bool:
     """Set up Plants from a config entry."""
     data = await PlantsData.async_load(hass)
     hass.data.setdefault(DOMAIN, {})["data"] = data
     device_registry = dr.async_get(hass)
+    entity_registry = er.async_get(hass)
     for plant in data.plants.values():
         device_registry.async_get_or_create(
             config_entry_id=entry.entry_id,
@@ -27,6 +51,7 @@ async def async_setup_entry(hass: HomeAssistant, entry: ConfigEntry) -> bool:
             manufacturer="Custom",
             model="Plant",
         )
+        _cleanup_legacy_entities(entity_registry, plant.plant_id)
     services = hass.services.async_services()
     if DOMAIN not in services or "add_plant" not in services[DOMAIN]:
         async def async_handle_add(call) -> None:

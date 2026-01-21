@@ -25,7 +25,7 @@
         "title": "Add plant",
         "data": {
           "name": "Plant name",
-          "moisture_entity_id": "Moisture entity (optional)"
+          "moisture_entity_id": "Soil moisture entity (optional)"
         }
       },
       "remove_plant": {
@@ -38,14 +38,14 @@
         "title": "Set moisture entity",
         "data": {
           "plant_label": "Plant",
-          "moisture_entity_id": "Moisture entity (optional)"
+          "moisture_entity_id": "Soil moisture entity (optional)"
         }
       },
       "set_light_entity": {
         "title": "Set light outlet",
         "data": {
           "plant_label": "Plant",
-          "light_entity_id": "Light outlet (optional)"
+          "light_entity_id": "Grow Light outlet (optional)"
         }
       }
     }

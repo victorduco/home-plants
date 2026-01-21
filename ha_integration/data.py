@@ -20,8 +20,11 @@ class Plant:
     plant_id: str
     name: str
     moisture_entity_id: str | None
+    humidity_entity_id: str | None
+    air_temperature_entity_id: str | None
     light_entity_id: str | None
     water_entity_id: str | None
+    humidifier_entity_id: str | None
     watering_frequency_recommendation: str | None
     soil_moisture_recommendation: str | None
     air_temperature_recommendation: str | None
@@ -50,8 +53,11 @@ class PlantsData:
                     plant_id=plant_id,
                     name=name,
                     moisture_entity_id=None,
+                    humidity_entity_id=None,
+                    air_temperature_entity_id=None,
                     light_entity_id=None,
                     water_entity_id=None,
+                    humidifier_entity_id=None,
                     watering_frequency_recommendation=None,
                     soil_moisture_recommendation=None,
                     air_temperature_recommendation=None,
@@ -74,8 +80,11 @@ class PlantsData:
                 plant_id=plant_id,
                 name=item.get("name") or plant_id,
                 moisture_entity_id=item.get("moisture_entity_id"),
+                humidity_entity_id=item.get("humidity_entity_id"),
+                air_temperature_entity_id=item.get("air_temperature_entity_id"),
                 light_entity_id=item.get("light_entity_id"),
                 water_entity_id=item.get("water_entity_id"),
+                humidifier_entity_id=item.get("humidifier_entity_id"),
                 watering_frequency_recommendation=item.get(
                     "watering_frequency_recommendation"
                 ),
@@ -99,8 +108,11 @@ class PlantsData:
                     "id": plant.plant_id,
                     "name": plant.name,
                     "moisture_entity_id": plant.moisture_entity_id,
+                    "humidity_entity_id": plant.humidity_entity_id,
+                    "air_temperature_entity_id": plant.air_temperature_entity_id,
                     "light_entity_id": plant.light_entity_id,
                     "water_entity_id": plant.water_entity_id,
+                    "humidifier_entity_id": plant.humidifier_entity_id,
                     "watering_frequency_recommendation": (
                         plant.watering_frequency_recommendation
                     ),
@@ -132,8 +144,11 @@ class PlantsData:
             plant_id=plant_id,
             name=name,
             moisture_entity_id=moisture_entity_id,
+            humidity_entity_id=None,
+            air_temperature_entity_id=None,
             light_entity_id=None,
             water_entity_id=None,
+            humidifier_entity_id=None,
             watering_frequency_recommendation=None,
             soil_moisture_recommendation=None,
             air_temperature_recommendation=None,
@@ -153,6 +168,20 @@ class PlantsData:
         if plant_id in self.plants:
             self.plants[plant_id].moisture_entity_id = entity_id
 
+    def set_plant_humidity(self, plant_id: str, entity_id: str | None) -> None:
+        """Set plant humidity entity."""
+        if plant_id in self.plants:
+            self.plants[plant_id].humidity_entity_id = entity_id
+
+    def set_plant_air_temperature(
+        self,
+        plant_id: str,
+        entity_id: str | None,
+    ) -> None:
+        """Set plant air temperature entity."""
+        if plant_id in self.plants:
+            self.plants[plant_id].air_temperature_entity_id = entity_id
+
     def set_plant_light(self, plant_id: str, entity_id: str | None) -> None:
         """Set plant light entity."""
         if plant_id in self.plants:
@@ -162,3 +191,8 @@ class PlantsData:
         """Set plant water entity."""
         if plant_id in self.plants:
             self.plants[plant_id].water_entity_id = entity_id
+
+    def set_plant_humidifier(self, plant_id: str, entity_id: str | None) -> None:
+        """Set plant humidifier entity."""
+        if plant_id in self.plants:
+            self.plants[plant_id].humidifier_entity_id = entity_id
