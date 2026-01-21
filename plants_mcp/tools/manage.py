@@ -86,7 +86,7 @@ def register_manage_tools(mcp: FastMCP) -> None:
 
             domain = entity_id.split(".")[0]
             category = "diagnostics"
-            if domain == "switch":
+            if domain in {"switch", "valve"}:
                 category = "controls"
             elif domain == "select":
                 category = "configuration"

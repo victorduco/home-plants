@@ -7,6 +7,7 @@ PLATFORMS: list[Platform] = [
     Platform.SENSOR,
     Platform.SELECT,
     Platform.SWITCH,
+    Platform.VALVE,
     Platform.TEXT,
 ]
 STORAGE_VERSION = 1

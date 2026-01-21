@@ -21,7 +21,7 @@ LEGACY_ENTITY_SUFFIXES: dict[str, tuple[str, ...]] = {
         "humidifier_device",
         "moisture_state",
     ),
-    "switch": ("moisture_device_control",),
+    "switch": ("moisture_device_control", "water_power"),
 }
 
 
@@ -35,6 +35,15 @@ def _cleanup_legacy_entities(
             entity_id = entity_registry.async_get_entity_id(domain, DOMAIN, unique_id)
             if entity_id:
                 entity_registry.async_remove(entity_id)
+
+    # Remove old switch-based auto watering controls after migrating to valve.
+    for entry in list(entity_registry.entities.values()):
+        if entry.platform != DOMAIN:
+            continue
+        if entry.entity_id.startswith("switch.") and entry.unique_id.endswith(
+            "_water_power"
+        ):
+            entity_registry.async_remove(entry.entity_id)
 
 
 async def async_setup_entry(hass: HomeAssistant, entry: ConfigEntry) -> bool:

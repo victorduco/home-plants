@@ -151,7 +151,7 @@ def register_plant_care_tools(mcp: FastMCP) -> None:
                     category = "recommendations"
                 elif domain == "select":
                     category = "configuration"
-                elif domain == "switch":
+                elif domain in {"switch", "valve"}:
                     category = "controls"
                 else:
                     category = "sensors"
