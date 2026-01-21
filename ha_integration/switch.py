@@ -20,7 +20,10 @@ async def async_setup_entry(
     async_add_entities,
 ) -> None:
     """Set up Plants switch entities from a config entry."""
-    data: PlantsData = hass.data[DOMAIN]["data"]
+    entry_data = hass.data[DOMAIN][entry.entry_id]
+    if entry_data["type"] == "meter_locations":
+        return
+    data: PlantsData = entry_data["data"]
     entities = []
     for plant_id in data.plants:
         entities.append(PlantLightSwitch(data, plant_id))
@@ -67,6 +70,8 @@ class PlantLightSwitch(SwitchEntity):
         state = self.hass.states.get(outlet)
         if state is None:
             return False
+        if outlet.split(".")[0] == "valve":
+            return state.state in ("open", "opening")
         return state.state == STATE_ON
 
     async def async_turn_on(self, **kwargs) -> None:
@@ -139,8 +144,9 @@ class PlantWaterSwitch(SwitchEntity):
         if not outlet:
             return
         domain = outlet.split(".")[0]
+        service = "open_valve" if domain == "valve" else "turn_on"
         await self.hass.services.async_call(
-            domain, "turn_on", {"entity_id": outlet}, blocking=True
+            domain, service, {"entity_id": outlet}, blocking=True
         )
 
     async def async_turn_off(self, **kwargs) -> None:
@@ -148,8 +154,9 @@ class PlantWaterSwitch(SwitchEntity):
         if not outlet:
             return
         domain = outlet.split(".")[0]
+        service = "close_valve" if domain == "valve" else "turn_off"
         await self.hass.services.async_call(
-            domain, "turn_off", {"entity_id": outlet}, blocking=True
+            domain, service, {"entity_id": outlet}, blocking=True
         )
 
     async def async_added_to_hass(self) -> None:

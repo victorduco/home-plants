@@ -3,11 +3,15 @@
     "step": {
       "user": {
         "title": "Set up Plants",
-        "description": "Create the Plants hub."
+        "description": "Choose what to set up.",
+        "data": {
+          "entry_type": "Entry type"
+        }
       }
     },
     "abort": {
-      "single_instance_allowed": "Only one Plants hub is allowed."
+      "plants_instance_allowed": "Only one Plants entry is allowed.",
+      "meter_locations_instance_allowed": "Only one meter locations entry is allowed."
     }
   },
   "options": {
@@ -17,6 +21,8 @@
         "menu_options": {
           "add_plant": "Add plant",
           "remove_plant": "Remove plant",
+          "add_meter_location": "Add meter location",
+          "remove_meter_location": "Remove meter location",
           "set_moisture_entity": "Set moisture entity",
           "set_light_entity": "Set light outlet"
         }
@@ -47,7 +53,26 @@
           "plant_label": "Plant",
           "light_entity_id": "Grow Light outlet (optional)"
         }
+      },
+      "add_meter_location": {
+        "title": "Add meter location",
+        "data": {
+          "name": "Location name",
+          "air_temperature_entity_id": "Air temperature entity (optional)",
+          "air_humidity_entity_id": "Air humidity entity (optional)",
+          "description": "Location description (optional)",
+          "comments": "Comments (optional)"
+        }
+      },
+      "remove_meter_location": {
+        "title": "Remove meter location",
+        "data": {
+          "location_label": "Location"
+        }
       }
+    },
+    "error": {
+      "select_at_least_one": "Select at least one meter entity."
     }
   }
 }

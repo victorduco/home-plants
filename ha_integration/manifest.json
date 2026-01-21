@@ -5,5 +5,5 @@
   "config_flow": true,
   "documentation": "https://example.invalid/plants",
   "integration_type": "device",
-  "single_config_entry": true
+  "single_config_entry": false
 }

@@ -11,7 +11,7 @@ from homeassistant.helpers import device_registry as dr
 from homeassistant.helpers import entity_registry as er
 
 from .const import DOMAIN, PLATFORMS
-from .data import PlantsData
+from .data import MeterLocationsData, PlantsData
 
 LEGACY_ENTITY_SUFFIXES: dict[str, tuple[str, ...]] = {
     "sensor": (
@@ -39,50 +39,64 @@ def _cleanup_legacy_entities(
 
 async def async_setup_entry(hass: HomeAssistant, entry: ConfigEntry) -> bool:
     """Set up Plants from a config entry."""
-    data = await PlantsData.async_load(hass)
-    hass.data.setdefault(DOMAIN, {})["data"] = data
+    entry_type = entry.data.get("entry_type", "plants")
+    hass.data.setdefault(DOMAIN, {})
     device_registry = dr.async_get(hass)
     entity_registry = er.async_get(hass)
-    for plant in data.plants.values():
-        device_registry.async_get_or_create(
-            config_entry_id=entry.entry_id,
-            identifiers={(DOMAIN, f"plant_{plant.plant_id}")},
-            name=plant.name,
-            manufacturer="Custom",
-            model="Plant",
-        )
-        _cleanup_legacy_entities(entity_registry, plant.plant_id)
-    services = hass.services.async_services()
-    if DOMAIN not in services or "add_plant" not in services[DOMAIN]:
-        async def async_handle_add(call) -> None:
-            await _handle_add_plant(hass, entry, call)
+    if entry_type == "meter_locations":
+        data = await MeterLocationsData.async_load(hass)
+        hass.data[DOMAIN][entry.entry_id] = {"type": entry_type, "data": data}
+        for location in data.meter_locations.values():
+            device_registry.async_get_or_create(
+                config_entry_id=entry.entry_id,
+                identifiers={(DOMAIN, f"meter_location_{location.location_id}")},
+                name=location.name,
+                manufacturer="Custom",
+                model="Meter Location",
+            )
+    else:
+        data = await PlantsData.async_load(hass)
+        hass.data[DOMAIN][entry.entry_id] = {"type": entry_type, "data": data}
+        for plant in data.plants.values():
+            device_registry.async_get_or_create(
+                config_entry_id=entry.entry_id,
+                identifiers={(DOMAIN, f"plant_{plant.plant_id}")},
+                name=plant.name,
+                manufacturer="Custom",
+                model="Plant",
+            )
+            _cleanup_legacy_entities(entity_registry, plant.plant_id)
+        services = hass.services.async_services()
+        if DOMAIN not in services or "add_plant" not in services[DOMAIN]:
+            async def async_handle_add(call) -> None:
+                await _handle_add_plant(hass, entry, call)
 
-        hass.services.async_register(
-            DOMAIN,
-            "add_plant",
-            async_handle_add,
-            schema=vol.Schema(
-                {
-                    vol.Required("name"): cv.string,
-                    vol.Optional("moisture_entity_id"): cv.entity_id,
-                }
-            ),
-        )
-    services = hass.services.async_services()
-    if DOMAIN not in services or "remove_plant" not in services[DOMAIN]:
-        async def async_handle_remove(call) -> None:
-            await _handle_remove_plant(hass, entry, call)
+            hass.services.async_register(
+                DOMAIN,
+                "add_plant",
+                async_handle_add,
+                schema=vol.Schema(
+                    {
+                        vol.Required("name"): cv.string,
+                        vol.Optional("moisture_entity_id"): cv.entity_id,
+                    }
+                ),
+            )
+        services = hass.services.async_services()
+        if DOMAIN not in services or "remove_plant" not in services[DOMAIN]:
+            async def async_handle_remove(call) -> None:
+                await _handle_remove_plant(hass, entry, call)
 
-        hass.services.async_register(
-            DOMAIN,
-            "remove_plant",
-            async_handle_remove,
-            schema=vol.Schema(
-                {
-                    vol.Required("name"): cv.string,
-                }
-            ),
-        )
+            hass.services.async_register(
+                DOMAIN,
+                "remove_plant",
+                async_handle_remove,
+                schema=vol.Schema(
+                    {
+                        vol.Required("name"): cv.string,
+                    }
+                ),
+            )
     await hass.config_entries.async_forward_entry_setups(entry, PLATFORMS)
     return True
 
@@ -91,7 +105,7 @@ async def async_unload_entry(hass: HomeAssistant, entry: ConfigEntry) -> bool:
     """Unload a Plants config entry."""
     unload_ok = await hass.config_entries.async_unload_platforms(entry, PLATFORMS)
     if unload_ok and DOMAIN in hass.data:
-        hass.data.pop(DOMAIN, None)
+        hass.data[DOMAIN].pop(entry.entry_id, None)
     return unload_ok
 
 
@@ -100,7 +114,7 @@ async def _handle_add_plant(
     entry: ConfigEntry,
     call,
 ) -> None:
-    data: PlantsData = hass.data[DOMAIN]["data"]
+    data: PlantsData = hass.data[DOMAIN][entry.entry_id]["data"]
     data.add_plant(
         name=call.data["name"],
         moisture_entity_id=call.data.get("moisture_entity_id"),
@@ -114,7 +128,7 @@ async def _handle_remove_plant(
     entry: ConfigEntry,
     call,
 ) -> None:
-    data: PlantsData = hass.data[DOMAIN]["data"]
+    data: PlantsData = hass.data[DOMAIN][entry.entry_id]["data"]
     name = call.data["name"].strip().lower()
     plant_id = None
     for pid, plant in data.plants.items():

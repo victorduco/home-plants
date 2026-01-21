@@ -8,7 +8,7 @@ from homeassistant.core import HomeAssistant
 from homeassistant.helpers.device_registry import DeviceInfo
 
 from .const import DOMAIN
-from .data import PlantsData
+from .data import MeterLocationsData, PlantsData
 
 
 async def async_setup_entry(
@@ -17,15 +17,22 @@ async def async_setup_entry(
     async_add_entities,
 ) -> None:
     """Set up Plants sensors from a config entry."""
-    data: PlantsData = hass.data[DOMAIN]["data"]
+    entry_data = hass.data[DOMAIN][entry.entry_id]
+    entry_type = entry_data["type"]
+    data = entry_data["data"]
     entities: list[SensorEntity] = []
-    for plant_id in data.plants:
-        entities.append(PlantMoistureSensor(data, plant_id))
-        entities.append(PlantHumiditySensor(data, plant_id))
-        entities.append(PlantAirTemperatureSensor(data, plant_id))
-        entities.append(PlantLightStateSensor(data, plant_id))
-        entities.append(PlantAutoWateringStateSensor(data, plant_id))
-        entities.append(PlantHumidifierStateSensor(data, plant_id))
+    if entry_type == "meter_locations":
+        for location_id in data.meter_locations:
+            entities.append(LocationAirHumiditySensor(data, location_id))
+            entities.append(LocationAirTemperatureSensor(data, location_id))
+    else:
+        for plant_id in data.plants:
+            entities.append(PlantMoistureSensor(data, plant_id))
+            entities.append(PlantHumiditySensor(data, plant_id))
+            entities.append(PlantAirTemperatureSensor(data, plant_id))
+            entities.append(PlantLightStateSensor(data, plant_id))
+            entities.append(PlantAutoWateringStateSensor(data, plant_id))
+            entities.append(PlantHumidifierStateSensor(data, plant_id))
     if entities:
         async_add_entities(entities)
 
@@ -248,3 +255,101 @@ class PlantAirTemperatureSensor(SensorEntity):
     def extra_state_attributes(self) -> dict:
         plant = self._data.plants[self._plant_id]
         return {"air_temperature_entity_id": plant.air_temperature_entity_id}
+
+
+class LocationAirHumiditySensor(SensorEntity):
+    """Sensor mirroring the configured air humidity meter for a location."""
+
+    def __init__(self, data: MeterLocationsData, location_id: str) -> None:
+        self._data = data
+        self._location_id = location_id
+        location = data.meter_locations[location_id]
+        self._attr_name = f"{location.name} Air Humidity Meter"
+        self._attr_unique_id = f"meter_location_{location_id}_air_humidity"
+        self._attr_device_info = DeviceInfo(
+            identifiers={(DOMAIN, f"meter_location_{location_id}")},
+            name=location.name,
+            manufacturer="Custom",
+            model="Meter Location",
+        )
+
+    @property
+    def native_value(self):
+        entity_id = self._data.meter_locations[
+            self._location_id
+        ].air_humidity_entity_id
+        if not entity_id or not self.hass:
+            return "No air humidity meter for this location."
+        state = self.hass.states.get(entity_id)
+        if state is None or state.state in ("unknown", "unavailable"):
+            return "No air humidity meter for this location."
+        try:
+            return float(state.state)
+        except ValueError:
+            return state.state
+
+    @property
+    def native_unit_of_measurement(self):
+        entity_id = self._data.meter_locations[
+            self._location_id
+        ].air_humidity_entity_id
+        if not entity_id or not self.hass:
+            return None
+        state = self.hass.states.get(entity_id)
+        if not state:
+            return None
+        return state.attributes.get("unit_of_measurement")
+
+    @property
+    def extra_state_attributes(self) -> dict:
+        location = self._data.meter_locations[self._location_id]
+        return {"air_humidity_entity_id": location.air_humidity_entity_id}
+
+
+class LocationAirTemperatureSensor(SensorEntity):
+    """Sensor mirroring the configured air temperature meter for a location."""
+
+    def __init__(self, data: MeterLocationsData, location_id: str) -> None:
+        self._data = data
+        self._location_id = location_id
+        location = data.meter_locations[location_id]
+        self._attr_name = f"{location.name} Air Temperature Meter"
+        self._attr_unique_id = f"meter_location_{location_id}_air_temperature"
+        self._attr_device_info = DeviceInfo(
+            identifiers={(DOMAIN, f"meter_location_{location_id}")},
+            name=location.name,
+            manufacturer="Custom",
+            model="Meter Location",
+        )
+
+    @property
+    def native_value(self):
+        entity_id = self._data.meter_locations[
+            self._location_id
+        ].air_temperature_entity_id
+        if not entity_id or not self.hass:
+            return "No air temperature meter for this location."
+        state = self.hass.states.get(entity_id)
+        if state is None or state.state in ("unknown", "unavailable"):
+            return "No air temperature meter for this location."
+        try:
+            return float(state.state)
+        except ValueError:
+            return state.state
+
+    @property
+    def native_unit_of_measurement(self):
+        entity_id = self._data.meter_locations[
+            self._location_id
+        ].air_temperature_entity_id
+        if not entity_id or not self.hass:
+            return None
+        state = self.hass.states.get(entity_id)
+        if not state:
+            return None
+        return state.attributes.get("unit_of_measurement")
+
+    @property
+    def extra_state_attributes(self) -> dict:
+        location = self._data.meter_locations[self._location_id]
+        return {"air_temperature_entity_id": location.air_temperature_entity_id}
