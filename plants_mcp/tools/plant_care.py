@@ -47,6 +47,43 @@ def register_plant_care_tools(mcp: FastMCP) -> None:
             return items
         return [item for item in payload if isinstance(item, dict)]
 
+    def _build_watering_events(
+        entries: list[dict[str, Any]],
+        kind: str,
+    ) -> list[dict[str, Any]]:
+        events: list[dict[str, Any]] = []
+        current_start: datetime | None = None
+        for entry in entries:
+            state = entry.get("state")
+            ts = _parse_timestamp(
+                entry.get("last_changed") or entry.get("last_updated") or ""
+            )
+            if not ts:
+                continue
+            if state == "on" and current_start is None:
+                current_start = ts
+            elif state != "on" and current_start is not None:
+                duration = int((ts - current_start).total_seconds())
+                events.append(
+                    {
+                        "type": kind,
+                        "start": current_start.isoformat(),
+                        "end": ts.isoformat(),
+                        "duration_seconds": duration,
+                    }
+                )
+                current_start = None
+        if current_start is not None:
+            events.append(
+                {
+                    "type": kind,
+                    "start": current_start.isoformat(),
+                    "end": None,
+                    "duration_seconds": None,
+                }
+            )
+        return events
+
     @mcp.tool
     async def plant_care___full_status() -> dict[str, Any]:
         """Return full info for all plants (empty if none)."""
@@ -54,6 +91,46 @@ def register_plant_care_tools(mcp: FastMCP) -> None:
         if error:
             return {"status": "error", "error": error}
         raw_plants = parse_plants_from_states(states)
+        watering_entities: dict[str, dict[str, str | None]] = {}
+        watering_ids: list[str] = []
+        for plant_name, plant in raw_plants.items():
+            auto_id = plant.get("water_power_entity_id")
+            manual_id = plant.get("manual_watering_entity_id")
+            watering_entities[plant_name] = {
+                "auto": auto_id,
+                "manual": manual_id,
+            }
+            if auto_id:
+                watering_ids.append(auto_id)
+            if manual_id:
+                watering_ids.append(manual_id)
+        history_by_entity: dict[str, list[dict[str, Any]]] = {}
+        if watering_ids:
+            start_time, end_time = history_window(30)
+            _, history, error = await ha_request(
+                "GET",
+                f"/api/history/period/{start_time.isoformat()}",
+                params={
+                    "end_time": end_time.isoformat(),
+                    "filter_entity_id": ",".join(watering_ids),
+                    "minimal_response": 1,
+                },
+            )
+            if not error:
+                history_items = _normalize_history_payload(history)
+                for item in history_items:
+                    entity_id = item.get("entity_id")
+                    if entity_id in watering_ids:
+                        history_by_entity.setdefault(entity_id, []).append(item)
+                for entries in history_by_entity.values():
+                    entries.sort(
+                        key=lambda entry: _parse_timestamp(
+                            entry.get("last_changed")
+                            or entry.get("last_updated")
+                            or ""
+                        )
+                        or datetime.min.replace(tzinfo=timezone.utc)
+                    )
         plants = []
         for plant_name, plant in raw_plants.items():
             grouped = {
@@ -88,6 +165,26 @@ def register_plant_care_tools(mcp: FastMCP) -> None:
             for key, items in grouped.items():
                 items.sort(key=lambda item: item.get("name") or "")
                 normalized[key] = {item["name"]: item["value"] for item in items}
+            water_meta = watering_entities.get(plant_name, {})
+            auto_id = water_meta.get("auto")
+            manual_id = water_meta.get("manual")
+            events: list[dict[str, Any]] = []
+            if auto_id:
+                events.extend(
+                    _build_watering_events(
+                        history_by_entity.get(auto_id, []),
+                        "auto",
+                    )
+                )
+            if manual_id:
+                events.extend(
+                    _build_watering_events(
+                        history_by_entity.get(manual_id, []),
+                        "manual",
+                    )
+                )
+            events.sort(key=lambda item: item.get("start") or "", reverse=True)
+            normalized["watering_history"] = events
             plants.append({"name": plant_name, "fields": normalized})
         plants.sort(key=lambda plant: plant.get("name", ""))
 
