@@ -19,7 +19,7 @@ def register_automation_tools(mcp: FastMCP) -> None:
     """Register automation tools."""
 
     @mcp.tool
-    async def automation___get_all_by_devvice() -> dict[str, Any]:
+    async def automation___get_all_by_device() -> dict[str, Any]:
         """Return configured outlet entities and matching automations."""
         states, error = await get_states_list()
         if error:

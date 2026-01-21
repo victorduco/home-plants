@@ -3,6 +3,7 @@
 from __future__ import annotations
 
 from typing import Any
+from datetime import datetime, timezone
 
 from fastmcp import FastMCP
 
@@ -11,6 +12,7 @@ from .common import (
     delay,
     get_states_list,
     ha_request,
+    history_window,
     match_plant_name,
     parse_plants_from_states,
     sanitize_attributes,
@@ -25,6 +27,25 @@ def register_plant_care_tools(mcp: FastMCP) -> None:
             if friendly_name.endswith(f" {suffix}"):
                 return suffix
         return friendly_name
+
+    def _parse_timestamp(value: str) -> datetime | None:
+        if not value:
+            return None
+        try:
+            return datetime.fromisoformat(value.replace("Z", "+00:00"))
+        except ValueError:
+            return None
+
+    def _normalize_history_payload(payload: Any) -> list[dict[str, Any]]:
+        if not isinstance(payload, list):
+            return []
+        if payload and isinstance(payload[0], list):
+            items: list[dict[str, Any]] = []
+            for group in payload:
+                if isinstance(group, list):
+                    items.extend(item for item in group if isinstance(item, dict))
+            return items
+        return [item for item in payload if isinstance(item, dict)]
 
     @mcp.tool
     async def plant_care___full_status() -> dict[str, Any]:
@@ -126,6 +147,121 @@ def register_plant_care_tools(mcp: FastMCP) -> None:
             "indoor_area": [],
             "indoor_plants": plants,
         }
+
+    @mcp.tool
+    async def plant_care___get_plant_history(
+        identifier: str,
+        details: str = "main",
+        days: int = 7,
+        step_hours: int = 6,
+    ) -> dict[str, Any]:
+        """Return history for plant sensors and watering events."""
+        if days <= 0:
+            return {"status": "error", "error": "Days must be positive"}
+        if step_hours <= 0:
+            return {"status": "error", "error": "step_hours must be positive"}
+        details_value = details.strip().lower() if details else "main"
+        if details_value not in {"main", "full"}:
+            return {
+                "status": "error",
+                "error": "details must be 'main' or 'full'",
+            }
+        states, error = await get_states_list()
+        if error:
+            return {"status": "error", "error": error}
+        plants = parse_plants_from_states(states)
+        plant_name = match_plant_name(plants.keys(), identifier)
+        if not plant_name:
+            return {"status": "error", "error": "Plant not found"}
+        plant = plants[plant_name]
+        entity_ids = {
+            "soil_moisture": plant.get("moisture_entity_id"),
+            "air_humidity": plant.get("humidity_entity_id"),
+            "air_temperature": plant.get("air_temperature_entity_id"),
+            "auto_watering_state": plant.get("auto_watering_state_entity_id"),
+            "manual_watering": plant.get("manual_watering_entity_id"),
+        }
+        if details_value == "full":
+            for key, value in plant.items():
+                if not key.endswith("_entity_id"):
+                    continue
+                label = key[: -len("_entity_id")]
+                if label not in entity_ids or not entity_ids[label]:
+                    entity_ids[label] = value
+        active_ids = [eid for eid in entity_ids.values() if eid]
+        if not active_ids:
+            return {
+                "status": "error",
+                "error": "No sensors configured for this plant",
+            }
+
+        start_time, end_time = history_window(days)
+        _, history, error = await ha_request(
+            "GET",
+            f"/api/history/period/{start_time.isoformat()}",
+            params={
+                "end_time": end_time.isoformat(),
+                "filter_entity_id": ",".join(active_ids),
+                "minimal_response": 1,
+            },
+        )
+        if error:
+            return {"status": "error", "error": error}
+        history_items = _normalize_history_payload(history)
+        grouped: dict[str, list[dict[str, Any]]] = {eid: [] for eid in active_ids}
+        for item in history_items:
+            entity_id = item.get("entity_id")
+            if entity_id not in grouped:
+                continue
+            grouped[entity_id].append(item)
+        for entries in grouped.values():
+            entries.sort(
+                key=lambda entry: _parse_timestamp(
+                    entry.get("last_changed") or entry.get("last_updated") or ""
+                )
+                or datetime.min.replace(tzinfo=timezone.utc)
+            )
+
+        def last_state_before(
+            entries: list[dict[str, Any]],
+            timestamp: datetime,
+        ) -> dict[str, Any] | None:
+            last = None
+            for entry in entries:
+                ts = _parse_timestamp(
+                    entry.get("last_changed") or entry.get("last_updated") or ""
+                )
+                if not ts or ts > timestamp:
+                    break
+                last = entry
+            return last
+
+        points = []
+        step_seconds = step_hours * 3600
+        start_epoch = int(start_time.timestamp())
+        end_epoch = int(end_time.timestamp())
+        for ts_epoch in range(end_epoch, start_epoch - 1, -step_seconds):
+            ts = datetime.fromtimestamp(ts_epoch, tz=timezone.utc)
+            point = {"timestamp": ts.isoformat()}
+            for key, entity_id in entity_ids.items():
+                if not entity_id:
+                    point[key] = None
+                    continue
+                entry = last_state_before(grouped.get(entity_id, []), ts)
+                point[key] = entry.get("state") if entry else None
+            points.append(point)
+
+        result: dict[str, Any] = {
+            "status": "success",
+            "plant": plant_name,
+            "details": details_value,
+            "days": days,
+            "step_hours": step_hours,
+            "points": points,
+        }
+        if details_value == "full":
+            result["entities"] = entity_ids
+        return result
 
     @mcp.tool
     async def plant_care___water(
