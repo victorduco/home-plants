@@ -124,6 +124,7 @@ def parse_plants_from_states(
         entity_id = state.get("entity_id")
         if not entity_id:
             continue
+        domain = entity_id.split(".", 1)[0]
         attributes = state.get("attributes", {})
         friendly = attributes.get("friendly_name", "")
         if not friendly:
@@ -135,6 +136,8 @@ def parse_plants_from_states(
                 plant_name = friendly[: -len(suffix) - 1]
                 break
         if not matched_key:
+            continue
+        if matched_key == "manual_watering" and domain == "button":
             continue
         plant_name = plant_name.strip()
         if not plant_name:

@@ -178,7 +178,6 @@ def register_plant_care_tools(mcp: FastMCP) -> None:
         for plant_name, plant in raw_plants.items():
             grouped = {
                 "controls": [],
-                "configuration": [],
                 "sensors": [],
                 "recommendations": [],
             }
@@ -192,10 +191,10 @@ def register_plant_care_tools(mcp: FastMCP) -> None:
                 domain = entity_id.split(".", 1)[0] if entity_id else ""
                 if domain == "text":
                     category = "recommendations"
-                elif domain == "select":
-                    category = "configuration"
                 elif domain in {"switch", "valve"}:
                     category = "controls"
+                elif domain == "select":
+                    continue
                 else:
                     category = "sensors"
                 grouped[category].append(
