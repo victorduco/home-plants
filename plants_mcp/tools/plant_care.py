@@ -207,7 +207,6 @@ def register_plant_care_tools(mcp: FastMCP) -> None:
                 params={
                     "end_time": end_time.isoformat(),
                     "filter_entity_id": ",".join(watering_ids),
-                    "minimal_response": 1,
                 },
             )
             if not error:
@@ -418,7 +417,6 @@ def register_plant_care_tools(mcp: FastMCP) -> None:
             params={
                 "end_time": end_time.isoformat(),
                 "filter_entity_id": ",".join(history_ids),
-                "minimal_response": 1,
             },
         )
         if error:
