@@ -73,13 +73,32 @@ def _cleanup_legacy_entities(
 
     # Remove old text entities with examples in entity_id
     # These need to be recreated with clean entity_ids
+    # Match old patterns like "text.watering_frequency_recommendation_e_g_once_a_week"
+    old_recommendation_patterns = [
+        "_recommendation_e_g_",  # Most recommendations
+        "_todo_list_e_g_",       # Todo list
+        "_other_recommendations_e_g_",  # Other recommendations
+    ]
+
     for entry in list(entity_registry.entities.values()):
         if entry.platform != DOMAIN:
             continue
         if not entry.entity_id.startswith("text."):
             continue
-        # Check if entity_id contains example patterns
-        if any(pattern in entry.entity_id for pattern in ["_e_g_", "_eg_"]):
+
+        # Check if entity_id matches old patterns with examples
+        should_remove = any(pattern in entry.entity_id for pattern in old_recommendation_patterns)
+
+        # Also check for the specific plant text entities by looking for the unique_id pattern
+        # All plant text entities have unique_id like "plant_{uuid}_{field_key}"
+        if entry.unique_id and entry.unique_id.startswith("plant_") and "_recommendation" in entry.unique_id:
+            # This is a plant recommendation entity, remove it to recreate with clean entity_id
+            should_remove = True
+        elif entry.unique_id and entry.unique_id.startswith("plant_") and ("todo_list" in entry.unique_id or "other_recommendations" in entry.unique_id):
+            # Also handle todo_list and other_recommendations
+            should_remove = True
+
+        if should_remove:
             entity_registry.async_remove(entry.entity_id)
 
 

@@ -90,6 +90,8 @@ async def async_setup_entry(
 class PlantRecommendationText(TextEntity):
     """Text entity for plant recommendations."""
 
+    _attr_has_entity_name = True
+
     def __init__(
         self,
         data: PlantsData,
@@ -103,12 +105,14 @@ class PlantRecommendationText(TextEntity):
         self._plant_id = plant_id
         self._field_key = field_key
         plant = data.plants[plant_id]
-        # Use friendly_name (with examples) for UI display
-        self._attr_name = f"{plant.name} {friendly_name}"
-        # Suggest clean entity_id (without examples) via object_id
-        # This creates text.rose_todo_list instead of text.rose_todo_list_e_g_...
-        plant_slug = plant.name.lower().replace(" ", "_")
-        self._attr_suggested_object_id = f"{plant_slug}_{field_key}"
+        # With has_entity_name=True:
+        # - entity_id is generated from entity_name only (device name is prepended automatically)
+        # - Use entity_name without examples for clean entity_id
+        self._attr_name = entity_name
+        # Store friendly_name with examples in extra attributes for reference
+        self._attr_extra_state_attributes = {
+            "example": friendly_name.split("(e.g., ")[-1].rstrip(")") if "(e.g., " in friendly_name else None
+        }
         self._attr_unique_id = f"plant_{plant_id}_{field_key}"
         self._attr_device_info = DeviceInfo(
             identifiers={(DOMAIN, f"plant_{plant_id}")},
