@@ -217,6 +217,42 @@ def register_plant_care_tools(mcp: FastMCP) -> None:
             deduped.append(event)
         return deduped
 
+    def _group_watering_events_by_day(
+        events: list[dict[str, Any]],
+    ) -> list[dict[str, Any]]:
+        buckets: dict[str, dict[str, Any]] = {}
+        for event in events:
+            start_ts = _parse_timestamp(event.get("start") or "")
+            if not start_ts:
+                continue
+            day = start_ts.astimezone(timezone.utc).date().isoformat()
+            bucket = buckets.setdefault(
+                day,
+                {
+                    "date": day,
+                    "auto": {"total_seconds": 0, "events": []},
+                    "manual": {"total_liters": 0.0, "events": []},
+                },
+            )
+            kind = event.get("type")
+            if kind == "auto":
+                duration = event.get("duration_seconds")
+                if isinstance(duration, int) and duration > 0:
+                    bucket["auto"]["total_seconds"] += duration
+                bucket["auto"]["events"].append(event)
+            elif kind == "manual":
+                amount_ml = event.get("amount_ml")
+                if isinstance(amount_ml, (int, float)) and amount_ml > 0:
+                    bucket["manual"]["total_liters"] += float(amount_ml) / 1000.0
+                bucket["manual"]["events"].append(event)
+
+        days = sorted(buckets.values(), key=lambda item: item.get("date") or "", reverse=True)
+        for item in days:
+            manual = item.get("manual")
+            if isinstance(manual, dict) and isinstance(manual.get("total_liters"), float):
+                manual["total_liters"] = round(manual["total_liters"], 3)
+        return days
+
     @mcp.tool
     async def plant_care___full_status() -> dict[str, Any]:
         """Return full info for all plants (empty if none)."""
@@ -352,7 +388,8 @@ def register_plant_care_tools(mcp: FastMCP) -> None:
                 )
             events = _dedupe_events(events)
             events.sort(key=lambda item: item.get("start") or "", reverse=True)
-            normalized["watering_history"] = events
+            normalized["watering_events"] = events
+            normalized["watering_history"] = _group_watering_events_by_day(events)
             plants.append({"name": plant_name, "fields": normalized})
         plants.sort(key=lambda plant: plant.get("name", ""))
 
