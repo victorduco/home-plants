@@ -136,6 +136,131 @@ def register_manage_tools(mcp: FastMCP) -> None:
         }
 
     @mcp.tool
-    async def manage___set_plant_fields() -> dict[str, Any]:
-        """Set plant fields."""
-        return {"status": "error", "error": "Not implemented yet"}
+    async def manage___set_plant_fields(
+        plant_name: str,
+        fields: list[dict[str, str]],
+    ) -> dict[str, Any]:
+        """Set plant fields (configuration and recommendations).
+
+        Args:
+            plant_name: Name of the plant
+            fields: List of field updates, each with 'entity_id' and 'value'
+                    Example: [{"entity_id": "select.alocasia_water_outlet", "value": "valve.watering_device_1"}]
+        """
+        if not fields:
+            return {"status": "error", "error": "No fields provided"}
+
+        # Get current plant fields info for validation
+        fields_info_result = await manage___get_plant_fields_info(plant_name)
+        if fields_info_result["status"] != "success":
+            return fields_info_result
+
+        # Build a map of entity_id -> field_info for validation
+        editable_fields: dict[str, dict[str, Any]] = {}
+        for category in ["configuration", "recommendations"]:
+            for field in fields_info_result["fields"][category]:
+                editable_fields[field["entity_id"]] = field
+
+        # Validate and prepare service calls
+        errors = []
+        updates = []
+
+        for field_update in fields:
+            entity_id = field_update.get("entity_id")
+            value = field_update.get("value")
+
+            if not entity_id:
+                errors.append("Missing entity_id in field update")
+                continue
+
+            if value is None:
+                errors.append(f"Missing value for {entity_id}")
+                continue
+
+            # Check if field is editable
+            if entity_id not in editable_fields:
+                errors.append(
+                    f"Field {entity_id} is not editable or does not belong to {plant_name}"
+                )
+                continue
+
+            field_info = editable_fields[entity_id]
+            domain = field_info["type"]
+
+            # Validate based on field type
+            if domain == "select":
+                # Validate against options
+                options = field_info.get("options", [])
+                if not options:
+                    errors.append(f"No options available for {entity_id}")
+                    continue
+                if value not in options:
+                    errors.append(
+                        f"Invalid value '{value}' for {entity_id}. Valid options: {', '.join(options)}"
+                    )
+                    continue
+
+                updates.append({
+                    "service": "select/select_option",
+                    "entity_id": entity_id,
+                    "data": {"option": value},
+                })
+
+            elif domain == "text":
+                # Validate text length
+                value_str = str(value)
+                # Note: min/max are not provided by get_plant_fields_info anymore
+                # But we can still validate based on entity attributes if needed
+
+                updates.append({
+                    "service": "text/set_value",
+                    "entity_id": entity_id,
+                    "data": {"value": value_str},
+                })
+
+            else:
+                errors.append(f"Unsupported field type '{domain}' for {entity_id}")
+                continue
+
+        if errors:
+            return {
+                "status": "error",
+                "error": "Validation failed",
+                "errors": errors,
+            }
+
+        # Execute all updates
+        results = []
+        for update in updates:
+            service_path = update["service"]
+            entity_id = update["entity_id"]
+            data = update["data"]
+            data["entity_id"] = entity_id
+
+            domain, service = service_path.split("/")
+            _, _, error = await ha_request(
+                "POST",
+                f"/api/services/{domain}/{service}",
+                json=data,
+            )
+
+            if error:
+                errors.append(f"Failed to update {entity_id}: {error}")
+            else:
+                results.append({
+                    "entity_id": entity_id,
+                    "updated": True,
+                })
+
+        if errors:
+            return {
+                "status": "partial_success",
+                "updated": results,
+                "errors": errors,
+            }
+
+        return {
+            "status": "success",
+            "plant": plant_name,
+            "updated": results,
+        }

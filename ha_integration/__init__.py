@@ -71,6 +71,17 @@ def _cleanup_legacy_entities(
         if entity:
             entity_registry.async_remove(old_switch_entity_id)
 
+    # Remove old text entities with examples in entity_id
+    # These need to be recreated with clean entity_ids
+    for entry in list(entity_registry.entities.values()):
+        if entry.platform != DOMAIN:
+            continue
+        if not entry.entity_id.startswith("text."):
+            continue
+        # Check if entity_id contains example patterns
+        if any(pattern in entry.entity_id for pattern in ["_e_g_", "_eg_"]):
+            entity_registry.async_remove(entry.entity_id)
+
 
 async def async_setup_entry(hass: HomeAssistant, entry: ConfigEntry) -> bool:
     """Set up Plants from a config entry."""
