@@ -13,7 +13,7 @@ from .data import MeterLocationsData, PlantsData
 
 MAX_RECOMMENDATION_LENGTH = 120
 
-# Format: (field_key, entity_name_short, friendly_name_with_example, max_length)
+# Format: (field_key, entity_name, friendly_name_with_example, max_length)
 FIELDS: list[tuple[str, str, str, int | None]] = [
     (
         "watering_frequency_recommendation",
@@ -23,7 +23,7 @@ FIELDS: list[tuple[str, str, str, int | None]] = [
     ),
     (
         "soil_moisture_recommendation",
-        "Minimum Soil Moisture for Watering Recommendation",
+        "Minimum Soil Moisture Recommendation",
         "Minimum Soil Moisture for Watering Recommendation (e.g., 25%)",
         MAX_RECOMMENDATION_LENGTH,
     ),
@@ -103,8 +103,12 @@ class PlantRecommendationText(TextEntity):
         self._plant_id = plant_id
         self._field_key = field_key
         plant = data.plants[plant_id]
-        # Use friendly_name with examples for UI display
+        # Use friendly_name (with examples) for UI display
         self._attr_name = f"{plant.name} {friendly_name}"
+        # Suggest clean entity_id (without examples) via object_id
+        # This creates text.rose_todo_list instead of text.rose_todo_list_e_g_...
+        plant_slug = plant.name.lower().replace(" ", "_")
+        self._attr_suggested_object_id = f"{plant_slug}_{field_key}"
         self._attr_unique_id = f"plant_{plant_id}_{field_key}"
         self._attr_device_info = DeviceInfo(
             identifiers={(DOMAIN, f"plant_{plant_id}")},
