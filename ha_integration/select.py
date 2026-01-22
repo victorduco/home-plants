@@ -40,6 +40,16 @@ def _has_moisture_label(state) -> bool:
     return "moisture" in name
 
 
+def _has_temperature_label(state) -> bool:
+    name = (state.attributes.get("friendly_name") or state.entity_id).lower()
+    return "temperature" in name
+
+
+def _has_humidity_label(state) -> bool:
+    name = (state.attributes.get("friendly_name") or state.entity_id).lower()
+    return "humidity" in name
+
+
 async def async_setup_entry(
     hass: HomeAssistant,
     entry: ConfigEntry,
@@ -224,6 +234,7 @@ class PlantHumiditySelect(SelectEntity):
             for state in self.hass.states.async_all()
             if state.domain in HUMIDITY_DEVICE_DOMAINS
             and state.entity_id not in excluded
+            and _has_humidity_label(state)
         ]
         options.sort()
         return [OPTION_NONE, *options]
@@ -311,6 +322,7 @@ class PlantAirTemperatureSelect(SelectEntity):
             for state in self.hass.states.async_all()
             if state.domain in AIR_TEMPERATURE_DEVICE_DOMAINS
             and state.entity_id not in excluded
+            and _has_temperature_label(state)
         ]
         options.sort()
         return [OPTION_NONE, *options]
@@ -352,6 +364,7 @@ class LocationAirHumiditySelect(SelectEntity):
             state.entity_id
             for state in self.hass.states.async_all()
             if state.domain in HUMIDITY_DEVICE_DOMAINS
+            and _has_humidity_label(state)
         ]
         options.sort()
         return [OPTION_NONE, *options]
