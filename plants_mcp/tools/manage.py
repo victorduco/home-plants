@@ -122,6 +122,11 @@ def register_manage_tools(mcp: FastMCP) -> None:
                 options = attributes.get("options")
                 if options:
                     field_info["options"] = options
+            elif domain == "text":
+                # Add example attribute if present
+                example = attributes.get("example")
+                if example:
+                    field_info["example"] = example
 
             plant_fields[category].append(field_info)
 
