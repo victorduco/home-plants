@@ -388,7 +388,6 @@ def register_plant_care_tools(mcp: FastMCP) -> None:
                 )
             events = _dedupe_events(events)
             events.sort(key=lambda item: item.get("start") or "", reverse=True)
-            normalized["watering_events"] = events
             normalized["watering_history"] = _group_watering_events_by_day(events)
             plants.append({"name": plant_name, "fields": normalized})
         plants.sort(key=lambda plant: plant.get("name", ""))
