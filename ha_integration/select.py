@@ -408,6 +408,7 @@ class LocationAirTemperatureSelect(SelectEntity):
             state.entity_id
             for state in self.hass.states.async_all()
             if state.domain in AIR_TEMPERATURE_DEVICE_DOMAINS
+            and _has_temperature_label(state)
         ]
         options.sort()
         return [OPTION_NONE, *options]

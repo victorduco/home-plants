@@ -58,13 +58,24 @@ def register_manage_tools(mcp: FastMCP) -> None:
         return {"status": "success", "deleted": plant_name}
 
     @mcp.tool
-    async def manage___get_plant_fields_info() -> dict[str, Any]:
-        """Get plant fields metadata (configuration and recommendations only)."""
+    async def manage___get_plant_fields_info(plant_name: str) -> dict[str, Any]:
+        """Get editable plant fields metadata."""
         states, error = await get_states_list()
         if error:
             return {"status": "error", "error": error}
 
-        plants: dict[str, dict[str, list[dict[str, Any]]]] = {}
+        # Parse all plants to find the target
+        plants_data = parse_plants_from_states(states)
+        matched_name = match_plant_name(plants_data.keys(), plant_name)
+        if not matched_name:
+            return {"status": "error", "error": "Plant not found"}
+
+        # Collect fields for the specific plant
+        plant_fields: dict[str, list[dict[str, Any]]] = {
+            "recommendations": [],
+            "configuration": [],
+        }
+
         for state in states:
             entity_id = state.get("entity_id")
             if not entity_id:
@@ -74,14 +85,16 @@ def register_manage_tools(mcp: FastMCP) -> None:
             if not friendly:
                 continue
 
+            # Check if this entity belongs to the target plant
             matched_key = None
-            plant_name = None
+            entity_plant_name = None
             for key, suffix in PLANT_SUFFIXES.items():
                 if friendly.endswith(f" {suffix}"):
                     matched_key = key
-                    plant_name = friendly[: -len(suffix) - 1].strip()
+                    entity_plant_name = friendly[: -len(suffix) - 1].strip()
                     break
-            if not matched_key or not plant_name:
+
+            if not matched_key or entity_plant_name != matched_name:
                 continue
 
             domain = entity_id.split(".")[0]
@@ -109,26 +122,18 @@ def register_manage_tools(mcp: FastMCP) -> None:
                 options = attributes.get("options")
                 if options:
                     field_info["options"] = options
-            elif domain == "text":
-                # Text entities don't need extra metadata in output
-                pass
 
-            plant_fields = plants.setdefault(
-                plant_name,
-                {
-                    "recommendations": [],
-                    "configuration": [],
-                },
-            )
             plant_fields[category].append(field_info)
 
-        result = []
-        for plant_name, groups in plants.items():
-            for key in groups:
-                groups[key].sort(key=lambda item: item.get("name") or "")
-            result.append({"name": plant_name, "fields": groups})
-        result.sort(key=lambda item: item.get("name") or "")
-        return {"status": "success", "plants": result}
+        # Sort fields by name
+        for key in plant_fields:
+            plant_fields[key].sort(key=lambda item: item.get("name") or "")
+
+        return {
+            "status": "success",
+            "plant": matched_name,
+            "fields": plant_fields,
+        }
 
     @mcp.tool
     async def manage___set_plant_fields() -> dict[str, Any]:
