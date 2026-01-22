@@ -16,32 +16,32 @@ MAX_RECOMMENDATION_LENGTH = 120
 FIELDS: list[tuple[str, str, int | None]] = [
     (
         "watering_frequency_recommendation",
-        "Watering Frequency Recommendation (e.g., once a week)",
+        "Watering Frequency Recommendation",
         MAX_RECOMMENDATION_LENGTH,
     ),
     (
         "soil_moisture_recommendation",
-        "Minimum Soil Moisture for Watering Recommendation (e.g., 25%)",
+        "Minimum Soil Moisture for Watering Recommendation",
         MAX_RECOMMENDATION_LENGTH,
     ),
     (
         "air_temperature_recommendation",
-        "Air Temperature Recommendation (e.g., 20-24 C)",
+        "Air Temperature Recommendation",
         MAX_RECOMMENDATION_LENGTH,
     ),
     (
         "air_humidity_recommendation",
-        "Air Humidity Recommendation (e.g., 50-60%)",
+        "Air Humidity Recommendation",
         MAX_RECOMMENDATION_LENGTH,
     ),
     (
         "other_recommendations",
-        "Other Recommendations (e.g., - rotate weekly; - avoid drafts;)",
+        "Other Recommendations",
         None,
     ),
     (
         "todo_list",
-        "Todo List (e.g., - repot in spring; - prune dry leaves;)",
+        "Todo List",
         None,
     ),
 ]

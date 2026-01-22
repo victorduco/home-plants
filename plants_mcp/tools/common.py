@@ -27,16 +27,12 @@ PLANT_SUFFIXES = {
     "humidifier_state": "Air Humidifier State",
     "humidifier_control": "Air Humidifier Control",
     "humidifier_source": "Air Humidifier Device Source",
-    "watering_frequency_recommendation": (
-        "Watering Frequency Recommendation (e.g., once a week)"
-    ),
-    "soil_moisture_recommendation": (
-        "Minimum Soil Moisture for Watering Recommendation (e.g., 25%)"
-    ),
-    "air_temperature_recommendation": "Air Temperature Recommendation (e.g., 20-24 C)",
-    "air_humidity_recommendation": "Air Humidity Recommendation (e.g., 50-60%)",
-    "other_recommendations": "Other Recommendations (e.g., - rotate weekly; - avoid drafts;)",
-    "todo_list": "Todo List (e.g., - repot in spring; - prune dry leaves;)",
+    "watering_frequency_recommendation": "Watering Frequency Recommendation",
+    "soil_moisture_recommendation": "Minimum Soil Moisture for Watering Recommendation",
+    "air_temperature_recommendation": "Air Temperature Recommendation",
+    "air_humidity_recommendation": "Air Humidity Recommendation",
+    "other_recommendations": "Other Recommendations",
+    "todo_list": "Todo List",
 }
 
 

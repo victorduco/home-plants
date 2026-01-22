@@ -59,7 +59,7 @@ def register_manage_tools(mcp: FastMCP) -> None:
 
     @mcp.tool
     async def manage___get_plant_fields_info() -> dict[str, Any]:
-        """Get plant fields metadata."""
+        """Get plant fields metadata (configuration and recommendations only)."""
         states, error = await get_states_list()
         if error:
             return {"status": "error", "error": error}
@@ -85,40 +85,37 @@ def register_manage_tools(mcp: FastMCP) -> None:
                 continue
 
             domain = entity_id.split(".")[0]
-            category = "diagnostics"
-            if domain in {"switch", "valve"}:
-                category = "controls"
-            elif domain == "select":
+
+            # Only include select (configuration) and text (recommendations)
+            if domain == "select":
                 category = "configuration"
             elif domain == "text":
                 category = "recommendations"
+            else:
+                # Skip controls and sensors
+                continue
 
-            min_value = attributes.get("min")
-            max_value = attributes.get("max")
-            options = attributes.get("options")
-
-            field_info = {
+            # Build field info with only relevant fields
+            field_info: dict[str, Any] = {
                 "type": domain,
                 "name": friendly,
                 "current_value": state.get("state"),
-                "min": min_value,
-                "max": max_value,
                 "required": False,
-                "options": options,
                 "entity_id": entity_id,
-                "extra": {
-                    "device_class": attributes.get("device_class"),
-                    "unit_of_measurement": attributes.get("unit_of_measurement"),
-                    "pattern": attributes.get("pattern"),
-                    "mode": attributes.get("mode"),
-                },
             }
+
+            # Add domain-specific fields
+            if domain == "select":
+                options = attributes.get("options")
+                if options:
+                    field_info["options"] = options
+            elif domain == "text":
+                # Text entities don't need extra metadata in output
+                pass
 
             plant_fields = plants.setdefault(
                 plant_name,
                 {
-                    "controls": [],
-                    "diagnostics": [],
                     "recommendations": [],
                     "configuration": [],
                 },

@@ -35,6 +35,11 @@ def _has_plug_label(state) -> bool:
     return "plug" in name
 
 
+def _has_moisture_label(state) -> bool:
+    name = (state.attributes.get("friendly_name") or state.entity_id).lower()
+    return "moisture" in name
+
+
 async def async_setup_entry(
     hass: HomeAssistant,
     entry: ConfigEntry,
@@ -132,6 +137,7 @@ class PlantMoistureSelect(SelectEntity):
             for state in self.hass.states.async_all()
             if state.domain in MOISTURE_DEVICE_DOMAINS
             and state.entity_id not in excluded
+            and _has_moisture_label(state)
         ]
         options.sort()
         return [OPTION_NONE, *options]
