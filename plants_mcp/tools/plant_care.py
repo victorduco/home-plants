@@ -55,6 +55,24 @@ def register_plant_care_tools(mcp: FastMCP) -> None:
             return []
         return [item for item in payload if isinstance(item, dict)]
 
+    def _manual_button_ids(
+        states: list[dict[str, Any]],
+    ) -> dict[str, str]:
+        mapping: dict[str, str] = {}
+        suffix = "Add Manual Watering"
+        for state in states:
+            entity_id = state.get("entity_id", "")
+            if not entity_id.startswith("button."):
+                continue
+            attributes = state.get("attributes") or {}
+            friendly = attributes.get("friendly_name", "")
+            if not friendly or not friendly.endswith(f" {suffix}"):
+                continue
+            plant_name = friendly[: -len(suffix) - 1].strip()
+            if plant_name:
+                mapping[plant_name] = entity_id
+        return mapping
+
     def _build_auto_watering_events(
         entries: list[dict[str, Any]],
         kind: str,
@@ -94,7 +112,7 @@ def register_plant_care_tools(mcp: FastMCP) -> None:
 
     def _extract_event_data(entry: dict[str, Any]) -> dict[str, Any]:
         attributes = entry.get("attributes") or {}
-        event_data = attributes.get("event_data")
+        event_data = attributes.get("event_data") or attributes.get("event_attributes")
         if isinstance(event_data, dict):
             merged = dict(event_data)
         else:
@@ -133,6 +151,29 @@ def register_plant_care_tools(mcp: FastMCP) -> None:
             if state and state not in ("unknown", "unavailable"):
                 event["event"] = state
             events.append(event)
+        return events
+
+    def _build_manual_watering_button_events(
+        entries: list[dict[str, Any]],
+    ) -> list[dict[str, Any]]:
+        events: list[dict[str, Any]] = []
+        last_state: str | None = None
+        for entry in entries:
+            state = entry.get("state")
+            if not state or state == last_state:
+                continue
+            ts = _parse_timestamp(state)
+            if not ts:
+                continue
+            last_state = state
+            events.append(
+                {
+                    "type": "manual",
+                    "start": ts.isoformat(),
+                    "end": None,
+                    "duration_seconds": None,
+                }
+            )
         return events
 
     def _build_manual_watering_logbook_events(
@@ -182,21 +223,28 @@ def register_plant_care_tools(mcp: FastMCP) -> None:
         if error:
             return {"status": "error", "error": error}
         raw_plants = parse_plants_from_states(states)
+        manual_button_entities = _manual_button_ids(states)
         watering_entities: dict[str, dict[str, str | None]] = {}
         watering_ids: list[str] = []
         manual_ids: list[str] = []
+        manual_button_ids: list[str] = []
         for plant_name, plant in raw_plants.items():
             auto_id = plant.get("water_power_entity_id")
             manual_id = plant.get("manual_watering_entity_id")
+            manual_button_id = manual_button_entities.get(plant_name)
             watering_entities[plant_name] = {
                 "auto": auto_id,
                 "manual": manual_id,
+                "manual_button": manual_button_id,
             }
             if auto_id:
                 watering_ids.append(auto_id)
             if manual_id:
                 watering_ids.append(manual_id)
                 manual_ids.append(manual_id)
+            if manual_button_id:
+                watering_ids.append(manual_button_id)
+                manual_button_ids.append(manual_button_id)
         history_by_entity: dict[str, list[dict[str, Any]]] = {}
         logbook_by_entity: dict[str, list[dict[str, Any]]] = {}
         if watering_ids:
@@ -275,6 +323,7 @@ def register_plant_care_tools(mcp: FastMCP) -> None:
             water_meta = watering_entities.get(plant_name, {})
             auto_id = water_meta.get("auto")
             manual_id = water_meta.get("manual")
+            manual_button_id = water_meta.get("manual_button")
             events: list[dict[str, Any]] = []
             if auto_id:
                 events.extend(
@@ -292,6 +341,12 @@ def register_plant_care_tools(mcp: FastMCP) -> None:
                 events.extend(
                     _build_manual_watering_logbook_events(
                         logbook_by_entity.get(manual_id, []),
+                    )
+                )
+            if manual_button_id:
+                events.extend(
+                    _build_manual_watering_button_events(
+                        history_by_entity.get(manual_button_id, []),
                     )
                 )
             events = _dedupe_events(events)
@@ -379,6 +434,7 @@ def register_plant_care_tools(mcp: FastMCP) -> None:
         if error:
             return {"status": "error", "error": error}
         plants = parse_plants_from_states(states)
+        manual_button_entities = _manual_button_ids(states)
         plant_name = match_plant_name(plants.keys(), identifier)
         if not plant_name:
             return {"status": "error", "error": "Plant not found"}
@@ -393,6 +449,7 @@ def register_plant_care_tools(mcp: FastMCP) -> None:
         watering_entities = {
             "auto": plant.get("water_power_entity_id"),
             "manual": plant.get("manual_watering_entity_id"),
+            "manual_button": manual_button_entities.get(plant_name),
         }
         if details_value == "full":
             for key, value in plant.items():
@@ -479,6 +536,13 @@ def register_plant_care_tools(mcp: FastMCP) -> None:
                 logbook_by_entity.get(watering_entities.get("manual") or "", []),
             )
         )
+        manual_button_id = watering_entities.get("manual_button") or ""
+        if manual_button_id:
+            manual_events.extend(
+                _build_manual_watering_button_events(
+                    grouped.get(manual_button_id, []),
+                )
+            )
         all_events = auto_events + manual_events
         all_events = _dedupe_events(all_events)
         all_events.sort(key=lambda item: item.get("start") or "")
@@ -589,35 +653,26 @@ def register_plant_care_tools(mcp: FastMCP) -> None:
 
     @mcp.tool
     async def plant_care___record_manual_watering(
-        identifier: str,
-        duration_minutes: int | None = None,
-        amount_ml: int | None = None,
-        notes: str = "",
+        plant_name: str,
+        bottles: str,
     ) -> dict[str, Any]:
         """Record a manual watering event for a plant.
 
         Args:
-            identifier: Plant name or identifier
-            duration_minutes: How long the watering took (optional)
-            amount_ml: Amount of water in milliliters (optional)
-            notes: Any notes about the watering (optional)
+            plant_name: Plant name
+            bottles: Number of bottles (text, required)
         """
         states, error = await get_states_list()
         if error:
             return {"status": "error", "error": error}
         plants = parse_plants_from_states(states)
-        plant_name = match_plant_name(plants.keys(), identifier)
-        if not plant_name:
+        matched_name = match_plant_name(plants.keys(), plant_name)
+        if not matched_name:
             return {"status": "error", "error": "Plant not found"}
 
         # Prepare service call data
-        service_data: dict[str, Any] = {"plant": plant_name}
-        if duration_minutes is not None:
-            service_data["duration_minutes"] = duration_minutes
-        if amount_ml is not None:
-            service_data["amount_ml"] = amount_ml
-        if notes:
-            service_data["notes"] = notes
+        service_data: dict[str, Any] = {"plant": matched_name}
+        service_data["notes"] = bottles.strip()
 
         _, _, error = await ha_request(
             "POST",
@@ -629,7 +684,7 @@ def register_plant_care_tools(mcp: FastMCP) -> None:
 
         return {
             "status": "success",
-            "plant": plant_name,
+            "plant": matched_name,
             "event": "watered",
             "data": service_data,
         }

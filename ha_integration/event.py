@@ -70,5 +70,7 @@ class PlantManualWateringEvent(EventEntity):
         if notes:
             event_data["notes"] = notes
 
+        self._attr_event_type = "watered"
+        self._attr_extra_state_attributes = {"event_data": event_data}
         self._trigger_event("watered", event_data)
         self.async_write_ha_state()
