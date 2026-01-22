@@ -2,6 +2,7 @@
 
 from __future__ import annotations
 
+import math
 from typing import Any
 from datetime import datetime, timedelta, timezone
 
@@ -654,14 +655,17 @@ def register_plant_care_tools(mcp: FastMCP) -> None:
     @mcp.tool
     async def plant_care___record_manual_watering(
         plant_name: str,
-        bottles: str,
+        liters: float,
     ) -> dict[str, Any]:
         """Record a manual watering event for a plant.
 
         Args:
             plant_name: Plant name
-            bottles: Number of bottles (text, required)
+            liters: Amount of water in liters (number, required)
         """
+        if not math.isfinite(liters) or liters <= 0:
+            return {"status": "error", "error": "Liters must be a positive number"}
+
         states, error = await get_states_list()
         if error:
             return {"status": "error", "error": error}
@@ -672,7 +676,7 @@ def register_plant_care_tools(mcp: FastMCP) -> None:
 
         # Prepare service call data
         service_data: dict[str, Any] = {"plant": matched_name}
-        service_data["notes"] = bottles.strip()
+        service_data["amount_ml"] = int(round(liters * 1000))
 
         _, _, error = await ha_request(
             "POST",
