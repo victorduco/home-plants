@@ -4,8 +4,9 @@ from __future__ import annotations
 
 from homeassistant.components.sensor import SensorEntity
 from homeassistant.config_entries import ConfigEntry
-from homeassistant.core import HomeAssistant
+from homeassistant.core import HomeAssistant, callback
 from homeassistant.helpers.device_registry import DeviceInfo
+from homeassistant.helpers.event import async_track_state_change_event
 
 from .const import DOMAIN
 from .data import MeterLocationsData, PlantsData
@@ -151,7 +152,27 @@ class PlantLightStateSensor(SensorEntity):
         state = self.hass.states.get(outlet_entity_id)
         if not state:
             return "No grow light near the plant."
-        return state.state
+        # Map states to human-readable messages
+        raw_state = state.state.lower()
+        if raw_state == "on":
+            return "Light is on"
+        elif raw_state == "off":
+            return "Light is off"
+        elif raw_state == "unavailable":
+            return "Light device unavailable"
+        else:
+            return raw_state
+
+    async def async_added_to_hass(self) -> None:
+        outlet_entity_id = self._data.plants[self._plant_id].light_entity_id
+        if not outlet_entity_id or not self.hass:
+            return
+
+        @callback
+        def _handle_state_change(event) -> None:
+            self.async_write_ha_state()
+
+        async_track_state_change_event(self.hass, [outlet_entity_id], _handle_state_change)
 
 
 class PlantAutoWateringStateSensor(SensorEntity):
@@ -182,7 +203,27 @@ class PlantAutoWateringStateSensor(SensorEntity):
             return (
                 "Device not installed. Watering can only be done manually by the user."
             )
-        return state.state
+        # Map valve/switch states to human-readable messages
+        raw_state = state.state.lower()
+        if raw_state in ("on", "open", "opening"):
+            return "Watering"
+        elif raw_state in ("off", "closed", "closing"):
+            return "Not watering"
+        elif raw_state == "unavailable":
+            return "Device unavailable"
+        else:
+            return raw_state
+
+    async def async_added_to_hass(self) -> None:
+        outlet_entity_id = self._data.plants[self._plant_id].water_entity_id
+        if not outlet_entity_id or not self.hass:
+            return
+
+        @callback
+        def _handle_state_change(event) -> None:
+            self.async_write_ha_state()
+
+        async_track_state_change_event(self.hass, [outlet_entity_id], _handle_state_change)
 
 
 class PlantHumidifierStateSensor(SensorEntity):
@@ -209,7 +250,27 @@ class PlantHumidifierStateSensor(SensorEntity):
         state = self.hass.states.get(humidifier_entity_id)
         if not state:
             return "No air humidifier near the plant."
-        return state.state
+        # Map states to human-readable messages
+        raw_state = state.state.lower()
+        if raw_state == "on":
+            return "Humidifier is on"
+        elif raw_state == "off":
+            return "Humidifier is off"
+        elif raw_state == "unavailable":
+            return "Humidifier device unavailable"
+        else:
+            return raw_state
+
+    async def async_added_to_hass(self) -> None:
+        humidifier_entity_id = self._data.plants[self._plant_id].humidifier_entity_id
+        if not humidifier_entity_id or not self.hass:
+            return
+
+        @callback
+        def _handle_state_change(event) -> None:
+            self.async_write_ha_state()
+
+        async_track_state_change_event(self.hass, [humidifier_entity_id], _handle_state_change)
 
 
 class PlantAirTemperatureSensor(SensorEntity):

@@ -29,6 +29,7 @@ def _cleanup_legacy_entities(
     entity_registry: er.EntityRegistry,
     plant_id: str,
 ) -> None:
+    # Remove legacy entities with old suffixes
     for domain, suffixes in LEGACY_ENTITY_SUFFIXES.items():
         for suffix in suffixes:
             unique_id = f"plant_{plant_id}_{suffix}"
@@ -36,7 +37,7 @@ def _cleanup_legacy_entities(
             if entity_id:
                 entity_registry.async_remove(entity_id)
 
-    # Remove old switch-based auto watering controls after migrating to valve.
+    # Remove old switch-based auto watering controls (they've been replaced with valve platform)
     for entry in list(entity_registry.entities.values()):
         if entry.platform != DOMAIN:
             continue
@@ -44,6 +45,31 @@ def _cleanup_legacy_entities(
             "_water_power"
         ):
             entity_registry.async_remove(entry.entity_id)
+
+    # Remove any valve entities (we migrated back to switch platform)
+    for unique_id_suffix in ("water_power", "auto_watering_control"):
+        unique_id = f"plant_{plant_id}_{unique_id_suffix}"
+        valve_entity_id = entity_registry.async_get_entity_id(
+            "valve",
+            DOMAIN,
+            unique_id,
+        )
+        if valve_entity_id:
+            entity_registry.async_remove(valve_entity_id)
+
+    # Also clean up any orphaned switch entities with the new unique_id
+    # This handles migration from valve back to switch
+    old_switch_unique_id = f"plant_{plant_id}_auto_watering_control"
+    old_switch_entity_id = entity_registry.async_get_entity_id(
+        "switch",
+        DOMAIN,
+        old_switch_unique_id,
+    )
+    if old_switch_entity_id:
+        # Check if it's an old entity that needs to be recreated
+        entity = entity_registry.async_get(old_switch_entity_id)
+        if entity:
+            entity_registry.async_remove(old_switch_entity_id)
 
 
 async def async_setup_entry(hass: HomeAssistant, entry: ConfigEntry) -> bool:

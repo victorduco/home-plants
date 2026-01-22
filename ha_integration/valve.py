@@ -37,7 +37,7 @@ class PlantWaterValve(ValveEntity):
         self._plant_id = plant_id
         plant = data.plants[plant_id]
         self._attr_name = f"{plant.name} Auto Watering Control"
-        self._attr_unique_id = f"plant_{plant_id}_water_power"
+        self._attr_unique_id = f"plant_{plant_id}_auto_watering_control"
         self._attr_device_info = DeviceInfo(
             identifiers={(DOMAIN, f"plant_{plant_id}")},
             name=plant.name,
@@ -52,7 +52,13 @@ class PlantWaterValve(ValveEntity):
     @property
     def available(self) -> bool:
         outlet = self._outlet_entity_id
-        return bool(outlet and self.hass and self.hass.states.get(outlet))
+        if not outlet or outlet == "None":
+            return False
+        if not self.hass:
+            return False
+        state = self.hass.states.get(outlet)
+        # Entity is available if outlet is configured, even if temporarily unavailable
+        return state is not None
 
     @property
     def is_open(self) -> bool | None:
