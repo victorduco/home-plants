@@ -101,6 +101,16 @@ def _cleanup_legacy_entities(
         if should_remove:
             entity_registry.async_remove(entry.entity_id)
 
+    # Remove old manual watering switch entities (migrated to event platform)
+    manual_watering_switch_id = f"plant_{plant_id}_manual_watering"
+    old_manual_switch = entity_registry.async_get_entity_id(
+        "switch",
+        DOMAIN,
+        manual_watering_switch_id,
+    )
+    if old_manual_switch:
+        entity_registry.async_remove(old_manual_switch)
+
 
 async def async_setup_entry(hass: HomeAssistant, entry: ConfigEntry) -> bool:
     """Set up Plants from a config entry."""
@@ -159,6 +169,24 @@ async def async_setup_entry(hass: HomeAssistant, entry: ConfigEntry) -> bool:
                 schema=vol.Schema(
                     {
                         vol.Required("name"): cv.string,
+                    }
+                ),
+            )
+        services = hass.services.async_services()
+        if DOMAIN not in services or "record_watering" not in services[DOMAIN]:
+            async def async_handle_record_watering(call) -> None:
+                await _handle_record_watering(hass, entry, call)
+
+            hass.services.async_register(
+                DOMAIN,
+                "record_watering",
+                async_handle_record_watering,
+                schema=vol.Schema(
+                    {
+                        vol.Required("plant"): cv.string,
+                        vol.Optional("duration_minutes"): cv.positive_int,
+                        vol.Optional("amount_ml"): cv.positive_int,
+                        vol.Optional("notes"): cv.string,
                     }
                 ),
             )
@@ -230,3 +258,51 @@ async def _handle_remove_plant(
                 ):
                     entity_registry.async_remove(entry_item.entity_id)
                 device_registry.async_remove_device(device.id)
+
+
+async def _handle_record_watering(
+    hass: HomeAssistant,
+    entry: ConfigEntry,
+    call,
+) -> None:
+    """Handle recording a manual watering event."""
+    data: PlantsData = hass.data[DOMAIN][entry.entry_id]["data"]
+    plant_name = call.data["plant"].strip().lower()
+    plant_id = None
+
+    # Find plant by name
+    for pid, plant in data.plants.items():
+        if plant.name.lower() == plant_name:
+            plant_id = pid
+            break
+
+    if not plant_id:
+        # Plant not found
+        return
+
+    # Find the event entity
+    entity_registry = er.async_get(hass)
+    event_entity_id = entity_registry.async_get_entity_id(
+        "event",
+        DOMAIN,
+        f"plant_{plant_id}_manual_watering",
+    )
+
+    if not event_entity_id:
+        # Event entity not found
+        return
+
+    # Get the event entity and trigger the event
+    entity = None
+    for component in hass.data.get("entity_components", {}).values():
+        if event_entity_id in component.entities:
+            entity = component.entities[event_entity_id]
+            break
+
+    if entity and hasattr(entity, "record_watering"):
+        entity.record_watering(
+            duration_minutes=call.data.get("duration_minutes"),
+            amount_ml=call.data.get("amount_ml"),
+            notes=call.data.get("notes"),
+        )
+

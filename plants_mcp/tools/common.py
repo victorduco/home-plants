@@ -21,7 +21,7 @@ PLANT_SUFFIXES = {
     "water_outlet": "Auto Watering Device Source",
     "light_power": "Grow Light Control",
     "water_power": "Auto Watering Control",
-    "manual_watering": "Manual Watering Control",
+    "manual_watering": "Manual Watering",
     "light_state": "Grow Light State",
     "auto_watering_state": "Auto Watering State",
     "humidifier_state": "Air Humidifier State",

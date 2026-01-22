@@ -8,8 +8,6 @@ from homeassistant.const import STATE_ON
 from homeassistant.core import HomeAssistant, callback
 from homeassistant.helpers.device_registry import DeviceInfo
 from homeassistant.helpers.event import async_track_state_change_event
-from homeassistant.helpers.restore_state import RestoreEntity
-
 from .const import DOMAIN
 from .data import PlantsData
 
@@ -29,7 +27,6 @@ async def async_setup_entry(
         entities.append(PlantLightSwitch(data, plant_id))
         entities.append(PlantHumidifierSwitch(data, plant_id))
         entities.append(PlantWaterSwitch(data, plant_id))
-        entities.append(PlantManualWateringSwitch(data, plant_id))
     if entities:
         async_add_entities(entities)
 
@@ -175,41 +172,6 @@ class PlantWaterSwitch(SwitchEntity):
             self.async_write_ha_state()
 
         async_track_state_change_event(self.hass, [outlet], _handle_state_change)
-
-
-class PlantManualWateringSwitch(SwitchEntity, RestoreEntity):
-    """Manual watering switch for a plant."""
-
-    def __init__(self, data: PlantsData, plant_id: str) -> None:
-        self._data = data
-        self._plant_id = plant_id
-        self._is_on = False
-        plant = data.plants[plant_id]
-        self._attr_name = f"{plant.name} Manual Watering Control"
-        self._attr_unique_id = f"plant_{plant_id}_manual_watering"
-        self._attr_device_info = DeviceInfo(
-            identifiers={(DOMAIN, f"plant_{plant_id}")},
-            name=plant.name,
-            manufacturer="Custom",
-            model="Plant",
-        )
-
-    @property
-    def is_on(self) -> bool:
-        return self._is_on
-
-    async def async_turn_on(self, **kwargs) -> None:
-        self._is_on = True
-        self.async_write_ha_state()
-
-    async def async_turn_off(self, **kwargs) -> None:
-        self._is_on = False
-        self.async_write_ha_state()
-
-    async def async_added_to_hass(self) -> None:
-        state = await self.async_get_last_state()
-        if state is not None:
-            self._is_on = state.state == STATE_ON
 
 
 class PlantHumidifierSwitch(SwitchEntity):
