@@ -32,7 +32,10 @@ def register_plant_care_tools(mcp: FastMCP) -> None:
         if not value:
             return None
         try:
-            return datetime.fromisoformat(value.replace("Z", "+00:00"))
+            parsed = datetime.fromisoformat(value.replace("Z", "+00:00"))
+            if parsed.tzinfo is None:
+                return parsed.replace(tzinfo=timezone.utc)
+            return parsed
         except ValueError:
             return None
 
@@ -45,6 +48,11 @@ def register_plant_care_tools(mcp: FastMCP) -> None:
                 if isinstance(group, list):
                     items.extend(item for item in group if isinstance(item, dict))
             return items
+        return [item for item in payload if isinstance(item, dict)]
+
+    def _normalize_logbook_payload(payload: Any) -> list[dict[str, Any]]:
+        if not isinstance(payload, list):
+            return []
         return [item for item in payload if isinstance(item, dict)]
 
     def _build_auto_watering_events(
@@ -127,6 +135,46 @@ def register_plant_care_tools(mcp: FastMCP) -> None:
             events.append(event)
         return events
 
+    def _build_manual_watering_logbook_events(
+        entries: list[dict[str, Any]],
+    ) -> list[dict[str, Any]]:
+        events: list[dict[str, Any]] = []
+        for entry in entries:
+            ts = _parse_timestamp(entry.get("when") or entry.get("timestamp") or "")
+            if not ts:
+                continue
+            message = entry.get("message") or entry.get("state") or ""
+            event: dict[str, Any] = {
+                "type": "manual",
+                "start": ts.isoformat(),
+                "end": None,
+                "duration_seconds": None,
+            }
+            if message:
+                event["event"] = message
+            events.append(event)
+        return events
+
+    def _dedupe_events(events: list[dict[str, Any]]) -> list[dict[str, Any]]:
+        seen: set[tuple[Any, ...]] = set()
+        deduped: list[dict[str, Any]] = []
+        for event in events:
+            key = (
+                event.get("type"),
+                event.get("start"),
+                event.get("end"),
+                event.get("duration_seconds"),
+                event.get("duration_minutes"),
+                event.get("amount_ml"),
+                event.get("notes"),
+                event.get("event"),
+            )
+            if key in seen:
+                continue
+            seen.add(key)
+            deduped.append(event)
+        return deduped
+
     @mcp.tool
     async def plant_care___full_status() -> dict[str, Any]:
         """Return full info for all plants (empty if none)."""
@@ -136,6 +184,7 @@ def register_plant_care_tools(mcp: FastMCP) -> None:
         raw_plants = parse_plants_from_states(states)
         watering_entities: dict[str, dict[str, str | None]] = {}
         watering_ids: list[str] = []
+        manual_ids: list[str] = []
         for plant_name, plant in raw_plants.items():
             auto_id = plant.get("water_power_entity_id")
             manual_id = plant.get("manual_watering_entity_id")
@@ -147,7 +196,9 @@ def register_plant_care_tools(mcp: FastMCP) -> None:
                 watering_ids.append(auto_id)
             if manual_id:
                 watering_ids.append(manual_id)
+                manual_ids.append(manual_id)
         history_by_entity: dict[str, list[dict[str, Any]]] = {}
+        logbook_by_entity: dict[str, list[dict[str, Any]]] = {}
         if watering_ids:
             start_time, end_time = history_window(30)
             _, history, error = await ha_request(
@@ -174,6 +225,21 @@ def register_plant_care_tools(mcp: FastMCP) -> None:
                         )
                         or datetime.min.replace(tzinfo=timezone.utc)
                     )
+            if manual_ids:
+                _, logbook, log_error = await ha_request(
+                    "GET",
+                    f"/api/logbook/period/{start_time.isoformat()}",
+                    params={
+                        "end_time": end_time.isoformat(),
+                        "entity_id": ",".join(manual_ids),
+                    },
+                )
+                if not log_error:
+                    log_items = _normalize_logbook_payload(logbook)
+                    for item in log_items:
+                        entity_id = item.get("entity_id")
+                        if entity_id in manual_ids:
+                            logbook_by_entity.setdefault(entity_id, []).append(item)
         plants = []
         for plant_name, plant in raw_plants.items():
             grouped = {
@@ -224,6 +290,12 @@ def register_plant_care_tools(mcp: FastMCP) -> None:
                         history_by_entity.get(manual_id, []),
                     )
                 )
+                events.extend(
+                    _build_manual_watering_logbook_events(
+                        logbook_by_entity.get(manual_id, []),
+                    )
+                )
+            events = _dedupe_events(events)
             events.sort(key=lambda item: item.get("start") or "", reverse=True)
             normalized["watering_history"] = events
             plants.append({"name": plant_name, "fields": normalized})
@@ -365,6 +437,23 @@ def register_plant_care_tools(mcp: FastMCP) -> None:
                 )
                 or datetime.min.replace(tzinfo=timezone.utc)
             )
+        logbook_by_entity: dict[str, list[dict[str, Any]]] = {}
+        manual_id = watering_entities.get("manual")
+        if manual_id:
+            _, logbook, log_error = await ha_request(
+                "GET",
+                f"/api/logbook/period/{start_time.isoformat()}",
+                params={
+                    "end_time": end_time.isoformat(),
+                    "entity_id": manual_id,
+                },
+            )
+            if not log_error:
+                log_items = _normalize_logbook_payload(logbook)
+                for item in log_items:
+                    entity_id = item.get("entity_id")
+                    if entity_id == manual_id:
+                        logbook_by_entity.setdefault(entity_id, []).append(item)
 
         def last_state_before(
             entries: list[dict[str, Any]],
@@ -387,7 +476,13 @@ def register_plant_care_tools(mcp: FastMCP) -> None:
         manual_events = _build_manual_watering_events(
             grouped.get(watering_entities.get("manual") or "", []),
         )
+        manual_events.extend(
+            _build_manual_watering_logbook_events(
+                logbook_by_entity.get(watering_entities.get("manual") or "", []),
+            )
+        )
         all_events = auto_events + manual_events
+        all_events = _dedupe_events(all_events)
         all_events.sort(key=lambda item: item.get("start") or "")
 
         points = []
