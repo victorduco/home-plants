@@ -5,16 +5,19 @@ Modern Home Assistant dashboard for plant monitoring and care.
 ## Features
 
 ✨ **4 Moisture Sensors** with real-time gauges
+
 - Alocasia (70%)
 - Majesty Palm (54%)
 - Malcolm Ficus (26%)
 - Olive Tree (36%)
 
 🌡️ **Climate Monitoring**
+
 - Temperature and humidity sensors
 - Real-time environment tracking
 
 🌱 **14 Plants Tracking**
+
 - Individual cards for each plant
 - Sensor readings
 - Light and watering controls
@@ -22,6 +25,7 @@ Modern Home Assistant dashboard for plant monitoring and care.
 - History graphs
 
 📊 **Historical Data**
+
 - 48-hour moisture graphs
 - Trends and patterns
 
@@ -40,6 +44,7 @@ bash dashboard/deploy_dashboard.sh
 ```
 
 The dashboard will be available at:
+
 - **Location**: `/config/dashboards/plants.yaml`
 - **UI**: Home Assistant → "🌿 Мои Растения"
 
