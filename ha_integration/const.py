@@ -4,6 +4,7 @@ from homeassistant.const import Platform
 
 DOMAIN = "plants"
 PLATFORMS: list[Platform] = [
+    Platform.BUTTON,
     Platform.SENSOR,
     Platform.SELECT,
     Platform.SWITCH,

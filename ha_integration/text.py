@@ -172,3 +172,4 @@ class LocationNoteText(TextEntity):
         setattr(location, self._field_key, value)
         await self._data.async_save()
         self.async_write_ha_state()
+

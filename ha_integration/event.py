@@ -2,13 +2,13 @@
 
 from __future__ import annotations
 
-from datetime import datetime
 from typing import Any
 
 from homeassistant.components.event import EventEntity, EventDeviceClass
 from homeassistant.config_entries import ConfigEntry
 from homeassistant.core import HomeAssistant
 from homeassistant.helpers.device_registry import DeviceInfo
+from homeassistant.util import dt as dt_util
 
 from .const import DOMAIN
 from .data import PlantsData
@@ -60,9 +60,8 @@ class PlantManualWateringEvent(EventEntity):
         notes: str | None = None,
     ) -> None:
         """Record a manual watering event."""
-        event_data: dict[str, Any] = {
-            "timestamp": datetime.now().isoformat(),
-        }
+        now = dt_util.utcnow()
+        event_data: dict[str, Any] = {"timestamp": now.isoformat()}
 
         if duration_minutes is not None:
             event_data["duration_minutes"] = duration_minutes

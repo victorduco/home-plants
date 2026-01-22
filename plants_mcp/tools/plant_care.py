@@ -3,7 +3,7 @@
 from __future__ import annotations
 
 from typing import Any
-from datetime import datetime, timezone
+from datetime import datetime, timedelta, timezone
 
 from fastmcp import FastMCP
 
@@ -47,7 +47,7 @@ def register_plant_care_tools(mcp: FastMCP) -> None:
             return items
         return [item for item in payload if isinstance(item, dict)]
 
-    def _build_watering_events(
+    def _build_auto_watering_events(
         entries: list[dict[str, Any]],
         kind: str,
     ) -> list[dict[str, Any]]:
@@ -82,6 +82,49 @@ def register_plant_care_tools(mcp: FastMCP) -> None:
                     "duration_seconds": None,
                 }
             )
+        return events
+
+    def _extract_event_data(entry: dict[str, Any]) -> dict[str, Any]:
+        attributes = entry.get("attributes") or {}
+        event_data = attributes.get("event_data")
+        if isinstance(event_data, dict):
+            merged = dict(event_data)
+        else:
+            merged = {}
+        for key in ("duration_minutes", "amount_ml", "notes"):
+            if key in attributes and key not in merged:
+                merged[key] = attributes.get(key)
+        return merged
+
+    def _build_manual_watering_events(
+        entries: list[dict[str, Any]],
+    ) -> list[dict[str, Any]]:
+        events: list[dict[str, Any]] = []
+        for entry in entries:
+            ts = _parse_timestamp(
+                entry.get("last_changed") or entry.get("last_updated") or ""
+            )
+            if not ts:
+                continue
+            state = entry.get("state")
+            event_data = _extract_event_data(entry)
+            if not event_data and state in ("unknown", "unavailable", None):
+                continue
+            event: dict[str, Any] = {
+                "type": "manual",
+                "start": ts.isoformat(),
+                "end": None,
+                "duration_seconds": None,
+            }
+            if event_data.get("duration_minutes") is not None:
+                event["duration_minutes"] = event_data.get("duration_minutes")
+            if event_data.get("amount_ml") is not None:
+                event["amount_ml"] = event_data.get("amount_ml")
+            if event_data.get("notes"):
+                event["notes"] = event_data.get("notes")
+            if state and state not in ("unknown", "unavailable"):
+                event["event"] = state
+            events.append(event)
         return events
 
     @mcp.tool
@@ -171,16 +214,15 @@ def register_plant_care_tools(mcp: FastMCP) -> None:
             events: list[dict[str, Any]] = []
             if auto_id:
                 events.extend(
-                    _build_watering_events(
+                    _build_auto_watering_events(
                         history_by_entity.get(auto_id, []),
                         "auto",
                     )
                 )
             if manual_id:
                 events.extend(
-                    _build_watering_events(
+                    _build_manual_watering_events(
                         history_by_entity.get(manual_id, []),
-                        "manual",
                     )
                 )
             events.sort(key=lambda item: item.get("start") or "", reverse=True)
@@ -278,6 +320,10 @@ def register_plant_care_tools(mcp: FastMCP) -> None:
             "auto_watering_state": plant.get("auto_watering_state_entity_id"),
             "manual_watering": plant.get("manual_watering_entity_id"),
         }
+        watering_entities = {
+            "auto": plant.get("water_power_entity_id"),
+            "manual": plant.get("manual_watering_entity_id"),
+        }
         if details_value == "full":
             for key, value in plant.items():
                 if not key.endswith("_entity_id"):
@@ -286,6 +332,8 @@ def register_plant_care_tools(mcp: FastMCP) -> None:
                 if label not in entity_ids or not entity_ids[label]:
                     entity_ids[label] = value
         active_ids = [eid for eid in entity_ids.values() if eid]
+        watering_ids = [eid for eid in watering_entities.values() if eid]
+        history_ids = list(dict.fromkeys(active_ids + watering_ids))
         if not active_ids:
             return {
                 "status": "error",
@@ -298,14 +346,14 @@ def register_plant_care_tools(mcp: FastMCP) -> None:
             f"/api/history/period/{start_time.isoformat()}",
             params={
                 "end_time": end_time.isoformat(),
-                "filter_entity_id": ",".join(active_ids),
+                "filter_entity_id": ",".join(history_ids),
                 "minimal_response": 1,
             },
         )
         if error:
             return {"status": "error", "error": error}
         history_items = _normalize_history_payload(history)
-        grouped: dict[str, list[dict[str, Any]]] = {eid: [] for eid in active_ids}
+        grouped: dict[str, list[dict[str, Any]]] = {eid: [] for eid in history_ids}
         for item in history_items:
             entity_id = item.get("entity_id")
             if entity_id not in grouped:
@@ -333,12 +381,23 @@ def register_plant_care_tools(mcp: FastMCP) -> None:
                 last = entry
             return last
 
+        auto_events = _build_auto_watering_events(
+            grouped.get(watering_entities.get("auto") or "", []),
+            "auto",
+        )
+        manual_events = _build_manual_watering_events(
+            grouped.get(watering_entities.get("manual") or "", []),
+        )
+        all_events = auto_events + manual_events
+        all_events.sort(key=lambda item: item.get("start") or "")
+
         points = []
         step_seconds = step_hours * 3600
         start_epoch = int(start_time.timestamp())
         end_epoch = int(end_time.timestamp())
         for ts_epoch in range(end_epoch, start_epoch - 1, -step_seconds):
             ts = datetime.fromtimestamp(ts_epoch, tz=timezone.utc)
+            period_start = ts - timedelta(seconds=step_seconds)
             point = {"timestamp": ts.isoformat()}
             for key, entity_id in entity_ids.items():
                 if not entity_id:
@@ -346,6 +405,19 @@ def register_plant_care_tools(mcp: FastMCP) -> None:
                     continue
                 entry = last_state_before(grouped.get(entity_id, []), ts)
                 point[key] = entry.get("state") if entry else None
+            events_in_period = []
+            for event in all_events:
+                event_start = _parse_timestamp(event.get("start") or "")
+                event_end = _parse_timestamp(event.get("end") or "") if event.get("end") else None
+                if not event_start:
+                    continue
+                overlaps = event_start < ts and (event_end is None or event_end > period_start)
+                if overlaps:
+                    events_in_period.append(event)
+            events_in_period.sort(key=lambda item: item.get("start") or "")
+            point["period_start"] = period_start.isoformat()
+            point["period_end"] = ts.isoformat()
+            point["watering_events"] = events_in_period
             points.append(point)
 
         result: dict[str, Any] = {
