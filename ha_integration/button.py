@@ -69,8 +69,11 @@ class PlantManualWateringButton(ButtonEntity):
 
         entity = None
         for component in self.hass.data.get("entity_components", {}).values():
-            if event_entity_id in component.entities:
-                entity = component.entities[event_entity_id]
+            for candidate in getattr(component, "entities", []):
+                if getattr(candidate, "entity_id", None) == event_entity_id:
+                    entity = candidate
+                    break
+            if entity is not None:
                 break
 
         if entity and hasattr(entity, "record_watering"):

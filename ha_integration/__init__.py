@@ -20,8 +20,10 @@ LEGACY_ENTITY_SUFFIXES: dict[str, tuple[str, ...]] = {
         "moisture_device",
         "humidifier_device",
         "moisture_state",
+        "last_manual_watering",
     ),
     "switch": ("moisture_device_control", "water_power"),
+    "text": ("manual_watering_comment",),
 }
 
 
@@ -295,8 +297,11 @@ async def _handle_record_watering(
     # Get the event entity and trigger the event
     entity = None
     for component in hass.data.get("entity_components", {}).values():
-        if event_entity_id in component.entities:
-            entity = component.entities[event_entity_id]
+        for candidate in getattr(component, "entities", []):
+            if getattr(candidate, "entity_id", None) == event_entity_id:
+                entity = candidate
+                break
+        if entity is not None:
             break
 
     if entity and hasattr(entity, "record_watering"):
@@ -305,4 +310,3 @@ async def _handle_record_watering(
             amount_ml=call.data.get("amount_ml"),
             notes=call.data.get("notes"),
         )
-
