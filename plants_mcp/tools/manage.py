@@ -18,48 +18,8 @@ from .common import (
 def register_manage_tools(mcp: FastMCP) -> None:
     """Register management tools."""
 
-    @mcp.tool
-    async def manage___add_plant(
-        name: str,
-        moisture_entity_id: str = "",
-    ) -> dict[str, Any]:
-        """Create a new plant device via the Plants service."""
-        if not name.strip():
-            return {"status": "error", "error": "Name is required"}
-        user_input: dict[str, Any] = {"name": name.strip()}
-        if moisture_entity_id.strip():
-            user_input["moisture_entity_id"] = moisture_entity_id.strip()
-        _, _, error = await ha_request(
-            "POST",
-            "/api/services/plants/add_plant",
-            json=user_input,
-        )
-        if error:
-            return {"status": "error", "error": error}
-        return {"status": "success", "name": name.strip()}
-
-    @mcp.tool
-    async def manage___remove_plant(identifier: str) -> dict[str, Any]:
-        """Delete a plant device via the Plants service."""
-        states, error = await get_states_list()
-        if error:
-            return {"status": "error", "error": error}
-        plants = parse_plants_from_states(states)
-        plant_name = match_plant_name(plants.keys(), identifier)
-        if not plant_name:
-            return {"status": "error", "error": "Plant not found"}
-        _, _, error = await ha_request(
-            "POST",
-            "/api/services/plants/remove_plant",
-            json={"name": plant_name},
-        )
-        if error:
-            return {"status": "error", "error": error}
-        return {"status": "success", "deleted": plant_name}
-
-    @mcp.tool
-    async def manage___get_plant_fields_info(plant_name: str) -> dict[str, Any]:
-        """Get editable plant fields metadata."""
+    async def _get_plant_fields_info_internal(plant_name: str) -> dict[str, Any]:
+        """Internal helper to get plant fields info without tool decorator."""
         states, error = await get_states_list()
         if error:
             return {"status": "error", "error": error}
@@ -141,6 +101,50 @@ def register_manage_tools(mcp: FastMCP) -> None:
         }
 
     @mcp.tool
+    async def manage___add_plant(
+        name: str,
+        moisture_entity_id: str = "",
+    ) -> dict[str, Any]:
+        """Create a new plant device via the Plants service."""
+        if not name.strip():
+            return {"status": "error", "error": "Name is required"}
+        user_input: dict[str, Any] = {"name": name.strip()}
+        if moisture_entity_id.strip():
+            user_input["moisture_entity_id"] = moisture_entity_id.strip()
+        _, _, error = await ha_request(
+            "POST",
+            "/api/services/plants/add_plant",
+            json=user_input,
+        )
+        if error:
+            return {"status": "error", "error": error}
+        return {"status": "success", "name": name.strip()}
+
+    @mcp.tool
+    async def manage___remove_plant(identifier: str) -> dict[str, Any]:
+        """Delete a plant device via the Plants service."""
+        states, error = await get_states_list()
+        if error:
+            return {"status": "error", "error": error}
+        plants = parse_plants_from_states(states)
+        plant_name = match_plant_name(plants.keys(), identifier)
+        if not plant_name:
+            return {"status": "error", "error": "Plant not found"}
+        _, _, error = await ha_request(
+            "POST",
+            "/api/services/plants/remove_plant",
+            json={"name": plant_name},
+        )
+        if error:
+            return {"status": "error", "error": error}
+        return {"status": "success", "deleted": plant_name}
+
+    @mcp.tool
+    async def manage___get_plant_fields_info(plant_name: str) -> dict[str, Any]:
+        """Get editable plant fields metadata."""
+        return await _get_plant_fields_info_internal(plant_name)
+
+    @mcp.tool
     async def manage___set_plant_fields(
         plant_name: str,
         fields: list[dict[str, str]],
@@ -156,7 +160,7 @@ def register_manage_tools(mcp: FastMCP) -> None:
             return {"status": "error", "error": "No fields provided"}
 
         # Get current plant fields info for validation
-        fields_info_result = await manage___get_plant_fields_info(plant_name)
+        fields_info_result = await _get_plant_fields_info_internal(plant_name)
         if fields_info_result["status"] != "success":
             return fields_info_result
 
