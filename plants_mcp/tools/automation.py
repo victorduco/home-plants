@@ -27,7 +27,7 @@ def register_automation_tools(mcp: FastMCP) -> None:
         plants = parse_plants_from_states(states)
         outlet_entities: set[str] = set()
         for plant in plants.values():
-            for key in ("light_outlet", "water_outlet"):
+            for key in ("light_outlet", "water_outlet", "humidifier_source"):
                 value = plant.get(key)
                 if value and value != "None":
                     outlet_entities.add(value)
