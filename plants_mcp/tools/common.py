@@ -7,6 +7,7 @@ from datetime import datetime, timedelta, timezone
 import os
 from typing import Any, Iterable
 import uuid
+from zoneinfo import ZoneInfo
 
 import httpx
 
@@ -192,7 +193,7 @@ def new_automation_id(value: str) -> str:
 
 
 def history_window(days: int) -> tuple[datetime, datetime]:
-    end_time = datetime.now(timezone.utc)
+    end_time = datetime.now(ZoneInfo("America/Los_Angeles"))
     start_time = end_time - timedelta(days=days)
     return start_time, end_time
 

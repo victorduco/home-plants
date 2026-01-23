@@ -8,6 +8,7 @@ from __future__ import annotations
 
 from datetime import datetime, timedelta, timezone
 from typing import Any
+from zoneinfo import ZoneInfo
 
 from fastmcp import FastMCP
 
@@ -30,7 +31,7 @@ def register_analyze_tools(mcp: FastMCP) -> None:
         try:
             parsed = datetime.fromisoformat(value.replace("Z", "+00:00"))
             if parsed.tzinfo is None:
-                return parsed.replace(tzinfo=timezone.utc)
+                return parsed.replace(tzinfo=ZoneInfo("America/Los_Angeles"))
             return parsed
         except ValueError:
             return None
@@ -284,7 +285,7 @@ def register_analyze_tools(mcp: FastMCP) -> None:
         for entries in grouped.values():
             entries.sort(
                 key=lambda entry: _parse_timestamp(entry.get("last_changed") or entry.get("last_updated") or "")
-                or datetime.min.replace(tzinfo=timezone.utc)
+                or datetime.min.replace(tzinfo=ZoneInfo("America/Los_Angeles"))
             )
         logbook_by_entity: dict[str, list[dict[str, Any]]] = {}
         manual_id = watering_entities.get("manual")
@@ -344,7 +345,7 @@ def register_analyze_tools(mcp: FastMCP) -> None:
         start_epoch = int(start_time.timestamp())
         end_epoch = int(end_time.timestamp())
         for ts_epoch in range(end_epoch, start_epoch - 1, -step_seconds):
-            ts = datetime.fromtimestamp(ts_epoch, tz=timezone.utc)
+            ts = datetime.fromtimestamp(ts_epoch, tz=ZoneInfo("America/Los_Angeles"))
             period_start = ts - timedelta(seconds=step_seconds)
             point = {"timestamp": ts.isoformat()}
             for key, entity_id in entity_ids.items():

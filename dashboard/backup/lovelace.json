@@ -1,0 +1,276 @@
+{
+  "version": 1,
+  "minor_version": 1,
+  "key": "lovelace",
+  "data": {
+    "config": {
+      "views": [
+        {
+          "path": "default_view",
+          "title": "Home",
+          "cards": [
+            {
+              "type": "horizontal-stack",
+              "cards": [
+                {
+                  "type": "button",
+                  "name": "Start Alarm",
+                  "icon": "mdi:alarm-light",
+                  "tap_action": {
+                    "action": "call-service",
+                    "service": "pyscript.alarm_start"
+                  }
+                },
+                {
+                  "type": "button",
+                  "name": "Stop Alarm",
+                  "icon": "mdi:alarm-off",
+                  "tap_action": {
+                    "action": "call-service",
+                    "service": "pyscript.alarm_stop"
+                  }
+                }
+              ]
+            },
+            {
+              "type": "entities",
+              "entities": [
+                {
+                  "entity": "sensor.victor_diukov_latest_upload",
+                  "name": "Latest upload"
+                },
+                {
+                  "entity": "sensor.victor_diukov_subscribers",
+                  "name": "Subscribers"
+                },
+                {
+                  "entity": "sensor.victor_diukov_views",
+                  "name": "Views"
+                }
+              ],
+              "title": "Victor Diukov"
+            },
+            {
+              "type": "grid",
+              "square": false,
+              "columns": 1,
+              "cards": [
+                {
+                  "type": "entities",
+                  "entities": [
+                    "vacuum.roborock_s5_max"
+                  ],
+                  "title": "Bedroom"
+                },
+                {
+                  "type": "media-control",
+                  "entity": "media_player.vizio"
+                }
+              ]
+            },
+            {
+              "type": "grid",
+              "square": false,
+              "columns": 1,
+              "cards": [
+                {
+                  "type": "entities",
+                  "entities": [
+                    "remote.27_viewfinity_s9_r",
+                    "remote.27_viewfinity_s9l_ls27c900panxza"
+                  ],
+                  "title": "Living Room"
+                },
+                {
+                  "type": "media-control",
+                  "entity": "media_player.27_viewfinity_s9_r"
+                },
+                {
+                  "type": "media-control",
+                  "entity": "media_player.27_viewfinity_s9l_ls27c900panxza"
+                },
+                {
+                  "type": "media-control",
+                  "entity": "media_player.27_viewfinity_s9l"
+                },
+                {
+                  "type": "media-control",
+                  "entity": "media_player.27_viewfinity_s9_r_2"
+                }
+              ]
+            },
+            {
+              "type": "entities",
+              "entities": [
+                "person.victor_diukov"
+              ]
+            },
+            {
+              "type": "entities",
+              "entities": [
+                "govee.state"
+              ],
+              "title": "Govee"
+            },
+            {
+              "type": "entities",
+              "entities": [
+                "light.h6097",
+                "light.plug_grow_light",
+                "light.plug_heater"
+              ],
+              "title": "Light"
+            },
+            {
+              "type": "media-control",
+              "entity": "media_player.living_room"
+            },
+            {
+              "type": "entities",
+              "entities": [
+                "scene.one_cycle"
+              ],
+              "title": "Scene"
+            },
+            {
+              "type": "entities",
+              "entities": [
+                "switch.smart_reptile_mister_switch",
+                "switch.drip_irrigation_kit_switch"
+              ],
+              "title": "Switch"
+            },
+            {
+              "type": "weather-forecast",
+              "entity": "weather.forecast_home",
+              "show_forecast": false
+            },
+            {
+              "type": "entities",
+              "entities": [
+                {
+                  "entity": "sensor.jimmy_carr_latest_upload",
+                  "name": "Latest upload"
+                },
+                {
+                  "entity": "sensor.jimmy_carr_subscribers",
+                  "name": "Subscribers"
+                },
+                {
+                  "entity": "sensor.jimmy_carr_views",
+                  "name": "Views"
+                }
+              ],
+              "title": "Jimmy Carr"
+            },
+            {
+              "type": "grid",
+              "square": false,
+              "columns": 1,
+              "cards": [
+                {
+                  "type": "entities",
+                  "entities": [
+                    "light.smart_diffuser"
+                  ],
+                  "title": "Smart diffuser"
+                },
+                {
+                  "type": "humidifier",
+                  "entity": "humidifier.smart_diffuser",
+                  "features": [
+                    {
+                      "type": "humidifier-toggle"
+                    }
+                  ]
+                }
+              ]
+            },
+            {
+              "type": "grid",
+              "columns": 2,
+              "square": false,
+              "cards": [
+                {
+                  "type": "entity",
+                  "entity": "input_text.music_search",
+                  "name": "🎵 What to play?"
+                },
+                {
+                  "type": "button",
+                  "entity": "input_button.play_music",
+                  "name": "Play",
+                  "icon": "mdi:play-circle",
+                  "show_name": false,
+                  "tap_action": {
+                    "action": "toggle"
+                  }
+                }
+              ]
+            },
+            {
+              "type": "horizontal-stack",
+              "cards": [
+                {
+                  "type": "entity",
+                  "entity": "input_text.music_search",
+                  "name": "Music"
+                },
+                {
+                  "type": "button",
+                  "entity": "input_button.play_music",
+                  "icon": "mdi:play-circle",
+                  "show_name": false,
+                  "icon_height": "40px",
+                  "tap_action": {
+                    "action": "toggle"
+                  }
+                }
+              ]
+            },
+            {
+              "type": "horizontal-stack",
+              "cards": [
+                {
+                  "type": "entity",
+                  "entity": "input_text.music_search",
+                  "name": "Music"
+                },
+                {
+                  "type": "button",
+                  "entity": "input_button.play_music",
+                  "icon": "mdi:play-circle",
+                  "show_name": false,
+                  "icon_height": "40px",
+                  "tap_action": {
+                    "action": "toggle"
+                  }
+                }
+              ]
+            },
+            {
+              "type": "horizontal-stack",
+              "cards": [
+                {
+                  "type": "entity",
+                  "entity": "input_text.music_search",
+                  "name": "🎵 Music"
+                },
+                {
+                  "type": "button",
+                  "entity": "input_button.play_music",
+                  "icon": "mdi:play-circle",
+                  "show_name": false,
+                  "aspect_ratio": "1:1",
+                  "tap_action": {
+                    "action": "toggle"
+                  }
+                }
+              ]
+            }
+          ]
+        }
+      ]
+    }
+  }
+}

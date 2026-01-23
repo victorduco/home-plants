@@ -1,0 +1,121 @@
+{
+  "version": 1,
+  "minor_version": 1,
+  "key": "lovelace",
+  "data": {
+    "config": {
+      "views": [
+        {
+          "path": "default_view",
+          "title": "Home",
+          "icon": "mdi:home",
+          "cards": [
+            {
+              "type": "horizontal-stack",
+              "cards": [
+                {
+                  "type": "button",
+                  "name": "Start Alarm",
+                  "icon": "mdi:alarm-light",
+                  "tap_action": {
+                    "action": "call-service",
+                    "service": "pyscript.alarm_start"
+                  }
+                },
+                {
+                  "type": "button",
+                  "name": "Stop Alarm",
+                  "icon": "mdi:alarm-off",
+                  "tap_action": {
+                    "action": "call-service",
+                    "service": "pyscript.alarm_stop"
+                  }
+                }
+              ]
+            },
+            {
+              "type": "entities",
+              "entities": ["person.victor_diukov"],
+              "title": "👤 Person"
+            },
+            {
+              "type": "weather-forecast",
+              "entity": "weather.openweathermap",
+              "show_forecast": true
+            },
+            {
+              "type": "entities",
+              "entities": ["vacuum.roborock_s5_max"],
+              "title": "🛏️ Bedroom"
+            },
+            {
+              "type": "entities",
+              "entities": ["media_player.vizio"],
+              "title": "📺 Bedroom TV"
+            },
+            {
+              "type": "entities",
+              "entities": [
+                "remote.27_viewfinity_s9_r",
+                "remote.27_viewfinity_s9l_ls27c900panxza",
+                "media_player.27_viewfinity_s9l_ls27c900panxza",
+                "media_player.27_viewfinity_s9_r_2"
+              ],
+              "title": "🖥️ Living Room Monitors"
+            },
+            {
+              "type": "entities",
+              "entities": ["media_player.living_room"],
+              "title": "🔊 Living Room Audio"
+            },
+            {
+              "type": "entities",
+              "entities": ["light.h6097"],
+              "title": "💡 Lights"
+            },
+            {
+              "type": "grid",
+              "square": false,
+              "columns": 1,
+              "cards": [
+                {
+                  "type": "entities",
+                  "entities": ["light.smart_diffuser"],
+                  "title": "🌫️ Smart Diffuser"
+                },
+                {
+                  "type": "humidifier",
+                  "entity": "humidifier.smart_diffuser",
+                  "features": [
+                    {
+                      "type": "humidifier-toggle"
+                    }
+                  ]
+                }
+              ]
+            },
+            {
+              "type": "horizontal-stack",
+              "cards": [
+                {
+                  "type": "entity",
+                  "entity": "input_text.music_search",
+                  "name": "🎵 Music Search"
+                },
+                {
+                  "type": "button",
+                  "entity": "input_button.play_music",
+                  "icon": "mdi:play-circle",
+                  "show_name": false,
+                  "tap_action": {
+                    "action": "toggle"
+                  }
+                }
+              ]
+            }
+          ]
+        }
+      ]
+    }
+  }
+}

@@ -5,6 +5,7 @@ from __future__ import annotations
 import math
 from typing import Any
 from datetime import datetime, timedelta, timezone
+from zoneinfo import ZoneInfo
 
 from fastmcp import FastMCP
 
@@ -35,7 +36,7 @@ def register_plant_care_tools(mcp: FastMCP) -> None:
         try:
             parsed = datetime.fromisoformat(value.replace("Z", "+00:00"))
             if parsed.tzinfo is None:
-                return parsed.replace(tzinfo=timezone.utc)
+                return parsed.replace(tzinfo=ZoneInfo("America/Los_Angeles"))
             return parsed
         except ValueError:
             return None
@@ -225,7 +226,7 @@ def register_plant_care_tools(mcp: FastMCP) -> None:
             start_ts = _parse_timestamp(event.get("start") or "")
             if not start_ts:
                 continue
-            day = start_ts.astimezone(timezone.utc).date().isoformat()
+            day = start_ts.astimezone(ZoneInfo("America/Los_Angeles")).date().isoformat()
             bucket = buckets.setdefault(
                 day,
                 {
@@ -305,7 +306,7 @@ def register_plant_care_tools(mcp: FastMCP) -> None:
                             or entry.get("last_updated")
                             or ""
                         )
-                        or datetime.min.replace(tzinfo=timezone.utc)
+                        or datetime.min.replace(tzinfo=ZoneInfo("America/Los_Angeles"))
                     )
             if manual_ids:
                 _, logbook, log_error = await ha_request(
@@ -390,6 +391,14 @@ def register_plant_care_tools(mcp: FastMCP) -> None:
             plants.append({"name": plant_name, "fields": normalized})
         plants.sort(key=lambda plant: plant.get("name", ""))
 
+        # Collect time data
+        la_tz = ZoneInfo("America/Los_Angeles")
+        time_data = {
+            "current": datetime.now(la_tz).isoformat(),
+            "sunrise": None,
+            "sunset": None,
+        }
+
         weather_entities = []
         weather_blacklist = {
             "sensor.openweathermap_apparent_temperature",
@@ -415,14 +424,11 @@ def register_plant_care_tools(mcp: FastMCP) -> None:
                     continue
                 attributes = state.get("attributes", {})
                 if entity_id == "sun.sun":
-                    for key, label in (
-                        ("next_rising", "Sun Next Rising"),
-                        ("next_setting", "Sun Next Setting"),
-                    ):
-                        if key in attributes:
-                            weather_entities.append(
-                                {"name": label, "value": attributes.get(key)}
-                            )
+                    # Extract sunrise/sunset to time section
+                    if "next_rising" in attributes:
+                        time_data["sunrise"] = attributes.get("next_rising")
+                    if "next_setting" in attributes:
+                        time_data["sunset"] = attributes.get("next_setting")
                     continue
                 unit = attributes.get("unit_of_measurement") or ""
                 value = state.get("state")
@@ -442,6 +448,7 @@ def register_plant_care_tools(mcp: FastMCP) -> None:
 
         return {
             "status": "success",
+            "time": time_data,
             "weather": weather_entities,
             "indoor_area": [],
             "indoor_plants": plants,
