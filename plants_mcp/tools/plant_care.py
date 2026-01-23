@@ -424,11 +424,15 @@ def register_plant_care_tools(mcp: FastMCP) -> None:
                     continue
                 attributes = state.get("attributes", {})
                 if entity_id == "sun.sun":
-                    # Extract sunrise/sunset to time section
+                    # Extract sunrise/sunset to time section and convert to local time
                     if "next_rising" in attributes:
-                        time_data["sunrise"] = attributes.get("next_rising")
+                        sunrise_utc = _parse_timestamp(attributes.get("next_rising"))
+                        if sunrise_utc:
+                            time_data["sunrise"] = sunrise_utc.astimezone(la_tz).isoformat()
                     if "next_setting" in attributes:
-                        time_data["sunset"] = attributes.get("next_setting")
+                        sunset_utc = _parse_timestamp(attributes.get("next_setting"))
+                        if sunset_utc:
+                            time_data["sunset"] = sunset_utc.astimezone(la_tz).isoformat()
                     continue
                 unit = attributes.get("unit_of_measurement") or ""
                 value = state.get("state")

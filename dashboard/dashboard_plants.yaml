@@ -613,3 +613,31 @@ views:
           - entity: sensor.olive_tree_moisture
         hours_to_show: 48
         refresh_interval: 300
+
+  # 💧 ВЛАЖНОСТЬ ВОЗДУХА - Сравнение внутри и снаружи
+  - title: Влажность воздуха
+    path: humidity
+    icon: mdi:water-percent
+    cards:
+      - type: markdown
+        content: |
+          # 💧 История влажности воздуха
+          Сравнение влажности внутри помещения и на улице
+
+          Датчики для визуального сравнения:
+          - Сенсоры внутри помещения (Liana, First Alert, GW1200B)
+          - Уличная погода (OpenWeatherMap)
+
+      - type: history-graph
+        title: Влажность воздуха - Внутри vs Снаружи
+        entities:
+          - entity: sensor.liana_humidity_meter
+            name: Внутри (Liana)
+          - entity: sensor.first_air_quality_monitor_humidity
+            name: Внутри (First Alert)
+          - entity: sensor.gw1200b_indoor_humidity
+            name: Внутри (GW1200B)
+          - entity: sensor.openweathermap_humidity
+            name: Снаружи (OpenWeatherMap)
+        hours_to_show: 168
+        refresh_interval: 300
