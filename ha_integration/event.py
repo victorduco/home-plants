@@ -24,9 +24,10 @@ async def async_setup_entry(
     if entry_data["type"] == "meter_locations":
         return
     data: PlantsData = entry_data["data"]
-    entities = [
-        PlantManualWateringEvent(data, plant_id) for plant_id in data.plants
-    ]
+    entities = []
+    for plant_id in data.plants:
+        entities.append(PlantManualWateringEvent(data, plant_id))
+        entities.append(PlantManualShowerEvent(data, plant_id))
     if entities:
         async_add_entities(entities)
 
@@ -73,4 +74,46 @@ class PlantManualWateringEvent(EventEntity):
         self._attr_event_type = "watered"
         self._attr_extra_state_attributes = {"event_data": event_data}
         self._trigger_event("watered", event_data)
+        self.async_write_ha_state()
+
+
+class PlantManualShowerEvent(EventEntity):
+    """Event entity for manual plant shower tracking."""
+
+    _attr_has_entity_name = True
+    _attr_device_class = EventDeviceClass.BUTTON
+    _attr_event_types = ["showered"]
+
+    def __init__(self, data: PlantsData, plant_id: str) -> None:
+        """Initialize the event entity."""
+        self._data = data
+        self._plant_id = plant_id
+        plant = data.plants[plant_id]
+
+        self._attr_name = "Manual Shower"
+        self._attr_unique_id = f"plant_{plant_id}_manual_shower"
+        self._attr_device_info = DeviceInfo(
+            identifiers={(DOMAIN, f"plant_{plant_id}")},
+            name=plant.name,
+            manufacturer="Custom",
+            model="Plant",
+        )
+
+    def record_shower(
+        self,
+        duration_minutes: int | None = None,
+        notes: str | None = None,
+    ) -> None:
+        """Record a manual shower event."""
+        now = dt_util.utcnow()
+        event_data: dict[str, Any] = {"timestamp": now.isoformat()}
+
+        if duration_minutes is not None:
+            event_data["duration_minutes"] = duration_minutes
+        if notes:
+            event_data["notes"] = notes
+
+        self._attr_event_type = "showered"
+        self._attr_extra_state_attributes = {"event_data": event_data}
+        self._trigger_event("showered", event_data)
         self.async_write_ha_state()

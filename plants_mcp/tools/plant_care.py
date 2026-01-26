@@ -75,6 +75,24 @@ def register_plant_care_tools(mcp: FastMCP) -> None:
                 mapping[plant_name] = entity_id
         return mapping
 
+    def _manual_shower_button_ids(
+        states: list[dict[str, Any]],
+    ) -> dict[str, str]:
+        mapping: dict[str, str] = {}
+        suffix = "Add Manual Shower"
+        for state in states:
+            entity_id = state.get("entity_id", "")
+            if not entity_id.startswith("button."):
+                continue
+            attributes = state.get("attributes") or {}
+            friendly = attributes.get("friendly_name", "")
+            if not friendly or not friendly.endswith(f" {suffix}"):
+                continue
+            plant_name = friendly[: -len(suffix) - 1].strip()
+            if plant_name:
+                mapping[plant_name] = entity_id
+        return mapping
+
     def _build_auto_watering_events(
         entries: list[dict[str, Any]],
         kind: str,
@@ -198,6 +216,78 @@ def register_plant_care_tools(mcp: FastMCP) -> None:
             events.append(event)
         return events
 
+    def _build_manual_shower_events(
+        entries: list[dict[str, Any]],
+    ) -> list[dict[str, Any]]:
+        events: list[dict[str, Any]] = []
+        for entry in entries:
+            ts = _parse_timestamp(
+                entry.get("last_changed") or entry.get("last_updated") or ""
+            )
+            if not ts:
+                continue
+            state = entry.get("state")
+            event_data = _extract_event_data(entry)
+            if not event_data and state in ("unknown", "unavailable", None):
+                continue
+            event: dict[str, Any] = {
+                "type": "shower",
+                "start": ts.isoformat(),
+                "end": None,
+                "duration_seconds": None,
+            }
+            if event_data.get("duration_minutes") is not None:
+                event["duration_minutes"] = event_data.get("duration_minutes")
+            if event_data.get("notes"):
+                event["notes"] = event_data.get("notes")
+            if state and state not in ("unknown", "unavailable"):
+                event["event"] = state
+            events.append(event)
+        return events
+
+    def _build_manual_shower_button_events(
+        entries: list[dict[str, Any]],
+    ) -> list[dict[str, Any]]:
+        events: list[dict[str, Any]] = []
+        last_state: str | None = None
+        for entry in entries:
+            state = entry.get("state")
+            if not state or state == last_state:
+                continue
+            ts = _parse_timestamp(state)
+            if not ts:
+                continue
+            last_state = state
+            events.append(
+                {
+                    "type": "shower",
+                    "start": ts.isoformat(),
+                    "end": None,
+                    "duration_seconds": None,
+                }
+            )
+        return events
+
+    def _build_manual_shower_logbook_events(
+        entries: list[dict[str, Any]],
+    ) -> list[dict[str, Any]]:
+        events: list[dict[str, Any]] = []
+        for entry in entries:
+            ts = _parse_timestamp(entry.get("when") or entry.get("timestamp") or "")
+            if not ts:
+                continue
+            message = entry.get("message") or entry.get("state") or ""
+            event: dict[str, Any] = {
+                "type": "shower",
+                "start": ts.isoformat(),
+                "end": None,
+                "duration_seconds": None,
+            }
+            if message:
+                event["event"] = message
+            events.append(event)
+        return events
+
     def _dedupe_events(events: list[dict[str, Any]]) -> list[dict[str, Any]]:
         seen: set[tuple[Any, ...]] = set()
         deduped: list[dict[str, Any]] = []
@@ -259,45 +349,59 @@ def register_plant_care_tools(mcp: FastMCP) -> None:
         if error:
             return {"status": "error", "error": error}
         raw_plants = parse_plants_from_states(states)
-        manual_button_entities = _manual_button_ids(states)
+        manual_watering_button_entities = _manual_button_ids(states)
+        manual_shower_button_entities = _manual_shower_button_ids(states)
         watering_entities: dict[str, dict[str, str | None]] = {}
-        watering_ids: list[str] = []
-        manual_ids: list[str] = []
-        manual_button_ids: list[str] = []
+        shower_entities: dict[str, dict[str, str | None]] = {}
+        all_event_ids: list[str] = []
+        manual_watering_ids: list[str] = []
+        manual_shower_ids: list[str] = []
         for plant_name, plant in raw_plants.items():
             auto_id = plant.get("water_power_entity_id")
-            manual_id = plant.get("manual_watering_entity_id")
-            manual_button_id = manual_button_entities.get(plant_name)
+            manual_watering_id = plant.get("manual_watering_entity_id")
+            manual_watering_button_id = manual_watering_button_entities.get(plant_name)
+            manual_shower_id = plant.get("manual_shower_entity_id")
+            manual_shower_button_id = manual_shower_button_entities.get(plant_name)
+
             watering_entities[plant_name] = {
                 "auto": auto_id,
-                "manual": manual_id,
-                "manual_button": manual_button_id,
+                "manual": manual_watering_id,
+                "manual_button": manual_watering_button_id,
             }
+            shower_entities[plant_name] = {
+                "manual": manual_shower_id,
+                "manual_button": manual_shower_button_id,
+            }
+
             if auto_id:
-                watering_ids.append(auto_id)
-            if manual_id:
-                watering_ids.append(manual_id)
-                manual_ids.append(manual_id)
-            if manual_button_id:
-                watering_ids.append(manual_button_id)
-                manual_button_ids.append(manual_button_id)
+                all_event_ids.append(auto_id)
+            if manual_watering_id:
+                all_event_ids.append(manual_watering_id)
+                manual_watering_ids.append(manual_watering_id)
+            if manual_watering_button_id:
+                all_event_ids.append(manual_watering_button_id)
+            if manual_shower_id:
+                all_event_ids.append(manual_shower_id)
+                manual_shower_ids.append(manual_shower_id)
+            if manual_shower_button_id:
+                all_event_ids.append(manual_shower_button_id)
         history_by_entity: dict[str, list[dict[str, Any]]] = {}
         logbook_by_entity: dict[str, list[dict[str, Any]]] = {}
-        if watering_ids:
+        if all_event_ids:
             start_time, end_time = history_window(30)
             _, history, error = await ha_request(
                 "GET",
                 f"/api/history/period/{start_time.isoformat()}",
                 params={
                     "end_time": end_time.isoformat(),
-                    "filter_entity_id": ",".join(watering_ids),
+                    "filter_entity_id": ",".join(all_event_ids),
                 },
             )
             if not error:
                 history_items = _normalize_history_payload(history)
                 for item in history_items:
                     entity_id = item.get("entity_id")
-                    if entity_id in watering_ids:
+                    if entity_id in all_event_ids:
                         history_by_entity.setdefault(entity_id, []).append(item)
                 for entries in history_by_entity.values():
                     entries.sort(
@@ -308,20 +412,21 @@ def register_plant_care_tools(mcp: FastMCP) -> None:
                         )
                         or datetime.min.replace(tzinfo=ZoneInfo("America/Los_Angeles"))
                     )
-            if manual_ids:
+            all_manual_ids = manual_watering_ids + manual_shower_ids
+            if all_manual_ids:
                 _, logbook, log_error = await ha_request(
                     "GET",
                     f"/api/logbook/period/{start_time.isoformat()}",
                     params={
                         "end_time": end_time.isoformat(),
-                        "entity_id": ",".join(manual_ids),
+                        "entity_id": ",".join(all_manual_ids),
                     },
                 )
                 if not log_error:
                     log_items = _normalize_logbook_payload(logbook)
                     for item in log_items:
                         entity_id = item.get("entity_id")
-                        if entity_id in manual_ids:
+                        if entity_id in all_manual_ids:
                             logbook_by_entity.setdefault(entity_id, []).append(item)
         plants = []
         for plant_name, plant in raw_plants.items():
@@ -358,8 +463,13 @@ def register_plant_care_tools(mcp: FastMCP) -> None:
                 normalized[key] = {item["name"]: item["value"] for item in items}
             water_meta = watering_entities.get(plant_name, {})
             auto_id = water_meta.get("auto")
-            manual_id = water_meta.get("manual")
-            manual_button_id = water_meta.get("manual_button")
+            manual_watering_id = water_meta.get("manual")
+            manual_watering_button_id = water_meta.get("manual_button")
+
+            shower_meta = shower_entities.get(plant_name, {})
+            manual_shower_id = shower_meta.get("manual")
+            manual_shower_button_id = shower_meta.get("manual_button")
+
             events: list[dict[str, Any]] = []
             if auto_id:
                 events.extend(
@@ -368,21 +478,38 @@ def register_plant_care_tools(mcp: FastMCP) -> None:
                         "auto",
                     )
                 )
-            if manual_id:
+            if manual_watering_id:
                 events.extend(
                     _build_manual_watering_events(
-                        history_by_entity.get(manual_id, []),
+                        history_by_entity.get(manual_watering_id, []),
                     )
                 )
                 events.extend(
                     _build_manual_watering_logbook_events(
-                        logbook_by_entity.get(manual_id, []),
+                        logbook_by_entity.get(manual_watering_id, []),
                     )
                 )
-            if manual_button_id:
+            if manual_watering_button_id:
                 events.extend(
                     _build_manual_watering_button_events(
-                        history_by_entity.get(manual_button_id, []),
+                        history_by_entity.get(manual_watering_button_id, []),
+                    )
+                )
+            if manual_shower_id:
+                events.extend(
+                    _build_manual_shower_events(
+                        history_by_entity.get(manual_shower_id, []),
+                    )
+                )
+                events.extend(
+                    _build_manual_shower_logbook_events(
+                        logbook_by_entity.get(manual_shower_id, []),
+                    )
+                )
+            if manual_shower_button_id:
+                events.extend(
+                    _build_manual_shower_button_events(
+                        history_by_entity.get(manual_shower_button_id, []),
                     )
                 )
             events = _dedupe_events(events)
@@ -560,4 +687,153 @@ def register_plant_care_tools(mcp: FastMCP) -> None:
             "plant": matched_name,
             "event": "watered",
             "data": service_data,
+        }
+
+    @mcp.tool
+    async def plant_care___record_manual_shower(
+        plant_name: str,
+        duration_minutes: int | None = None,
+        notes: str | None = None,
+    ) -> dict[str, Any]:
+        """Record a manual shower event for a plant.
+
+        Args:
+            plant_name: Plant name
+            duration_minutes: Duration in minutes (optional)
+            notes: Additional notes about the shower (optional)
+        """
+        states, error = await get_states_list()
+        if error:
+            return {"status": "error", "error": error}
+        plants = parse_plants_from_states(states)
+        matched_name = match_plant_name(plants.keys(), plant_name)
+        if not matched_name:
+            return {"status": "error", "error": "Plant not found"}
+
+        # Prepare service call data
+        service_data: dict[str, Any] = {"plant": matched_name}
+        if duration_minutes is not None:
+            service_data["duration_minutes"] = duration_minutes
+        if notes:
+            service_data["notes"] = notes
+
+        _, _, error = await ha_request(
+            "POST",
+            "/api/services/plants/record_shower",
+            json=service_data,
+        )
+        if error:
+            return {"status": "error", "error": error}
+
+        return {
+            "status": "success",
+            "plant": matched_name,
+            "event": "showered",
+            "data": service_data,
+        }
+
+    @mcp.tool
+    async def plant_care___light_on(plant_name: str) -> dict[str, Any]:
+        """Turn on the grow light for a plant.
+
+        Args:
+            plant_name: Plant name
+        """
+        states, error = await get_states_list()
+        if error:
+            return {"status": "error", "error": error}
+        plants = parse_plants_from_states(states)
+        matched_name = match_plant_name(plants.keys(), plant_name)
+        if not matched_name:
+            return {"status": "error", "error": "Plant not found"}
+
+        plant = plants[matched_name]
+        light_entity_id = plant.get("light_power_entity_id")
+        if not light_entity_id:
+            return {
+                "status": "error",
+                "error": f"No grow light is configured for {matched_name}",
+            }
+
+        # Check if the light entity is available
+        outlet_state = next(
+            (
+                state
+                for state in states
+                if state.get("entity_id") == light_entity_id
+            ),
+            None,
+        )
+        if not outlet_state or outlet_state.get("state") == "unavailable":
+            return {
+                "status": "error",
+                "error": f"The grow light for {matched_name} is unavailable",
+            }
+
+        _, _, error = await ha_request(
+            "POST",
+            "/api/services/switch/turn_on",
+            json={"entity_id": light_entity_id},
+        )
+        if error:
+            return {"status": "error", "error": error}
+
+        return {
+            "status": "success",
+            "plant": matched_name,
+            "light_switch": light_entity_id,
+            "action": "turned_on",
+        }
+
+    @mcp.tool
+    async def plant_care___light_off(plant_name: str) -> dict[str, Any]:
+        """Turn off the grow light for a plant.
+
+        Args:
+            plant_name: Plant name
+        """
+        states, error = await get_states_list()
+        if error:
+            return {"status": "error", "error": error}
+        plants = parse_plants_from_states(states)
+        matched_name = match_plant_name(plants.keys(), plant_name)
+        if not matched_name:
+            return {"status": "error", "error": "Plant not found"}
+
+        plant = plants[matched_name]
+        light_entity_id = plant.get("light_power_entity_id")
+        if not light_entity_id:
+            return {
+                "status": "error",
+                "error": f"No grow light is configured for {matched_name}",
+            }
+
+        # Check if the light entity is available
+        outlet_state = next(
+            (
+                state
+                for state in states
+                if state.get("entity_id") == light_entity_id
+            ),
+            None,
+        )
+        if not outlet_state or outlet_state.get("state") == "unavailable":
+            return {
+                "status": "error",
+                "error": f"The grow light for {matched_name} is unavailable",
+            }
+
+        _, _, error = await ha_request(
+            "POST",
+            "/api/services/switch/turn_off",
+            json={"entity_id": light_entity_id},
+        )
+        if error:
+            return {"status": "error", "error": error}
+
+        return {
+            "status": "success",
+            "plant": matched_name,
+            "light_switch": light_entity_id,
+            "action": "turned_off",
         }

@@ -23,6 +23,7 @@ PLANT_SUFFIXES = {
     "light_power": "Grow Light Control",
     "water_power": "Auto Watering Control",
     "manual_watering": "Manual Watering",
+    "manual_shower": "Manual Shower",
     "light_state": "Grow Light State",
     "auto_watering_state": "Auto Watering State",
     "humidifier_state": "Air Humidifier State",
@@ -138,7 +139,7 @@ def parse_plants_from_states(
                 break
         if not matched_key:
             continue
-        if matched_key == "manual_watering" and domain == "button":
+        if matched_key in ("manual_watering", "manual_shower") and domain == "button":
             continue
         plant_name = plant_name.strip()
         if not plant_name:
