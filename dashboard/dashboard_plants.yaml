@@ -1,28 +1,24 @@
-title: 🌿 Мои Растения
+title: 🌿 My Plants
 theme: Backend-selected
 views:
-  # 🏠 ГЛАВНАЯ - Обзор всех растений
-  - title: Главная
+  - title: Home
     path: home
     icon: mdi:home-variant
     type: sections
     sections:
       - type: grid
         cards:
-          # Заголовок с общей информацией
           - type: markdown
             content: |
-              # 🌱 Добро пожаловать в сад!
+              # 🌱 Welcome to the Garden!
               **{{ now().strftime('%A, %d %B %Y') }}**
-              
-              У вас **14 растений** 🌿
-              **4 датчика влажности** 💧
 
-      # Быстрый доступ к растениям с влажностью почвы
-      - title: 🌿 Растения с датчиками влажности
+              You have **14 plants** 🌿
+              **4 soil moisture sensors** 💧
+
+      - title: 🌿 Plants with Moisture Sensors
         type: grid
         cards:
-          # Alocasia
           - type: gauge
             entity: sensor.alocasia_moisture
             name: 🌿 Alocasia
@@ -35,7 +31,6 @@ views:
               red: 0
             needle: true
 
-          # Majesty Palm
           - type: gauge
             entity: sensor.majesty_palm_moisture
             name: 🌴 Majesty Palm
@@ -48,7 +43,6 @@ views:
               red: 0
             needle: true
 
-          # Malcolm Ficus
           - type: gauge
             entity: sensor.malcolm_ficus_moisture
             name: 🌳 Malcolm Ficus
@@ -61,7 +55,6 @@ views:
               red: 0
             needle: true
 
-          # Olive Tree
           - type: gauge
             entity: sensor.olive_tree_moisture
             name: 🫒 Olive Tree
@@ -74,13 +67,12 @@ views:
               red: 0
             needle: true
 
-      # Климатические датчики
-      - title: 🌡️ Климат в помещении
+      - title: 🌡️ Indoor Climate
         type: grid
         cards:
           - type: gauge
             entity: sensor.liana_humidity_meter
-            name: Влажность воздуха
+            name: Air Humidity
             unit: "%"
             min: 0
             max: 100
@@ -92,7 +84,7 @@ views:
 
           - type: gauge
             entity: sensor.liana_air_temperature_meter
-            name: Температура
+            name: Temperature
             unit: "°F"
             min: 60
             max: 85
@@ -102,489 +94,444 @@ views:
               red: 60
             needle: true
 
-  # 🌱 ВСЕ РАСТЕНИЯ - Детальный список
-  - title: Все растения
+  - title: All Plants
     path: all-plants
     icon: mdi:flower-tulip
     cards:
-      # Alocasia
       - type: vertical-stack
         cards:
           - type: markdown
             content: |
               ## 🌿 Alocasia
-              **Алоказия**
-
           - type: entities
             entities:
               - entity: sensor.alocasia_moisture
-                name: Влажность почвы
+                name: Soil Moisture
                 icon: mdi:water-percent
               - entity: sensor.alocasia_humidity_meter
-                name: Влажность воздуха
+                name: Air Humidity
               - entity: sensor.alocasia_air_temperature_meter
-                name: Температура
+                name: Temperature
               - entity: sensor.alocasia_light_state
-                name: Состояние света
+                name: Grow Light State
               - entity: sensor.alocasia_humidifier_state
-                name: Увлажнитель
+                name: Humidifier State
               - entity: sensor.alocasia_auto_watering_state
-                name: Автополив
+                name: Auto Watering State
               - entity: switch.alocasia_light_power
-                name: Подсветка
+                name: Grow Light
                 icon: mdi:lightbulb
               - entity: switch.alocasia_auto_watering_control
-                name: Автополив
+                name: Auto Watering
                 icon: mdi:water-pump
               - entity: switch.alocasia_humidifier_control
-                name: Увлажнитель
+                name: Humidifier
                 icon: mdi:air-humidifier
               - entity: text.alocasia_air_humidity_recommendation
-                name: Рекомендуемая влажность
+                name: Humidity Recommendation
               - entity: text.alocasia_air_temperature_recommendation
-                name: Рекомендуемая температура
+                name: Temperature Recommendation
               - entity: text.alocasia_minimum_soil_moisture_recommendation
-                name: Минимальная влажность почвы
+                name: Min Soil Moisture
               - entity: text.alocasia_watering_frequency_recommendation
-                name: Частота полива
+                name: Watering Frequency
               - entity: text.alocasia_todo_list
-                name: Список задач
+                name: Todo List
               - entity: text.alocasia_other_recommendations
-                name: Другие рекомендации
-
+                name: Other Recommendations
           - type: history-graph
             entities:
               - entity: sensor.alocasia_moisture
             hours_to_show: 48
 
-      # Dracaena
       - type: vertical-stack
         cards:
           - type: markdown
             content: |
               ## 🌿 Dracaena
-              **Драцена**
-
           - type: entities
             entities:
               - entity: switch.dracaena_grow_light_control
-                name: Подсветка
+                name: Grow Light
                 icon: mdi:lightbulb
               - entity: switch.dracaena_auto_watering_control
-                name: Автополив
+                name: Auto Watering
                 icon: mdi:water-pump
               - entity: text.dracaena_air_humidity_recommendation
-                name: Рекомендуемая влажность
+                name: Humidity Recommendation
               - entity: text.dracaena_air_temperature_recommendation
-                name: Рекомендуемая температура
+                name: Temperature Recommendation
               - entity: text.dracaena_watering_frequency_recommendation
-                name: Частота полива
+                name: Watering Frequency
 
-      # Ficus Elastica Robusta
       - type: vertical-stack
         cards:
           - type: markdown
             content: |
               ## 🌳 Ficus Elastica Robusta
-              **Фикус Робуста**
-
           - type: entities
             entities:
               - entity: switch.ficus_elastica_robusta_grow_light_control
-                name: Подсветка
+                name: Grow Light
                 icon: mdi:lightbulb
               - entity: switch.ficus_elastica_robusta_auto_watering_control
-                name: Автополив
+                name: Auto Watering
                 icon: mdi:water-pump
               - entity: text.ficus_elastica_robusta_air_humidity_recommendation
-                name: Рекомендуемая влажность
+                name: Humidity Recommendation
               - entity: text.ficus_elastica_robusta_air_temperature_recommendation
-                name: Рекомендуемая температура
+                name: Temperature Recommendation
               - entity: text.ficus_elastica_robusta_minimum_soil_moisture_recommendation
-                name: Минимальная влажность почвы
+                name: Min Soil Moisture
               - entity: text.ficus_elastica_robusta_watering_frequency_recommendation
-                name: Частота полива
+                name: Watering Frequency
 
-      # Ficus Elastica Tineke
       - type: vertical-stack
         cards:
           - type: markdown
             content: |
               ## 🌳 Ficus Elastica Tineke
-              **Фикус Тинеке**
-
           - type: entities
             entities:
               - entity: sensor.ficus_elastica_tineke_grow_light_state
-                name: Состояние подсветки
+                name: Grow Light State
               - entity: sensor.ficus_elastica_tineke_soil_moisture_state
-                name: Влажность почвы
+                name: Soil Moisture
               - entity: switch.ficus_elastica_tineke_grow_light_control
-                name: Подсветка
+                name: Grow Light
                 icon: mdi:lightbulb
               - entity: switch.ficus_elastica_tineke_auto_watering_control
-                name: Автополив
+                name: Auto Watering
                 icon: mdi:water-pump
               - entity: text.ficus_elastica_tineke_air_humidity_recommendation
-                name: Рекомендуемая влажность
+                name: Humidity Recommendation
               - entity: text.ficus_elastica_tineke_air_temperature_recommendation
-                name: Рекомендуемая температура
+                name: Temperature Recommendation
               - entity: text.ficus_elastica_tineke_minimum_soil_moisture_recommendation
-                name: Минимальная влажность почвы
+                name: Min Soil Moisture
               - entity: text.ficus_elastica_tineke_watering_frequency_recommendation
-                name: Частота полива
+                name: Watering Frequency
 
-      # Liana
       - type: vertical-stack
         cards:
           - type: markdown
             content: |
               ## 🌿 Liana
-              **Лиана**
-
           - type: entities
             entities:
               - entity: sensor.liana_light_state
-                name: Состояние света
+                name: Grow Light State
               - entity: sensor.liana_moisture
-                name: Влажность почвы
+                name: Soil Moisture
               - entity: sensor.liana_humidity_meter
-                name: Влажность воздуха
+                name: Air Humidity
               - entity: sensor.liana_air_temperature_meter
-                name: Температура
+                name: Temperature
               - entity: sensor.liana_auto_watering_state
-                name: Автополив
+                name: Auto Watering State
               - entity: switch.liana_light_power
-                name: Подсветка
+                name: Grow Light
                 icon: mdi:lightbulb
               - entity: switch.liana_auto_watering_control
-                name: Автополив
+                name: Auto Watering
                 icon: mdi:water-pump
               - entity: text.liana_air_humidity_recommendation
-                name: Рекомендуемая влажность
+                name: Humidity Recommendation
               - entity: text.liana_air_temperature_recommendation
-                name: Рекомендуемая температура
+                name: Temperature Recommendation
               - entity: text.liana_minimum_soil_moisture_recommendation
-                name: Минимальная влажность почвы
+                name: Min Soil Moisture
               - entity: text.liana_watering_frequency_recommendation
-                name: Частота полива
+                name: Watering Frequency
 
-      # Majesty Palm
       - type: vertical-stack
         cards:
           - type: markdown
             content: |
               ## 🌴 Majesty Palm
-              **Пальма Маджести**
-
           - type: entities
             entities:
               - entity: sensor.majesty_palm_moisture
-                name: Влажность почвы
+                name: Soil Moisture
                 icon: mdi:water-percent
               - entity: sensor.majesty_palm_humidity_meter
-                name: Влажность воздуха
+                name: Air Humidity
               - entity: sensor.majesty_palm_air_temperature_meter
-                name: Температура
+                name: Temperature
               - entity: sensor.majesty_palm_light_state
-                name: Состояние света
+                name: Grow Light State
               - entity: sensor.majesty_palm_auto_watering_state
-                name: Автополив
+                name: Auto Watering State
               - entity: switch.majesty_palm_auto_watering_control
-                name: Автополив
+                name: Auto Watering
                 icon: mdi:water-pump
               - entity: switch.majesty_palm_light_power
-                name: Подсветка
+                name: Grow Light
                 icon: mdi:lightbulb
               - entity: text.majesty_palm_air_humidity_recommendation
-                name: Рекомендуемая влажность
+                name: Humidity Recommendation
               - entity: text.majesty_palm_air_temperature_recommendation
-                name: Рекомендуемая температура
+                name: Temperature Recommendation
               - entity: text.majesty_palm_minimum_soil_moisture_recommendation
-                name: Минимальная влажность почвы
+                name: Min Soil Moisture
               - entity: text.majesty_palm_watering_frequency_recommendation
-                name: Частота полива
-
+                name: Watering Frequency
           - type: history-graph
             entities:
               - entity: sensor.majesty_palm_moisture
             hours_to_show: 48
 
-      # Malcolm Ficus
       - type: vertical-stack
         cards:
           - type: markdown
             content: |
               ## 🌳 Malcolm Ficus
-              **Фикус Малкольм**
-
           - type: entities
             entities:
               - entity: sensor.malcolm_ficus_moisture
-                name: Влажность почвы
+                name: Soil Moisture
                 icon: mdi:water-percent
               - entity: sensor.malcolm_ficus_humidity_meter
-                name: Влажность воздуха
+                name: Air Humidity
               - entity: sensor.malcolm_ficus_air_temperature_meter
-                name: Температура
+                name: Temperature
               - entity: sensor.malcolm_ficus_light_state
-                name: Состояние света
+                name: Grow Light State
               - entity: sensor.malcolm_ficus_auto_watering_state
-                name: Автополив
+                name: Auto Watering State
               - entity: switch.malcolm_ficus_light_power
-                name: Подсветка
+                name: Grow Light
                 icon: mdi:lightbulb
               - entity: switch.malcolm_ficus_auto_watering_control
-                name: Автополив
+                name: Auto Watering
                 icon: mdi:water-pump
               - entity: text.malcolm_ficus_air_humidity_recommendation
-                name: Рекомендуемая влажность
+                name: Humidity Recommendation
               - entity: text.malcolm_ficus_air_temperature_recommendation
-                name: Рекомендуемая температура
+                name: Temperature Recommendation
               - entity: text.malcolm_ficus_minimum_soil_moisture_recommendation
-                name: Минимальная влажность почвы
+                name: Min Soil Moisture
               - entity: text.malcolm_ficus_watering_frequency_recommendation
-                name: Частота полива
-
+                name: Watering Frequency
           - type: history-graph
             entities:
               - entity: sensor.malcolm_ficus_moisture
             hours_to_show: 48
 
-      # Maranta
       - type: vertical-stack
         cards:
           - type: markdown
             content: |
               ## 🌿 Maranta
-              **Маранта**
-
           - type: entities
             entities:
               - entity: sensor.maranta_grow_light_state
-                name: Состояние подсветки
+                name: Grow Light State
               - entity: sensor.maranta_soil_moisture_state
-                name: Влажность почвы
+                name: Soil Moisture
               - entity: sensor.maranta_air_humidity_meter
-                name: Влажность воздуха
+                name: Air Humidity
               - entity: sensor.maranta_air_temperature_meter
-                name: Температура
+                name: Temperature
               - entity: sensor.maranta_auto_watering_state
-                name: Автополив
+                name: Auto Watering State
               - entity: switch.maranta_grow_light_control
-                name: Подсветка
+                name: Grow Light
                 icon: mdi:lightbulb
               - entity: switch.maranta_auto_watering_control
-                name: Автополив
+                name: Auto Watering
                 icon: mdi:water-pump
               - entity: text.maranta_air_humidity_recommendation
-                name: Рекомендуемая влажность
+                name: Humidity Recommendation
               - entity: text.maranta_air_temperature_recommendation
-                name: Рекомендуемая температура
+                name: Temperature Recommendation
               - entity: text.maranta_minimum_soil_moisture_recommendation
-                name: Минимальная влажность почвы
+                name: Min Soil Moisture
               - entity: text.maranta_watering_frequency_recommendation
-                name: Частота полива
+                name: Watering Frequency
 
-      # Olive Tree
       - type: vertical-stack
         cards:
           - type: markdown
             content: |
               ## 🫒 Olive Tree
-              **Оливковое дерево**
-
           - type: entities
             entities:
               - entity: sensor.olive_tree_moisture
-                name: Влажность почвы
+                name: Soil Moisture
                 icon: mdi:water-percent
               - entity: sensor.olive_tree_humidity_meter
-                name: Влажность воздуха
+                name: Air Humidity
               - entity: sensor.olive_tree_air_temperature_meter
-                name: Температура
+                name: Temperature
               - entity: sensor.olive_tree_light_state
-                name: Состояние света
+                name: Grow Light State
               - entity: sensor.olive_tree_auto_watering_state
-                name: Автополив
+                name: Auto Watering State
               - entity: switch.olive_tree_light_power
-                name: Подсветка
+                name: Grow Light
                 icon: mdi:lightbulb
               - entity: switch.olive_tree_auto_watering_control
-                name: Автополив
+                name: Auto Watering
                 icon: mdi:water-pump
               - entity: text.olive_tree_air_humidity_recommendation
-                name: Рекомендуемая влажность
+                name: Humidity Recommendation
               - entity: text.olive_tree_air_temperature_recommendation
-                name: Рекомендуемая температура
+                name: Temperature Recommendation
               - entity: text.olive_tree_minimum_soil_moisture_recommendation
-                name: Минимальная влажность почвы
+                name: Min Soil Moisture
               - entity: text.olive_tree_watering_frequency_recommendation
-                name: Частота полива
-
+                name: Watering Frequency
           - type: history-graph
             entities:
               - entity: sensor.olive_tree_moisture
             hours_to_show: 48
 
-      # Philodendron
       - type: vertical-stack
         cards:
           - type: markdown
             content: |
               ## 🌿 Philodendron
-              **Филодендрон**
-
           - type: entities
             entities:
               - entity: sensor.philodendron_grow_light_state
-                name: Состояние подсветки
+                name: Grow Light State
               - entity: sensor.philodendron_soil_moisture_state
-                name: Влажность почвы
+                name: Soil Moisture
               - entity: sensor.philodendron_air_humidity_meter
-                name: Влажность воздуха
+                name: Air Humidity
               - entity: sensor.philodendron_air_temperature_meter
-                name: Температура
+                name: Temperature
               - entity: sensor.philodendron_auto_watering_state
-                name: Автополив
+                name: Auto Watering State
               - entity: switch.philodendron_grow_light_control
-                name: Подсветка
+                name: Grow Light
                 icon: mdi:lightbulb
               - entity: switch.philodendron_auto_watering_control
-                name: Автополив
+                name: Auto Watering
                 icon: mdi:water-pump
               - entity: text.philodendron_air_humidity_recommendation
-                name: Рекомендуемая влажность
+                name: Humidity Recommendation
               - entity: text.philodendron_air_temperature_recommendation
-                name: Рекомендуемая температура
+                name: Temperature Recommendation
               - entity: text.philodendron_minimum_soil_moisture_recommendation
-                name: Минимальная влажность почвы
+                name: Min Soil Moisture
               - entity: text.philodendron_watering_frequency_recommendation
-                name: Частота полива
+                name: Watering Frequency
 
-      # Rubber Plant
       - type: vertical-stack
         cards:
           - type: markdown
             content: |
               ## 🌳 Rubber Plant
-              **Каучуковое дерево**
-
           - type: entities
             entities:
               - entity: sensor.rubber_plant_moisture
-                name: Влажность почвы
+                name: Soil Moisture
               - entity: sensor.rubber_plant_humidity_meter
-                name: Влажность воздуха
+                name: Air Humidity
               - entity: sensor.rubber_plant_air_temperature_meter
-                name: Температура
+                name: Temperature
               - entity: sensor.rubber_plant_light_state
-                name: Состояние света
+                name: Grow Light State
               - entity: sensor.rubber_plant_humidifier_state
-                name: Увлажнитель
+                name: Humidifier State
               - entity: sensor.rubber_plant_auto_watering_state
-                name: Автополив
+                name: Auto Watering State
               - entity: switch.rubber_plant_light_power
-                name: Подсветка
+                name: Grow Light
                 icon: mdi:lightbulb
               - entity: switch.rubber_plant_auto_watering_control
-                name: Автополив
+                name: Auto Watering
                 icon: mdi:water-pump
               - entity: switch.rubber_plant_humidifier_control
-                name: Увлажнитель
+                name: Humidifier
                 icon: mdi:air-humidifier
               - entity: text.rubber_plant_air_humidity_recommendation
-                name: Рекомендуемая влажность
+                name: Humidity Recommendation
               - entity: text.rubber_plant_air_temperature_recommendation
-                name: Рекомендуемая температура
+                name: Temperature Recommendation
               - entity: text.rubber_plant_minimum_soil_moisture_recommendation
-                name: Минимальная влажность почвы
+                name: Min Soil Moisture
               - entity: text.rubber_plant_watering_frequency_recommendation
-                name: Частота полива
+                name: Watering Frequency
               - entity: text.rubber_plant_todo_list
-                name: Список задач
+                name: Todo List
               - entity: text.rubber_plant_other_recommendations
-                name: Другие рекомендации
+                name: Other Recommendations
 
-      # Triangularis Ficus
       - type: vertical-stack
         cards:
           - type: markdown
             content: |
               ## 🌳 Triangularis Ficus
-              **Фикус Триангуларис**
-
           - type: entities
             entities:
               - entity: sensor.triangularis_ficus_moisture
-                name: Влажность почвы
+                name: Soil Moisture
               - entity: sensor.triangularis_ficus_humidity_meter
-                name: Влажность воздуха
+                name: Air Humidity
               - entity: sensor.triangularis_ficus_air_temperature_meter
-                name: Температура
+                name: Temperature
               - entity: sensor.triangularis_ficus_light_state
-                name: Состояние света
+                name: Grow Light State
               - entity: sensor.triangularis_ficus_auto_watering_state
-                name: Автополив
+                name: Auto Watering State
               - entity: switch.triangularis_ficus_light_power
-                name: Подсветка
+                name: Grow Light
                 icon: mdi:lightbulb
               - entity: switch.triangularis_ficus_auto_watering_control
-                name: Автополив
+                name: Auto Watering
                 icon: mdi:water-pump
               - entity: text.triangularis_ficus_air_humidity_recommendation
-                name: Рекомендуемая влажность
+                name: Humidity Recommendation
               - entity: text.triangularis_ficus_air_temperature_recommendation
-                name: Рекомендуемая температура
+                name: Temperature Recommendation
               - entity: text.triangularis_ficus_minimum_soil_moisture_recommendation
-                name: Минимальная влажность почвы
+                name: Min Soil Moisture
               - entity: text.triangularis_ficus_watering_frequency_recommendation
-                name: Частота полива
+                name: Watering Frequency
 
-      # Yucca
       - type: vertical-stack
         cards:
           - type: markdown
             content: |
               ## 🌵 Yucca
-              **Юкка**
-
           - type: entities
             entities:
               - entity: sensor.yucca_moisture
-                name: Влажность почвы
+                name: Soil Moisture
               - entity: sensor.yucca_humidity_meter
-                name: Влажность воздуха
+                name: Air Humidity
               - entity: sensor.yucca_air_temperature_meter
-                name: Температура
+                name: Temperature
               - entity: sensor.yucca_light_state
-                name: Состояние света
+                name: Grow Light State
               - entity: sensor.yucca_auto_watering_state
-                name: Автополив
+                name: Auto Watering State
               - entity: switch.yucca_light_power
-                name: Подсветка
+                name: Grow Light
                 icon: mdi:lightbulb
               - entity: switch.yucca_auto_watering_control
-                name: Автополив
+                name: Auto Watering
                 icon: mdi:water-pump
               - entity: text.yucca_air_humidity_recommendation
-                name: Рекомендуемая влажность
+                name: Humidity Recommendation
               - entity: text.yucca_air_temperature_recommendation
-                name: Рекомендуемая температура
+                name: Temperature Recommendation
               - entity: text.yucca_minimum_soil_moisture_recommendation
-                name: Минимальная влажность почвы
+                name: Min Soil Moisture
               - entity: text.yucca_watering_frequency_recommendation
-                name: Частота полива
+                name: Watering Frequency
 
-  # 📊 ГРАФИКИ - История влажности
-  - title: Графики
+  - title: Graphs
     path: graphs
     icon: mdi:chart-line
     cards:
       - type: markdown
         content: |
-          # 📊 История влажности почвы
-          Последние 48 часов
+          # 📊 Soil Moisture History
+          Last 48 hours
 
       - type: history-graph
         title: Alocasia
@@ -614,30 +561,27 @@ views:
         hours_to_show: 48
         refresh_interval: 300
 
-  # 💧 ВЛАЖНОСТЬ ВОЗДУХА - Сравнение внутри и снаружи
-  - title: Влажность воздуха
+  - title: Humidity
     path: humidity
     icon: mdi:water-percent
     cards:
       - type: markdown
         content: |
-          # 💧 История влажности воздуха
-          Сравнение влажности внутри помещения и на улице
+          # 💧 Air Humidity History
+          Indoor vs outdoor comparison
 
-          Датчики для визуального сравнения:
-          - Сенсоры внутри помещения (Liana, First Alert, GW1200B)
-          - Уличная погода (OpenWeatherMap)
+          Sensors:
+          - Indoor (Liana, GW1200B)
+          - Outdoor (OpenWeatherMap)
 
       - type: history-graph
-        title: Влажность воздуха - Внутри vs Снаружи
+        title: Air Humidity - Indoor vs Outdoor
         entities:
           - entity: sensor.liana_humidity_meter
-            name: Внутри (Liana)
-          - entity: sensor.first_air_quality_monitor_humidity
-            name: Внутри (First Alert)
+            name: Indoor (Liana)
           - entity: sensor.gw1200b_indoor_humidity
-            name: Внутри (GW1200B)
+            name: Indoor (GW1200B)
           - entity: sensor.openweathermap_humidity
-            name: Снаружи (OpenWeatherMap)
+            name: Outdoor (OpenWeatherMap)
         hours_to_show: 168
         refresh_interval: 300
