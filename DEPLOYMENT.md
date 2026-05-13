@@ -1,58 +1,31 @@
-# Deployment notes
+# Deployment
 
-This repo deploys the Home Assistant custom component under `ha_integration/`.
+## Local → HA server structure
 
-## SSH access
+```
+ha/custom_components/plants/   →   /config/custom_components/plants/
+ha/dashboards/plants.yaml      →   /config/dashboards/plants.yaml
+```
 
-- Host: `192.168.1.151`
-- Port: `22`
-- User: `hassio`
-- SSH key: `~/.ssh/id_ed25519`
+HA server is the source of truth.
 
-Quick check:
+## Deploy
 
 ```sh
-ssh -i ~/.ssh/id_ed25519 -p 22 hassio@192.168.1.151 "ls -la /config/custom_components"
+./deploy.sh                # everything
+./deploy.sh integration    # custom component + auto-restart HA
+./deploy.sh dashboard      # dashboard only (refresh browser, no restart)
 ```
 
-## Target path on server
+Requires: SSH key at `~/.ssh/id_ed25519`, `.env` with `HA_URL` and `HA_TOKEN`.
 
-Home Assistant config path is `/config` (symlink to `/homeassistant`).
-
-Custom component destination:
-
-```
-/config/custom_components/plants/
-```
-
-## Deploy command (rsync)
-
-Use sudo on the remote side to handle permissions and cleanup:
+## Pull from HA (remote → local)
 
 ```sh
-rsync -av --delete \
-  -e "ssh -i ~/.ssh/id_ed25519 -p 22" \
+rsync -av --exclude='__pycache__' -e "ssh -i ~/.ssh/id_ed25519 -p 22" \
   --rsync-path="sudo rsync" \
-  ./ha_integration/ \
-  hassio@192.168.1.151:/config/custom_components/plants/
+  hassio@192.168.1.151:/config/custom_components/plants/ ./ha/custom_components/plants/
+
+rsync -av -e "ssh -i ~/.ssh/id_ed25519 -p 22" \
+  hassio@192.168.1.151:/config/dashboards/plants.yaml ./ha/dashboards/plants.yaml
 ```
-
-## Home Assistant API
-
-API details live in `.env` at the repo root:
-
-- `HA_URL`
-- `HA_TOKEN`
-
-Example restart call:
-
-```sh
-source ./.env
-curl -X POST "$HA_URL/api/services/homeassistant/restart" \
-  -H "Authorization: Bearer $HA_TOKEN" \
-  -H "Content-Type: application/json" \
-  -d '{}'
-```
-
-Tip: if `homeassistant.local` is not resolvable from this machine, replace
-`HA_URL` in `.env` with the IP of the HA host, e.g. `http://192.168.1.151:8123`.
