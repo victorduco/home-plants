@@ -1,0 +1,840 @@
+{
+  "snapshot_time": "2026-05-11T19:25:58.175738",
+  "plants": {
+    "Alocasia": {
+      "sensors": {
+        "Soil Moisture State": "0.0 %",
+        "Air Humidity Meter": "41.0 %",
+        "Air Temperature Meter": "70.34 °F",
+        "Grow Light State": "No grow light near the plant.",
+        "Auto Watering State": "Device unavailable",
+        "Air Humidifier State": "Humidifier is on"
+      },
+      "devices": {
+        "Grow Light Device Source": {
+          "source_entity": "None"
+        },
+        "Auto Watering Device Source": {
+          "source_entity": "valve.watering_device_1_valve",
+          "name": "Valve",
+          "current_value": "unavailable"
+        },
+        "Soil Moisture Device Source": {
+          "source_entity": "sensor.gw1200b_soil_moisture_4",
+          "name": "GW1200B Soil Moisture 4",
+          "current_value": "0 %"
+        },
+        "Air Humidity Meter Source": {
+          "source_entity": "sensor.gw1200b_indoor_humidity",
+          "name": "GW1200B Indoor Humidity",
+          "current_value": "41 %"
+        },
+        "Air Temperature Meter Source": {
+          "source_entity": "sensor.gw1200b_indoor_temperature",
+          "name": "GW1200B Indoor Temperature",
+          "current_value": "70.34 °F"
+        },
+        "Air Humidifier Device Source": {
+          "source_entity": "switch.plug_humidifier",
+          "name": "Plug - humidifier",
+          "current_value": "on"
+        }
+      },
+      "controls": {
+        "Grow Light Control": "unavailable",
+        "Air Humidifier Control": "on",
+        "Auto Watering Control": "off"
+      },
+      "recommendations": {
+        "Watering Frequency Recommendation": "~1 week",
+        "Minimum Soil Moisture Recommendation": "40%",
+        "Air Temperature Recommendation": "20–26 °C",
+        "Air Humidity Recommendation": "60–80%",
+        "Other Recommendations": "",
+        "Todo List": ""
+      },
+      "events": {
+        "Add Manual Watering": "2026-01-22T05:50:49.558322+00:00",
+        "Add Manual Shower": "unknown",
+        "Manual Watering": "2026-01-22T08:24:09.946+00:00",
+        "Manual Shower": "unknown"
+      }
+    },
+    "Dracaena": {
+      "sensors": {
+        "Soil Moisture State": "No soil moisture meter near the plant.",
+        "Air Humidity Meter": "41.0 %",
+        "Air Temperature Meter": "70.34 °F",
+        "Grow Light State": "Light is on",
+        "Auto Watering State": "Device not installed. Watering can only be done manually by the user.",
+        "Air Humidifier State": "No air humidifier near the plant."
+      },
+      "devices": {
+        "Grow Light Device Source": {
+          "source_entity": "switch.plug_horizontal",
+          "name": "Plug - horizontal",
+          "current_value": "on"
+        },
+        "Auto Watering Device Source": {
+          "source_entity": "None"
+        },
+        "Soil Moisture Device Source": {
+          "source_entity": "None"
+        },
+        "Air Humidity Meter Source": {
+          "source_entity": "sensor.gw1200b_indoor_humidity",
+          "name": "GW1200B Indoor Humidity",
+          "current_value": "41 %"
+        },
+        "Air Temperature Meter Source": {
+          "source_entity": "sensor.gw1200b_indoor_temperature",
+          "name": "GW1200B Indoor Temperature",
+          "current_value": "70.34 °F"
+        },
+        "Air Humidifier Device Source": {
+          "source_entity": "None"
+        }
+      },
+      "controls": {
+        "Grow Light Control": "on",
+        "Air Humidifier Control": "unavailable",
+        "Auto Watering Control": "unavailable"
+      },
+      "recommendations": {
+        "Watering Frequency Recommendation": "1–1.5 weeks",
+        "Minimum Soil Moisture Recommendation": "30%",
+        "Air Temperature Recommendation": "18–25 °C",
+        "Air Humidity Recommendation": "40–60%",
+        "Other Recommendations": "",
+        "Todo List": ""
+      },
+      "events": {
+        "Add Manual Watering": "unknown",
+        "Add Manual Shower": "unknown",
+        "Manual Watering": "2026-01-22T08:23:26.047+00:00",
+        "Manual Shower": "unknown"
+      }
+    },
+    "Ficus Elastica Robusta": {
+      "sensors": {
+        "Soil Moisture State": "No soil moisture meter near the plant.",
+        "Air Humidity Meter": "41.0 %",
+        "Air Temperature Meter": "70.34 °F",
+        "Grow Light State": "Light is on",
+        "Auto Watering State": "Device not installed. Watering can only be done manually by the user.",
+        "Air Humidifier State": "No air humidifier near the plant."
+      },
+      "devices": {
+        "Grow Light Device Source": {
+          "source_entity": "switch.plug_horizontal",
+          "name": "Plug - horizontal",
+          "current_value": "on"
+        },
+        "Auto Watering Device Source": {
+          "source_entity": "None"
+        },
+        "Soil Moisture Device Source": {
+          "source_entity": "None"
+        },
+        "Air Humidity Meter Source": {
+          "source_entity": "sensor.gw1200b_indoor_humidity",
+          "name": "GW1200B Indoor Humidity",
+          "current_value": "41 %"
+        },
+        "Air Temperature Meter Source": {
+          "source_entity": "sensor.gw1200b_indoor_temperature",
+          "name": "GW1200B Indoor Temperature",
+          "current_value": "70.34 °F"
+        },
+        "Air Humidifier Device Source": {
+          "source_entity": "None"
+        }
+      },
+      "controls": {
+        "Grow Light Control": "on",
+        "Air Humidifier Control": "unavailable",
+        "Auto Watering Control": "unavailable"
+      },
+      "recommendations": {
+        "Watering Frequency Recommendation": "1–1.5 weeks",
+        "Minimum Soil Moisture Recommendation": "35%",
+        "Air Temperature Recommendation": "18–26 °C",
+        "Air Humidity Recommendation": "40–60%",
+        "Other Recommendations": "",
+        "Todo List": ""
+      },
+      "events": {
+        "Add Manual Watering": "unknown",
+        "Add Manual Shower": "unknown",
+        "Manual Watering": "2026-01-22T08:23:09.251+00:00",
+        "Manual Shower": "unknown"
+      }
+    },
+    "Ficus Elastica Tineke": {
+      "sensors": {
+        "Soil Moisture State": "No soil moisture meter near the plant.",
+        "Air Humidity Meter": "41.0 %",
+        "Air Temperature Meter": "70.34 °F",
+        "Grow Light State": "Light is on",
+        "Auto Watering State": "Device not installed. Watering can only be done manually by the user.",
+        "Air Humidifier State": "No air humidifier near the plant."
+      },
+      "devices": {
+        "Grow Light Device Source": {
+          "source_entity": "switch.plug_horizontal",
+          "name": "Plug - horizontal",
+          "current_value": "on"
+        },
+        "Auto Watering Device Source": {
+          "source_entity": "None"
+        },
+        "Soil Moisture Device Source": {
+          "source_entity": "None"
+        },
+        "Air Humidity Meter Source": {
+          "source_entity": "sensor.gw1200b_indoor_humidity",
+          "name": "GW1200B Indoor Humidity",
+          "current_value": "41 %"
+        },
+        "Air Temperature Meter Source": {
+          "source_entity": "sensor.gw1200b_indoor_temperature",
+          "name": "GW1200B Indoor Temperature",
+          "current_value": "70.34 °F"
+        },
+        "Air Humidifier Device Source": {
+          "source_entity": "None"
+        }
+      },
+      "controls": {
+        "Grow Light Control": "on",
+        "Air Humidifier Control": "unavailable",
+        "Auto Watering Control": "unavailable"
+      },
+      "recommendations": {
+        "Watering Frequency Recommendation": "1–1.5 weeks",
+        "Minimum Soil Moisture Recommendation": "35%",
+        "Air Temperature Recommendation": "18–26 °C",
+        "Air Humidity Recommendation": "40–60%",
+        "Other Recommendations": "",
+        "Todo List": ""
+      },
+      "events": {
+        "Add Manual Watering": "unknown",
+        "Add Manual Shower": "unknown",
+        "Manual Watering": "2026-01-22T08:23:13.374+00:00",
+        "Manual Shower": "unknown"
+      }
+    },
+    "Liana": {
+      "sensors": {
+        "Soil Moisture State": "No soil moisture meter near the plant.",
+        "Air Humidity Meter": "41.0 %",
+        "Air Temperature Meter": "70.34 °F",
+        "Grow Light State": "Light is on",
+        "Auto Watering State": "Device not installed. Watering can only be done manually by the user.",
+        "Air Humidifier State": "No air humidifier near the plant."
+      },
+      "devices": {
+        "Grow Light Device Source": {
+          "source_entity": "switch.plug_horizontal",
+          "name": "Plug - horizontal",
+          "current_value": "on"
+        },
+        "Auto Watering Device Source": {
+          "source_entity": "None"
+        },
+        "Soil Moisture Device Source": {
+          "source_entity": "None"
+        },
+        "Air Humidity Meter Source": {
+          "source_entity": "sensor.gw1200b_indoor_humidity",
+          "name": "GW1200B Indoor Humidity",
+          "current_value": "41 %"
+        },
+        "Air Temperature Meter Source": {
+          "source_entity": "sensor.gw1200b_indoor_temperature",
+          "name": "GW1200B Indoor Temperature",
+          "current_value": "70.34 °F"
+        },
+        "Air Humidifier Device Source": {
+          "source_entity": "None"
+        }
+      },
+      "controls": {
+        "Grow Light Control": "on",
+        "Air Humidifier Control": "unavailable",
+        "Auto Watering Control": "unavailable"
+      },
+      "recommendations": {
+        "Watering Frequency Recommendation": "0.5–1 week",
+        "Minimum Soil Moisture Recommendation": "45%",
+        "Air Temperature Recommendation": "20–28 °C",
+        "Air Humidity Recommendation": "60–80%",
+        "Other Recommendations": "",
+        "Todo List": ""
+      },
+      "events": {
+        "Add Manual Watering": "unknown",
+        "Add Manual Shower": "unknown",
+        "Manual Watering": "2026-01-22T08:23:05.655+00:00",
+        "Manual Shower": "unknown"
+      }
+    },
+    "Majesty Palm": {
+      "sensors": {
+        "Soil Moisture State": "13.0 %",
+        "Air Humidity Meter": "41.0 %",
+        "Air Temperature Meter": "70.34 °F",
+        "Grow Light State": "No grow light near the plant.",
+        "Auto Watering State": "Device not installed. Watering can only be done manually by the user.",
+        "Air Humidifier State": "Humidifier is on"
+      },
+      "devices": {
+        "Grow Light Device Source": {
+          "source_entity": "None"
+        },
+        "Auto Watering Device Source": {
+          "source_entity": "None"
+        },
+        "Soil Moisture Device Source": {
+          "source_entity": "sensor.gw1200b_soil_moisture_3",
+          "name": "GW1200B Soil Moisture 3",
+          "current_value": "13 %"
+        },
+        "Air Humidity Meter Source": {
+          "source_entity": "sensor.gw1200b_indoor_humidity",
+          "name": "GW1200B Indoor Humidity",
+          "current_value": "41 %"
+        },
+        "Air Temperature Meter Source": {
+          "source_entity": "sensor.gw1200b_indoor_temperature",
+          "name": "GW1200B Indoor Temperature",
+          "current_value": "70.34 °F"
+        },
+        "Air Humidifier Device Source": {
+          "source_entity": "switch.plug_humidifier",
+          "name": "Plug - humidifier",
+          "current_value": "on"
+        }
+      },
+      "controls": {
+        "Grow Light Control": "unavailable",
+        "Air Humidifier Control": "on",
+        "Auto Watering Control": "unavailable"
+      },
+      "recommendations": {
+        "Watering Frequency Recommendation": "0.5–1 week",
+        "Minimum Soil Moisture Recommendation": "45%",
+        "Air Temperature Recommendation": "20–27 °C",
+        "Air Humidity Recommendation": "60–80%",
+        "Other Recommendations": "",
+        "Todo List": ""
+      },
+      "events": {
+        "Add Manual Watering": "unknown",
+        "Add Manual Shower": "unknown",
+        "Manual Watering": "2026-01-22T08:12:13.068+00:00",
+        "Manual Shower": "unknown"
+      }
+    },
+    "Malcolm Ficus": {
+      "sensors": {
+        "Soil Moisture State": "12.0 %",
+        "Air Humidity Meter": "41.0 %",
+        "Air Temperature Meter": "70.34 °F",
+        "Grow Light State": "Light is on",
+        "Auto Watering State": "Device not installed. Watering can only be done manually by the user.",
+        "Air Humidifier State": "No air humidifier near the plant."
+      },
+      "devices": {
+        "Grow Light Device Source": {
+          "source_entity": "switch.plug_horizontal",
+          "name": "Plug - horizontal",
+          "current_value": "on"
+        },
+        "Auto Watering Device Source": {
+          "source_entity": "None"
+        },
+        "Soil Moisture Device Source": {
+          "source_entity": "sensor.gw1200b_soil_moisture_2",
+          "name": "GW1200B Soil Moisture 2",
+          "current_value": "12 %"
+        },
+        "Air Humidity Meter Source": {
+          "source_entity": "sensor.gw1200b_indoor_humidity",
+          "name": "GW1200B Indoor Humidity",
+          "current_value": "41 %"
+        },
+        "Air Temperature Meter Source": {
+          "source_entity": "sensor.gw1200b_indoor_temperature",
+          "name": "GW1200B Indoor Temperature",
+          "current_value": "70.34 °F"
+        },
+        "Air Humidifier Device Source": {
+          "source_entity": "None"
+        }
+      },
+      "controls": {
+        "Grow Light Control": "on",
+        "Air Humidifier Control": "unavailable",
+        "Auto Watering Control": "unavailable"
+      },
+      "recommendations": {
+        "Watering Frequency Recommendation": "1–1.5 weeks",
+        "Minimum Soil Moisture Recommendation": "35%",
+        "Air Temperature Recommendation": "18–26 °C",
+        "Air Humidity Recommendation": "40–60%",
+        "Other Recommendations": "",
+        "Todo List": ""
+      },
+      "events": {
+        "Add Manual Watering": "unknown",
+        "Add Manual Shower": "unknown",
+        "Manual Watering": "2026-01-22T08:23:00.387+00:00",
+        "Manual Shower": "unknown"
+      }
+    },
+    "Maranta": {
+      "sensors": {
+        "Soil Moisture State": "No soil moisture meter near the plant.",
+        "Air Humidity Meter": "41.0 %",
+        "Air Temperature Meter": "70.34 °F",
+        "Grow Light State": "Light is on",
+        "Auto Watering State": "Device not installed. Watering can only be done manually by the user.",
+        "Air Humidifier State": "Humidifier is on"
+      },
+      "devices": {
+        "Grow Light Device Source": {
+          "source_entity": "switch.plug_horizontal",
+          "name": "Plug - horizontal",
+          "current_value": "on"
+        },
+        "Auto Watering Device Source": {
+          "source_entity": "None"
+        },
+        "Soil Moisture Device Source": {
+          "source_entity": "None"
+        },
+        "Air Humidity Meter Source": {
+          "source_entity": "sensor.gw1200b_indoor_humidity",
+          "name": "GW1200B Indoor Humidity",
+          "current_value": "41 %"
+        },
+        "Air Temperature Meter Source": {
+          "source_entity": "sensor.gw1200b_indoor_temperature",
+          "name": "GW1200B Indoor Temperature",
+          "current_value": "70.34 °F"
+        },
+        "Air Humidifier Device Source": {
+          "source_entity": "switch.plug_humidifier",
+          "name": "Plug - humidifier",
+          "current_value": "on"
+        }
+      },
+      "controls": {
+        "Grow Light Control": "on",
+        "Air Humidifier Control": "on",
+        "Auto Watering Control": "unavailable"
+      },
+      "recommendations": {
+        "Watering Frequency Recommendation": "0.5–1 week",
+        "Minimum Soil Moisture Recommendation": "45%",
+        "Air Temperature Recommendation": "20–26 °C",
+        "Air Humidity Recommendation": "60–80%",
+        "Other Recommendations": "",
+        "Todo List": ""
+      },
+      "events": {
+        "Add Manual Watering": "unknown",
+        "Add Manual Shower": "unknown",
+        "Manual Watering": "2026-01-22T08:23:17.071+00:00",
+        "Manual Shower": "unknown"
+      }
+    },
+    "Olive Tree": {
+      "sensors": {
+        "Soil Moisture State": "0.0 %",
+        "Air Humidity Meter": "No air humidity meter near the plant.",
+        "Air Temperature Meter": "70.34 °F",
+        "Grow Light State": "Light is on",
+        "Auto Watering State": "Device not installed. Watering can only be done manually by the user.",
+        "Air Humidifier State": "No air humidifier near the plant."
+      },
+      "devices": {
+        "Grow Light Device Source": {
+          "source_entity": "switch.plug_light_vertical",
+          "name": "Plug - light vertical",
+          "current_value": "on"
+        },
+        "Auto Watering Device Source": {
+          "source_entity": "None"
+        },
+        "Soil Moisture Device Source": {
+          "source_entity": "sensor.gw1200b_soil_moisture_1",
+          "name": "GW1200B Soil Moisture 1",
+          "current_value": "0 %"
+        },
+        "Air Humidity Meter Source": {
+          "source_entity": "sensor.first_air_quality_monitor_humidity",
+          "name": "First Air Quality Monitor Humidity",
+          "current_value": "unavailable %"
+        },
+        "Air Temperature Meter Source": {
+          "source_entity": "sensor.gw1200b_indoor_temperature",
+          "name": "GW1200B Indoor Temperature",
+          "current_value": "70.34 °F"
+        },
+        "Air Humidifier Device Source": {
+          "source_entity": "None"
+        }
+      },
+      "controls": {
+        "Grow Light Control": "on",
+        "Air Humidifier Control": "unavailable",
+        "Auto Watering Control": "unavailable"
+      },
+      "recommendations": {
+        "Watering Frequency Recommendation": "1.5–2 weeks",
+        "Minimum Soil Moisture Recommendation": "25%",
+        "Air Temperature Recommendation": "15–25 °C",
+        "Air Humidity Recommendation": "30–50%",
+        "Other Recommendations": "",
+        "Todo List": ""
+      },
+      "events": {
+        "Add Manual Watering": "unknown",
+        "Add Manual Shower": "unknown",
+        "Manual Watering": "2026-01-22T08:35:04.923+00:00",
+        "Manual Shower": "unknown"
+      }
+    },
+    "Philodendron": {
+      "sensors": {
+        "Soil Moisture State": "No soil moisture meter near the plant.",
+        "Air Humidity Meter": "41.0 %",
+        "Air Temperature Meter": "70.34 °F",
+        "Grow Light State": "No grow light near the plant.",
+        "Auto Watering State": "Device not installed. Watering can only be done manually by the user.",
+        "Air Humidifier State": "Humidifier is on"
+      },
+      "devices": {
+        "Grow Light Device Source": {
+          "source_entity": "None"
+        },
+        "Auto Watering Device Source": {
+          "source_entity": "None"
+        },
+        "Soil Moisture Device Source": {
+          "source_entity": "None"
+        },
+        "Air Humidity Meter Source": {
+          "source_entity": "sensor.gw1200b_indoor_humidity",
+          "name": "GW1200B Indoor Humidity",
+          "current_value": "41 %"
+        },
+        "Air Temperature Meter Source": {
+          "source_entity": "sensor.gw1200b_indoor_temperature",
+          "name": "GW1200B Indoor Temperature",
+          "current_value": "70.34 °F"
+        },
+        "Air Humidifier Device Source": {
+          "source_entity": "switch.plug_humidifier",
+          "name": "Plug - humidifier",
+          "current_value": "on"
+        }
+      },
+      "controls": {
+        "Grow Light Control": "unavailable",
+        "Air Humidifier Control": "on",
+        "Auto Watering Control": "unavailable"
+      },
+      "recommendations": {
+        "Watering Frequency Recommendation": "~1 week",
+        "Minimum Soil Moisture Recommendation": "40%",
+        "Air Temperature Recommendation": "18–27 °C",
+        "Air Humidity Recommendation": "50–70%",
+        "Other Recommendations": "",
+        "Todo List": ""
+      },
+      "events": {
+        "Add Manual Watering": "unknown",
+        "Add Manual Shower": "unknown",
+        "Manual Watering": "2026-01-22T08:24:05.986+00:00",
+        "Manual Shower": "unknown"
+      }
+    },
+    "Rubber Plant": {
+      "sensors": {
+        "Soil Moisture State": "No soil moisture meter near the plant.",
+        "Air Humidity Meter": "41.0 %",
+        "Air Temperature Meter": "70.34 °F",
+        "Grow Light State": "Light is on",
+        "Auto Watering State": "Device not installed. Watering can only be done manually by the user.",
+        "Air Humidifier State": "No air humidifier near the plant."
+      },
+      "devices": {
+        "Grow Light Device Source": {
+          "source_entity": "unknown"
+        },
+        "Auto Watering Device Source": {
+          "source_entity": "None"
+        },
+        "Soil Moisture Device Source": {
+          "source_entity": "None"
+        },
+        "Air Humidity Meter Source": {
+          "source_entity": "sensor.gw1200b_indoor_humidity",
+          "name": "GW1200B Indoor Humidity",
+          "current_value": "41 %"
+        },
+        "Air Temperature Meter Source": {
+          "source_entity": "sensor.gw1200b_indoor_temperature",
+          "name": "GW1200B Indoor Temperature",
+          "current_value": "70.34 °F"
+        },
+        "Air Humidifier Device Source": {
+          "source_entity": "None"
+        }
+      },
+      "controls": {
+        "Grow Light Control": "on",
+        "Air Humidifier Control": "unavailable",
+        "Auto Watering Control": "unavailable"
+      },
+      "recommendations": {
+        "Watering Frequency Recommendation": "1–1.5 weeks",
+        "Minimum Soil Moisture Recommendation": "35%",
+        "Air Temperature Recommendation": "18–26 °C",
+        "Air Humidity Recommendation": "40–60%",
+        "Other Recommendations": "",
+        "Todo List": ""
+      },
+      "events": {
+        "Add Manual Watering": "2026-01-22T06:26:28.388448+00:00",
+        "Add Manual Shower": "unknown",
+        "Manual Watering": "2026-01-22T19:24:47.168+00:00",
+        "Manual Shower": "unknown"
+      }
+    },
+    "Triangularis Ficus": {
+      "sensors": {
+        "Soil Moisture State": "No soil moisture meter near the plant.",
+        "Air Humidity Meter": "41.0 %",
+        "Air Temperature Meter": "70.34 °F",
+        "Grow Light State": "Light is on",
+        "Auto Watering State": "Device not installed. Watering can only be done manually by the user.",
+        "Air Humidifier State": "No air humidifier near the plant."
+      },
+      "devices": {
+        "Grow Light Device Source": {
+          "source_entity": "switch.plug_horizontal",
+          "name": "Plug - horizontal",
+          "current_value": "on"
+        },
+        "Auto Watering Device Source": {
+          "source_entity": "None"
+        },
+        "Soil Moisture Device Source": {
+          "source_entity": "None"
+        },
+        "Air Humidity Meter Source": {
+          "source_entity": "sensor.gw1200b_indoor_humidity",
+          "name": "GW1200B Indoor Humidity",
+          "current_value": "41 %"
+        },
+        "Air Temperature Meter Source": {
+          "source_entity": "sensor.gw1200b_indoor_temperature",
+          "name": "GW1200B Indoor Temperature",
+          "current_value": "70.34 °F"
+        },
+        "Air Humidifier Device Source": {
+          "source_entity": "None"
+        }
+      },
+      "controls": {
+        "Grow Light Control": "on",
+        "Air Humidifier Control": "unavailable",
+        "Auto Watering Control": "unavailable"
+      },
+      "recommendations": {
+        "Watering Frequency Recommendation": "1–1.5 weeks",
+        "Minimum Soil Moisture Recommendation": "35%",
+        "Air Temperature Recommendation": "18–26 °C",
+        "Air Humidity Recommendation": "40–60%",
+        "Other Recommendations": "",
+        "Todo List": ""
+      },
+      "events": {
+        "Add Manual Watering": "unknown",
+        "Add Manual Shower": "unknown",
+        "Manual Watering": "2026-01-22T08:23:21.487+00:00",
+        "Manual Shower": "unknown"
+      }
+    },
+    "Yucca": {
+      "sensors": {
+        "Soil Moisture State": "No soil moisture meter near the plant.",
+        "Air Humidity Meter": "No air humidity meter near the plant.",
+        "Air Temperature Meter": "70.34 °F",
+        "Grow Light State": "Light is on",
+        "Auto Watering State": "Device not installed. Watering can only be done manually by the user.",
+        "Air Humidifier State": "No air humidifier near the plant."
+      },
+      "devices": {
+        "Grow Light Device Source": {
+          "source_entity": "switch.plug_light_vertical",
+          "name": "Plug - light vertical",
+          "current_value": "on"
+        },
+        "Auto Watering Device Source": {
+          "source_entity": "None"
+        },
+        "Soil Moisture Device Source": {
+          "source_entity": "None"
+        },
+        "Air Humidity Meter Source": {
+          "source_entity": "sensor.first_air_quality_monitor_humidity",
+          "name": "First Air Quality Monitor Humidity",
+          "current_value": "unavailable %"
+        },
+        "Air Temperature Meter Source": {
+          "source_entity": "sensor.gw1200b_indoor_temperature",
+          "name": "GW1200B Indoor Temperature",
+          "current_value": "70.34 °F"
+        },
+        "Air Humidifier Device Source": {
+          "source_entity": "None"
+        }
+      },
+      "controls": {
+        "Grow Light Control": "on",
+        "Air Humidifier Control": "unavailable",
+        "Auto Watering Control": "unavailable"
+      },
+      "recommendations": {
+        "Watering Frequency Recommendation": "2–2.5 weeks",
+        "Minimum Soil Moisture Recommendation": "20%",
+        "Air Temperature Recommendation": "18–30 °C",
+        "Air Humidity Recommendation": "30–50%",
+        "Other Recommendations": "",
+        "Todo List": ""
+      },
+      "events": {
+        "Add Manual Watering": "unknown",
+        "Add Manual Shower": "unknown",
+        "Manual Watering": "2026-01-22T08:35:00.713+00:00",
+        "Manual Shower": "unknown"
+      }
+    }
+  },
+  "linked_devices": {
+    "sensor.first_air_quality_monitor_humidity": {
+      "friendly_name": "First Air Quality Monitor Humidity",
+      "state": "unavailable",
+      "domain": "sensor",
+      "attributes": {
+        "restored": true,
+        "state_class": "measurement",
+        "device_class": "humidity",
+        "icon": "mdi:water-percent",
+        "supported_features": 0,
+        "unit_of_measurement": "%"
+      }
+    },
+    "sensor.gw1200b_indoor_humidity": {
+      "friendly_name": "GW1200B Indoor Humidity",
+      "state": "41",
+      "domain": "sensor",
+      "attributes": {
+        "state_class": "measurement",
+        "unit_of_measurement": "%",
+        "device_class": "humidity"
+      }
+    },
+    "sensor.gw1200b_indoor_temperature": {
+      "friendly_name": "GW1200B Indoor Temperature",
+      "state": "70.34",
+      "domain": "sensor",
+      "attributes": {
+        "state_class": "measurement",
+        "unit_of_measurement": "°F",
+        "device_class": "temperature"
+      }
+    },
+    "sensor.gw1200b_soil_moisture_1": {
+      "friendly_name": "GW1200B Soil Moisture 1",
+      "state": "0",
+      "domain": "sensor",
+      "attributes": {
+        "state_class": "measurement",
+        "unit_of_measurement": "%",
+        "device_class": "moisture"
+      }
+    },
+    "sensor.gw1200b_soil_moisture_2": {
+      "friendly_name": "GW1200B Soil Moisture 2",
+      "state": "12",
+      "domain": "sensor",
+      "attributes": {
+        "state_class": "measurement",
+        "unit_of_measurement": "%",
+        "device_class": "moisture"
+      }
+    },
+    "sensor.gw1200b_soil_moisture_3": {
+      "friendly_name": "GW1200B Soil Moisture 3",
+      "state": "13",
+      "domain": "sensor",
+      "attributes": {
+        "state_class": "measurement",
+        "unit_of_measurement": "%",
+        "device_class": "moisture"
+      }
+    },
+    "sensor.gw1200b_soil_moisture_4": {
+      "friendly_name": "GW1200B Soil Moisture 4",
+      "state": "0",
+      "domain": "sensor",
+      "attributes": {
+        "state_class": "measurement",
+        "unit_of_measurement": "%",
+        "device_class": "moisture"
+      }
+    },
+    "switch.plug_horizontal": {
+      "friendly_name": "Plug - horizontal",
+      "state": "on",
+      "domain": "switch",
+      "attributes": {
+        "device_class": "outlet"
+      }
+    },
+    "switch.plug_humidifier": {
+      "friendly_name": "Plug - humidifier",
+      "state": "on",
+      "domain": "switch",
+      "attributes": {
+        "device_class": "outlet"
+      }
+    },
+    "switch.plug_light_vertical": {
+      "friendly_name": "Plug - light vertical",
+      "state": "on",
+      "domain": "switch",
+      "attributes": {
+        "device_class": "outlet"
+      }
+    },
+    "valve.watering_device_1_valve": {
+      "friendly_name": "Valve",
+      "state": "unavailable",
+      "domain": "valve",
+      "attributes": {
+        "restored": true,
+        "device_class": "water",
+        "supported_features": 3
+      }
+    }
+  },
+  "raw_entities_count": 329
+}
