@@ -16,6 +16,8 @@ views:
               You have **14 plants** 🌿
               **4 soil moisture sensors** 💧
 
+              [⚙️ Integration Settings](/config/integrations/integration/plants)
+
       - title: 🌿 Plants with Moisture Sensors
         type: grid
         cards:
