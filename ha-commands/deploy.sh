@@ -21,6 +21,16 @@ deploy_integration() {
     "$HA_HOST:/config/custom_components/plants/"
   echo "✓ Integration deployed"
 
+  if [ -f "$REPO_ROOT/ha/configuration.yaml" ]; then
+    echo "→ Deploying configuration.yaml..."
+    rsync -av \
+      -e "ssh $SSH_OPTS" \
+      --rsync-path="sudo rsync" \
+      "$REPO_ROOT/ha/configuration.yaml" \
+      "$HA_HOST:/config/configuration.yaml"
+    echo "✓ configuration.yaml deployed"
+  fi
+
   echo "→ Restarting Home Assistant..."
   curl -s --max-time 10 -X POST "$HA_URL/api/services/homeassistant/restart" \
     -H "Authorization: Bearer $HA_TOKEN" \

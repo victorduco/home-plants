@@ -43,6 +43,9 @@ async def async_setup_entry(
             entities.append(PlantHumiditySensor(data, plant_id))
             entities.append(PlantAirTemperatureSensor(data, plant_id))
             entities.append(PlantAutoWateringStateSensor(hass, data, plant_id))
+            entities.append(PlantMoistureZoneSensor(data, plant_id))
+            entities.append(PlantHumidityZoneSensor(data, plant_id))
+            entities.append(PlantTemperatureZoneSensor(data, plant_id))
 
     if entities:
         async_add_entities(entities)
@@ -186,6 +189,122 @@ class PlantAirTemperatureSensor(SensorEntity):
     def extra_state_attributes(self) -> dict:
         plant = self._data.plants[self._plant_id]
         return {"air_temperature_entity_id": plant.air_temperature_entity_id}
+
+
+class PlantMoistureZoneSensor(SensorEntity):
+    """Sensor returning red/yellow/green zone for soil moisture."""
+
+    def __init__(self, data: PlantsData, plant_id: str) -> None:
+        self._data = data
+        self._plant_id = plant_id
+        plant = data.plants[plant_id]
+        self._attr_name = f"{plant.name} Soil Moisture Zone"
+        self._attr_unique_id = f"plant_{plant_id}_moisture_zone"
+        self._attr_device_info = DeviceInfo(
+            identifiers={(DOMAIN, f"plant_{plant_id}")},
+            name=plant.name,
+            manufacturer="Custom",
+            model="Plant",
+        )
+
+    @property
+    def native_value(self) -> str:
+        plant = self._data.plants[self._plant_id]
+        if not plant.moisture_entity_id or not self.hass:
+            return "unknown"
+        state = self.hass.states.get(plant.moisture_entity_id)
+        if state is None or state.state in ("unknown", "unavailable"):
+            return "unknown"
+        try:
+            moisture = float(state.state)
+        except ValueError:
+            return "unknown"
+        red = plant.moisture_red_threshold if plant.moisture_red_threshold is not None else 15.0
+        yellow = plant.moisture_yellow_threshold if plant.moisture_yellow_threshold is not None else 30.0
+        if moisture < red:
+            return "red"
+        if moisture < yellow:
+            return "yellow"
+        return "green"
+
+
+class PlantHumidityZoneSensor(SensorEntity):
+    """Sensor returning red/yellow/green zone for air humidity."""
+
+    def __init__(self, data: PlantsData, plant_id: str) -> None:
+        self._data = data
+        self._plant_id = plant_id
+        plant = data.plants[plant_id]
+        self._attr_name = f"{plant.name} Air Humidity Zone"
+        self._attr_unique_id = f"plant_{plant_id}_humidity_zone"
+        self._attr_device_info = DeviceInfo(
+            identifiers={(DOMAIN, f"plant_{plant_id}")},
+            name=plant.name,
+            manufacturer="Custom",
+            model="Plant",
+        )
+
+    @property
+    def native_value(self) -> str:
+        plant = self._data.plants[self._plant_id]
+        if not plant.humidity_entity_id or not self.hass:
+            return "unknown"
+        state = self.hass.states.get(plant.humidity_entity_id)
+        if state is None or state.state in ("unknown", "unavailable"):
+            return "unknown"
+        try:
+            humidity = float(state.state)
+        except ValueError:
+            return "unknown"
+        h_min = plant.humidity_min if plant.humidity_min is not None else 40.0
+        h_max = plant.humidity_max if plant.humidity_max is not None else 70.0
+        if humidity < h_min:
+            return "red"
+        if humidity > h_max:
+            return "red"
+        # yellow band: within 10% of the edges
+        band = (h_max - h_min) * 0.15
+        if humidity < h_min + band or humidity > h_max - band:
+            return "yellow"
+        return "green"
+
+
+class PlantTemperatureZoneSensor(SensorEntity):
+    """Sensor returning red/yellow/green zone for air temperature."""
+
+    def __init__(self, data: PlantsData, plant_id: str) -> None:
+        self._data = data
+        self._plant_id = plant_id
+        plant = data.plants[plant_id]
+        self._attr_name = f"{plant.name} Air Temperature Zone"
+        self._attr_unique_id = f"plant_{plant_id}_temperature_zone"
+        self._attr_device_info = DeviceInfo(
+            identifiers={(DOMAIN, f"plant_{plant_id}")},
+            name=plant.name,
+            manufacturer="Custom",
+            model="Plant",
+        )
+
+    @property
+    def native_value(self) -> str:
+        plant = self._data.plants[self._plant_id]
+        if not plant.air_temperature_entity_id or not self.hass:
+            return "unknown"
+        state = self.hass.states.get(plant.air_temperature_entity_id)
+        if state is None or state.state in ("unknown", "unavailable"):
+            return "unknown"
+        try:
+            temp = float(state.state)
+        except ValueError:
+            return "unknown"
+        t_min = plant.temperature_min if plant.temperature_min is not None else 60.0
+        t_max = plant.temperature_max if plant.temperature_max is not None else 85.0
+        if temp < t_min or temp > t_max:
+            return "red"
+        band = (t_max - t_min) * 0.15
+        if temp < t_min + band or temp > t_max - band:
+            return "yellow"
+        return "green"
 
 
 class PlantAutoWateringStateSensor(SensorEntity):

@@ -31,12 +31,16 @@ class Plant:
     moisture_entity_id: str | None
     humidity_entity_id: str | None
     air_temperature_entity_id: str | None
-    watering_frequency_recommendation: str | None
-    soil_moisture_recommendation: str | None
     air_temperature_recommendation: str | None
     air_humidity_recommendation: str | None
     other_recommendations: str | None
     todo_list: str | None
+    moisture_yellow_threshold: float | None = None
+    moisture_red_threshold: float | None = None
+    humidity_min: float | None = None
+    humidity_max: float | None = None
+    temperature_min: float | None = None
+    temperature_max: float | None = None
 
 
 @dataclass
@@ -67,7 +71,7 @@ class PlantsData:
                     humidity_entity_id=None,
                     air_temperature_entity_id=None,
                     watering_frequency_recommendation=None,
-                    soil_moisture_recommendation=None,
+
                     air_temperature_recommendation=None,
                     air_humidity_recommendation=None,
                     other_recommendations=None,
@@ -107,18 +111,18 @@ class PlantsData:
                 moisture_entity_id=item.get("moisture_entity_id"),
                 humidity_entity_id=item.get("humidity_entity_id"),
                 air_temperature_entity_id=item.get("air_temperature_entity_id"),
-                watering_frequency_recommendation=item.get(
-                    "watering_frequency_recommendation"
-                ),
-                soil_moisture_recommendation=item.get(
-                    "soil_moisture_recommendation"
-                ),
                 air_temperature_recommendation=item.get(
                     "air_temperature_recommendation"
                 ),
                 air_humidity_recommendation=item.get("air_humidity_recommendation"),
                 other_recommendations=item.get("other_recommendations"),
                 todo_list=item.get("todo_list"),
+                moisture_yellow_threshold=item.get("moisture_yellow_threshold"),
+                moisture_red_threshold=item.get("moisture_red_threshold"),
+                humidity_min=item.get("humidity_min"),
+                humidity_max=item.get("humidity_max"),
+                temperature_min=item.get("temperature_min"),
+                temperature_max=item.get("temperature_max"),
             )
             # Collect legacy device refs for migration tracking.
             if item.get("light_entity_id"):
@@ -139,12 +143,6 @@ class PlantsData:
                     "moisture_entity_id": plant.moisture_entity_id,
                     "humidity_entity_id": plant.humidity_entity_id,
                     "air_temperature_entity_id": plant.air_temperature_entity_id,
-                    "watering_frequency_recommendation": (
-                        plant.watering_frequency_recommendation
-                    ),
-                    "soil_moisture_recommendation": (
-                        plant.soil_moisture_recommendation
-                    ),
                     "air_temperature_recommendation": (
                         plant.air_temperature_recommendation
                     ),
@@ -153,6 +151,12 @@ class PlantsData:
                     ),
                     "other_recommendations": plant.other_recommendations,
                     "todo_list": plant.todo_list,
+                    "moisture_yellow_threshold": plant.moisture_yellow_threshold,
+                    "moisture_red_threshold": plant.moisture_red_threshold,
+                    "humidity_min": plant.humidity_min,
+                    "humidity_max": plant.humidity_max,
+                    "temperature_min": plant.temperature_min,
+                    "temperature_max": plant.temperature_max,
                 }
                 for plant in self.plants.values()
             ],

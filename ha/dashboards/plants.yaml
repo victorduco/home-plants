@@ -1,104 +1,129 @@
 title: 🌿 My Plants
 theme: Backend-selected
 views:
-  - title: Home
+  - title: Overview
     path: home
-    icon: mdi:home-variant
-    type: sections
-    sections:
-      - type: grid
-        cards:
-          - type: markdown
-            content: |
-              # 🌱 Welcome to the Garden!
-              **{{ now().strftime('%A, %d %B %Y') }}**
+    cards:
+      - type: markdown
+        content: |
+          # 🌱 Welcome to the Garden!
+          **{{ now().strftime('%A, %d %B %Y') }}**
 
-              You have **14 plants** 🌿
-              **4 soil moisture sensors** 💧
+          [⚙️ Integration Settings](/config/integrations/integration/plants)
 
-              [⚙️ Integration Settings](/config/integrations/integration/plants)
+      - type: markdown
+        content: |
+          🌅 Sunrise: {{ as_timestamp(state_attr('sun.sun', 'next_rising')) | timestamp_custom('%-I:%M %p') }}
+          🌇 Sunset: {{ as_timestamp(state_attr('sun.sun', 'next_setting')) | timestamp_custom('%-I:%M %p') }}
 
-      - title: 🌿 Plants with Moisture Sensors
-        type: grid
-        cards:
-          - type: gauge
-            entity: sensor.alocasia_moisture
-            name: 🌿 Alocasia
-            unit: "%"
-            min: 0
-            max: 100
-            severity:
-              green: 40
-              yellow: 30
-              red: 0
-            needle: true
-
-          - type: gauge
-            entity: sensor.majesty_palm_moisture
-            name: 🌴 Majesty Palm
-            unit: "%"
-            min: 0
-            max: 100
-            severity:
-              green: 45
-              yellow: 30
-              red: 0
-            needle: true
-
-          - type: gauge
-            entity: sensor.malcolm_ficus_moisture
-            name: 🌳 Malcolm Ficus
-            unit: "%"
-            min: 0
-            max: 100
-            severity:
-              green: 35
-              yellow: 25
-              red: 0
-            needle: true
-
-          - type: gauge
-            entity: sensor.olive_tree_moisture
-            name: 🫒 Olive Tree
-            unit: "%"
-            min: 0
-            max: 100
-            severity:
-              green: 25
-              yellow: 15
-              red: 0
-            needle: true
-
-      - title: 🌡️ Indoor Climate
-        type: grid
-        cards:
-          - type: gauge
-            entity: sensor.liana_humidity_meter
-            name: Air Humidity
-            unit: "%"
-            min: 0
-            max: 100
-            severity:
-              green: 50
-              yellow: 40
-              red: 0
-            needle: true
-
-          - type: gauge
-            entity: sensor.liana_air_temperature_meter
+      - type: entities
+        title: 🌤️ Outside
+        entities:
+          - entity: sensor.openweathermap_temperature
             name: Temperature
-            unit: "°F"
-            min: 60
-            max: 85
-            severity:
-              green: 70
-              yellow: 65
-              red: 60
-            needle: true
+          - entity: sensor.openweathermap_humidity
+            name: Humidity
+          - entity: sensor.openweathermap_condition
+            name: Condition
+
+      - type: entities
+        title: 🌡️ Indoor Climate
+        entities:
+          - entity: sensor.liana_humidity_meter
+            name: Air Humidity
+          - entity: sensor.liana_air_temperature_meter
+            name: Temperature
+
+      - type: markdown
+        title: 🌿 Soil Moisture
+        content: |
+          {% set mz = {'sensor.alocasia_soil_moisture_zone':'Alocasia','sensor.dracaena_soil_moisture_zone':'Dracaena','sensor.ficus_elastica_robusta_soil_moisture_zone':'Ficus Elastica Robusta','sensor.ficus_elastica_tineke_soil_moisture_zone':'Ficus Elastica Tineke','sensor.liana_soil_moisture_zone':'Liana','sensor.majesty_palm_soil_moisture_zone':'Majesty Palm','sensor.malcolm_ficus_soil_moisture_zone':'Malcolm Ficus','sensor.maranta_soil_moisture_zone':'Maranta','sensor.olive_tree_soil_moisture_zone':'Olive Tree','sensor.philodendron_soil_moisture_zone':'Philodendron','sensor.rubber_plant_soil_moisture_zone':'Rubber Plant','sensor.triangularis_ficus_soil_moisture_zone':'Triangularis Ficus','sensor.yucca_soil_moisture_zone':'Yucca'} %}
+          {% set mv = {'sensor.alocasia_soil_moisture_zone':'sensor.alocasia_moisture','sensor.dracaena_soil_moisture_zone':'sensor.dracaena_soil_moisture_state','sensor.ficus_elastica_robusta_soil_moisture_zone':'sensor.ficus_elastica_robusta_soil_moisture_state','sensor.ficus_elastica_tineke_soil_moisture_zone':'sensor.ficus_elastica_tineke_soil_moisture_state','sensor.liana_soil_moisture_zone':'sensor.liana_moisture','sensor.majesty_palm_soil_moisture_zone':'sensor.majesty_palm_moisture','sensor.malcolm_ficus_soil_moisture_zone':'sensor.malcolm_ficus_moisture','sensor.maranta_soil_moisture_zone':'sensor.maranta_soil_moisture_state','sensor.olive_tree_soil_moisture_zone':'sensor.olive_tree_moisture','sensor.philodendron_soil_moisture_zone':'sensor.philodendron_soil_moisture_state','sensor.rubber_plant_soil_moisture_zone':'sensor.rubber_plant_moisture','sensor.triangularis_ficus_soil_moisture_zone':'sensor.triangularis_ficus_moisture','sensor.yucca_soil_moisture_zone':'sensor.yucca_moisture'} %}
+          {% set my = {'sensor.alocasia_soil_moisture_zone':'number.alocasia_soil_moisture_yellow_threshold','sensor.dracaena_soil_moisture_zone':'number.dracaena_soil_moisture_yellow_threshold','sensor.ficus_elastica_robusta_soil_moisture_zone':'number.ficus_elastica_robusta_soil_moisture_yellow_threshold','sensor.ficus_elastica_tineke_soil_moisture_zone':'number.ficus_elastica_tineke_soil_moisture_yellow_threshold','sensor.liana_soil_moisture_zone':'number.liana_soil_moisture_yellow_threshold','sensor.majesty_palm_soil_moisture_zone':'number.majesty_palm_soil_moisture_yellow_threshold','sensor.malcolm_ficus_soil_moisture_zone':'number.malcolm_ficus_soil_moisture_yellow_threshold','sensor.maranta_soil_moisture_zone':'number.maranta_soil_moisture_yellow_threshold','sensor.olive_tree_soil_moisture_zone':'number.olive_tree_soil_moisture_yellow_threshold','sensor.philodendron_soil_moisture_zone':'number.philodendron_soil_moisture_yellow_threshold','sensor.rubber_plant_soil_moisture_zone':'number.rubber_plant_soil_moisture_yellow_threshold','sensor.triangularis_ficus_soil_moisture_zone':'number.triangularis_ficus_soil_moisture_yellow_threshold','sensor.yucca_soil_moisture_zone':'number.yucca_soil_moisture_yellow_threshold'} %}
+          | Zone | Plant | Now | Green: > |
+          |------|-------|-----|----------|
+          {% for z, name in mz.items() if states(z) == 'red' %}| 🔴 | {{ name }} | {{ states(mv[z]) }}% | {{ states(my[z]) | int }}% |
+          {% endfor %}{% for z, name in mz.items() if states(z) == 'yellow' %}| 🟡 | {{ name }} | {{ states(mv[z]) }}% | {{ states(my[z]) | int }}% |
+          {% endfor %}{% for z, name in mz.items() if states(z) == 'green' %}| 🟢 | {{ name }} | {{ states(mv[z]) }}% | {{ states(my[z]) | int }}% |
+          {% endfor %}{% for z, name in mz.items() if states(z) == 'unknown' %}| ⚪ | {{ name }} | — | {{ states(my[z]) | int }}% |
+          {% endfor %}
+
+      - type: markdown
+        title: 💧 Air Humidity
+        content: |
+          {% set hz = {'sensor.alocasia_air_humidity_zone':'Alocasia','sensor.dracaena_air_humidity_zone':'Dracaena','sensor.ficus_elastica_robusta_air_humidity_zone':'Ficus Elastica Robusta','sensor.ficus_elastica_tineke_air_humidity_zone':'Ficus Elastica Tineke','sensor.liana_air_humidity_zone':'Liana','sensor.majesty_palm_air_humidity_zone':'Majesty Palm','sensor.malcolm_ficus_air_humidity_zone':'Malcolm Ficus','sensor.maranta_air_humidity_zone':'Maranta','sensor.olive_tree_air_humidity_zone':'Olive Tree','sensor.philodendron_air_humidity_zone':'Philodendron','sensor.rubber_plant_air_humidity_zone':'Rubber Plant','sensor.triangularis_ficus_air_humidity_zone':'Triangularis Ficus','sensor.yucca_air_humidity_zone':'Yucca'} %}
+          {% set hv = {'sensor.alocasia_air_humidity_zone':'sensor.alocasia_humidity_meter','sensor.dracaena_air_humidity_zone':'sensor.dracaena_air_humidity_meter','sensor.ficus_elastica_robusta_air_humidity_zone':'sensor.ficus_elastica_robusta_air_humidity_meter','sensor.ficus_elastica_tineke_air_humidity_zone':'sensor.ficus_elastica_tineke_air_humidity_meter','sensor.liana_air_humidity_zone':'sensor.liana_humidity_meter','sensor.majesty_palm_air_humidity_zone':'sensor.majesty_palm_humidity_meter','sensor.malcolm_ficus_air_humidity_zone':'sensor.malcolm_ficus_humidity_meter','sensor.maranta_air_humidity_zone':'sensor.maranta_air_humidity_meter','sensor.olive_tree_air_humidity_zone':'sensor.olive_tree_humidity_meter','sensor.philodendron_air_humidity_zone':'sensor.philodendron_air_humidity_meter','sensor.rubber_plant_air_humidity_zone':'sensor.rubber_plant_humidity_meter','sensor.triangularis_ficus_air_humidity_zone':'sensor.triangularis_ficus_humidity_meter','sensor.yucca_air_humidity_zone':'sensor.yucca_humidity_meter'} %}
+          {% set hmin = {'sensor.alocasia_air_humidity_zone':'number.alocasia_air_humidity_min','sensor.dracaena_air_humidity_zone':'number.dracaena_air_humidity_min','sensor.ficus_elastica_robusta_air_humidity_zone':'number.ficus_elastica_robusta_air_humidity_min','sensor.ficus_elastica_tineke_air_humidity_zone':'number.ficus_elastica_tineke_air_humidity_min','sensor.liana_air_humidity_zone':'number.liana_air_humidity_min','sensor.majesty_palm_air_humidity_zone':'number.majesty_palm_air_humidity_min','sensor.malcolm_ficus_air_humidity_zone':'number.malcolm_ficus_air_humidity_min','sensor.maranta_air_humidity_zone':'number.maranta_air_humidity_min','sensor.olive_tree_air_humidity_zone':'number.olive_tree_air_humidity_min','sensor.philodendron_air_humidity_zone':'number.philodendron_air_humidity_min','sensor.rubber_plant_air_humidity_zone':'number.rubber_plant_air_humidity_min','sensor.triangularis_ficus_air_humidity_zone':'number.triangularis_ficus_air_humidity_min','sensor.yucca_air_humidity_zone':'number.yucca_air_humidity_min'} %}
+          {% set hmax = {'sensor.alocasia_air_humidity_zone':'number.alocasia_air_humidity_max','sensor.dracaena_air_humidity_zone':'number.dracaena_air_humidity_max','sensor.ficus_elastica_robusta_air_humidity_zone':'number.ficus_elastica_robusta_air_humidity_max','sensor.ficus_elastica_tineke_air_humidity_zone':'number.ficus_elastica_tineke_air_humidity_max','sensor.liana_air_humidity_zone':'number.liana_air_humidity_max','sensor.majesty_palm_air_humidity_zone':'number.majesty_palm_air_humidity_max','sensor.malcolm_ficus_air_humidity_zone':'number.malcolm_ficus_air_humidity_max','sensor.maranta_air_humidity_zone':'number.maranta_air_humidity_max','sensor.olive_tree_air_humidity_zone':'number.olive_tree_air_humidity_max','sensor.philodendron_air_humidity_zone':'number.philodendron_air_humidity_max','sensor.rubber_plant_air_humidity_zone':'number.rubber_plant_air_humidity_max','sensor.triangularis_ficus_air_humidity_zone':'number.triangularis_ficus_air_humidity_max','sensor.yucca_air_humidity_zone':'number.yucca_air_humidity_max'} %}
+          | Zone | Plant | Now | Needed |
+          |------|-------|-----|--------|
+          {% for z, name in hz.items() if states(z) == 'red' %}| 🔴 | {{ name }} | {{ states(hv[z]) }}% | {{ states(hmin[z]) | int }}–{{ states(hmax[z]) | int }}% |
+          {% endfor %}{% for z, name in hz.items() if states(z) == 'yellow' %}| 🟡 | {{ name }} | {{ states(hv[z]) }}% | {{ states(hmin[z]) | int }}–{{ states(hmax[z]) | int }}% |
+          {% endfor %}{% for z, name in hz.items() if states(z) == 'green' %}| 🟢 | {{ name }} | {{ states(hv[z]) }}% | {{ states(hmin[z]) | int }}–{{ states(hmax[z]) | int }}% |
+          {% endfor %}{% for z, name in hz.items() if states(z) == 'unknown' %}| ⚪ | {{ name }} | — | {{ states(hmin[z]) | int }}–{{ states(hmax[z]) | int }}% |
+          {% endfor %}
+
+      - type: markdown
+        title: 🌡️ Air Temperature
+        content: |
+          {% set tz = {'sensor.alocasia_air_temperature_zone':'Alocasia','sensor.dracaena_air_temperature_zone':'Dracaena','sensor.ficus_elastica_robusta_air_temperature_zone':'Ficus Elastica Robusta','sensor.ficus_elastica_tineke_air_temperature_zone':'Ficus Elastica Tineke','sensor.liana_air_temperature_zone':'Liana','sensor.majesty_palm_air_temperature_zone':'Majesty Palm','sensor.malcolm_ficus_air_temperature_zone':'Malcolm Ficus','sensor.maranta_air_temperature_zone':'Maranta','sensor.olive_tree_air_temperature_zone':'Olive Tree','sensor.philodendron_air_temperature_zone':'Philodendron','sensor.rubber_plant_air_temperature_zone':'Rubber Plant','sensor.triangularis_ficus_air_temperature_zone':'Triangularis Ficus','sensor.yucca_air_temperature_zone':'Yucca'} %}
+          {% set tv = {'sensor.alocasia_air_temperature_zone':'sensor.alocasia_air_temperature_meter','sensor.dracaena_air_temperature_zone':'sensor.dracaena_air_temperature_meter','sensor.ficus_elastica_robusta_air_temperature_zone':'sensor.ficus_elastica_robusta_air_temperature_meter','sensor.ficus_elastica_tineke_air_temperature_zone':'sensor.ficus_elastica_tineke_air_temperature_meter','sensor.liana_air_temperature_zone':'sensor.liana_air_temperature_meter','sensor.majesty_palm_air_temperature_zone':'sensor.majesty_palm_air_temperature_meter','sensor.malcolm_ficus_air_temperature_zone':'sensor.malcolm_ficus_air_temperature_meter','sensor.maranta_air_temperature_zone':'sensor.maranta_air_temperature_meter','sensor.olive_tree_air_temperature_zone':'sensor.olive_tree_air_temperature_meter','sensor.philodendron_air_temperature_zone':'sensor.philodendron_air_temperature_meter','sensor.rubber_plant_air_temperature_zone':'sensor.rubber_plant_air_temperature_meter','sensor.triangularis_ficus_air_temperature_zone':'sensor.triangularis_ficus_air_temperature_meter','sensor.yucca_air_temperature_zone':'sensor.yucca_air_temperature_meter'} %}
+          {% set tmin = {'sensor.alocasia_air_temperature_zone':'number.alocasia_air_temperature_min','sensor.dracaena_air_temperature_zone':'number.dracaena_air_temperature_min','sensor.ficus_elastica_robusta_air_temperature_zone':'number.ficus_elastica_robusta_air_temperature_min','sensor.ficus_elastica_tineke_air_temperature_zone':'number.ficus_elastica_tineke_air_temperature_min','sensor.liana_air_temperature_zone':'number.liana_air_temperature_min','sensor.majesty_palm_air_temperature_zone':'number.majesty_palm_air_temperature_min','sensor.malcolm_ficus_air_temperature_zone':'number.malcolm_ficus_air_temperature_min','sensor.maranta_air_temperature_zone':'number.maranta_air_temperature_min','sensor.olive_tree_air_temperature_zone':'number.olive_tree_air_temperature_min','sensor.philodendron_air_temperature_zone':'number.philodendron_air_temperature_min','sensor.rubber_plant_air_temperature_zone':'number.rubber_plant_air_temperature_min','sensor.triangularis_ficus_air_temperature_zone':'number.triangularis_ficus_air_temperature_min','sensor.yucca_air_temperature_zone':'number.yucca_air_temperature_min'} %}
+          {% set tmax = {'sensor.alocasia_air_temperature_zone':'number.alocasia_air_temperature_max','sensor.dracaena_air_temperature_zone':'number.dracaena_air_temperature_max','sensor.ficus_elastica_robusta_air_temperature_zone':'number.ficus_elastica_robusta_air_temperature_max','sensor.ficus_elastica_tineke_air_temperature_zone':'number.ficus_elastica_tineke_air_temperature_max','sensor.liana_air_temperature_zone':'number.liana_air_temperature_max','sensor.majesty_palm_air_temperature_zone':'number.majesty_palm_air_temperature_max','sensor.malcolm_ficus_air_temperature_zone':'number.malcolm_ficus_air_temperature_max','sensor.maranta_air_temperature_zone':'number.maranta_air_temperature_max','sensor.olive_tree_air_temperature_zone':'number.olive_tree_air_temperature_max','sensor.philodendron_air_temperature_zone':'number.philodendron_air_temperature_max','sensor.rubber_plant_air_temperature_zone':'number.rubber_plant_air_temperature_max','sensor.triangularis_ficus_air_temperature_zone':'number.triangularis_ficus_air_temperature_max','sensor.yucca_air_temperature_zone':'number.yucca_air_temperature_max'} %}
+          | Zone | Plant | Now | Needed |
+          |------|-------|-----|--------|
+          {% for z, name in tz.items() if states(z) == 'red' %}| 🔴 | {{ name }} | {{ states(tv[z]) }}°F | {{ states(tmin[z]) | int }}–{{ states(tmax[z]) | int }}°F |
+          {% endfor %}{% for z, name in tz.items() if states(z) == 'yellow' %}| 🟡 | {{ name }} | {{ states(tv[z]) }}°F | {{ states(tmin[z]) | int }}–{{ states(tmax[z]) | int }}°F |
+          {% endfor %}{% for z, name in tz.items() if states(z) == 'green' %}| 🟢 | {{ name }} | {{ states(tv[z]) }}°F | {{ states(tmin[z]) | int }}–{{ states(tmax[z]) | int }}°F |
+          {% endfor %}{% for z, name in tz.items() if states(z) == 'unknown' %}| ⚪ | {{ name }} | — | {{ states(tmin[z]) | int }}–{{ states(tmax[z]) | int }}°F |
+          {% endfor %}
+
+      - type: logbook
+        title: 📋 Plant Care History (Last 30 days)
+        hours_to_show: 720
+        entities:
+          - event.alocasia_manual_watering
+          - event.alocasia_auto_watering
+          - event.alocasia_manual_shower
+          - event.dracaena_manual_watering
+          - event.dracaena_auto_watering
+          - event.dracaena_manual_shower
+          - event.ficus_elastica_robusta_manual_watering
+          - event.ficus_elastica_robusta_auto_watering
+          - event.ficus_elastica_robusta_manual_shower
+          - event.ficus_elastica_tineke_manual_watering
+          - event.ficus_elastica_tineke_auto_watering
+          - event.ficus_elastica_tineke_manual_shower
+          - event.liana_manual_watering
+          - event.liana_auto_watering
+          - event.liana_manual_shower
+          - event.majesty_palm_manual_watering
+          - event.majesty_palm_auto_watering
+          - event.majesty_palm_manual_shower
+          - event.malcolm_ficus_manual_watering
+          - event.malcolm_ficus_auto_watering
+          - event.malcolm_ficus_manual_shower
+          - event.maranta_manual_watering
+          - event.maranta_auto_watering
+          - event.maranta_manual_shower
+          - event.olive_tree_manual_watering
+          - event.olive_tree_auto_watering
+          - event.olive_tree_manual_shower
+          - event.philodendron_manual_watering
+          - event.philodendron_auto_watering
+          - event.philodendron_manual_shower
+          - event.rubber_plant_manual_watering
+          - event.rubber_plant_auto_watering
+          - event.rubber_plant_manual_shower
+          - event.triangularis_ficus_manual_watering
+          - event.triangularis_ficus_auto_watering
+          - event.triangularis_ficus_manual_shower
+          - event.yucca_manual_watering
+          - event.yucca_auto_watering
+          - event.yucca_manual_shower
 
   - title: All Plants
     path: all-plants
-    icon: mdi:flower-tulip
     cards:
       - type: vertical-stack
         cards:
@@ -107,43 +132,43 @@ views:
               ## 🌿 Alocasia
           - type: entities
             entities:
-              - entity: sensor.alocasia_moisture
-                name: Soil Moisture
-                icon: mdi:water-percent
-              - entity: sensor.alocasia_humidity_meter
-                name: Air Humidity
-              - entity: sensor.alocasia_air_temperature_meter
-                name: Temperature
-              - entity: sensor.alocasia_light_state
-                name: Grow Light State
-              - entity: sensor.alocasia_humidifier_state
-                name: Humidifier State
-              - entity: sensor.alocasia_auto_watering_state
-                name: Auto Watering State
-              - entity: switch.alocasia_light_power
-                name: Grow Light
-                icon: mdi:lightbulb
-              - entity: switch.alocasia_auto_watering_control
-                name: Auto Watering
-                icon: mdi:water-pump
-              - entity: switch.alocasia_humidifier_control
-                name: Humidifier
-                icon: mdi:air-humidifier
-              - entity: text.alocasia_air_humidity_recommendation
-                name: Humidity Recommendation
-              - entity: text.alocasia_air_temperature_recommendation
-                name: Temperature Recommendation
-              - entity: text.alocasia_minimum_soil_moisture_recommendation
-                name: Min Soil Moisture
-              - entity: text.alocasia_watering_frequency_recommendation
-                name: Watering Frequency
-              - entity: text.alocasia_todo_list
-                name: Todo List
-              - entity: text.alocasia_other_recommendations
-                name: Other Recommendations
+            - entity: sensor.alocasia_moisture
+              name: Soil Moisture
+              icon: mdi:water-percent
+            - entity: sensor.alocasia_soil_moisture_zone
+              name: Moisture Zone
+            - entity: number.alocasia_soil_moisture_yellow_threshold
+              name: Soil Moisture Yellow Threshold
+            - entity: number.alocasia_soil_moisture_red_threshold
+              name: Soil Moisture Red Threshold
+            - entity: sensor.alocasia_humidity_meter
+              name: Air Humidity
+            - entity: sensor.alocasia_air_humidity_zone
+              name: Humidity Zone
+            - entity: number.alocasia_air_humidity_min
+              name: Air Humidity Min
+            - entity: number.alocasia_air_humidity_max
+              name: Air Humidity Max
+            - entity: sensor.alocasia_air_temperature_meter
+              name: Temperature
+            - entity: sensor.alocasia_air_temperature_zone
+              name: Temperature Zone
+            - entity: number.alocasia_air_temperature_min
+              name: Air Temperature Min
+            - entity: number.alocasia_air_temperature_max
+              name: Air Temperature Max
+            - entity: sensor.alocasia_auto_watering_state
+              name: Auto Watering State
+            - entity: switch.auto_waterer_control
+              name: Auto Watering
+              icon: mdi:water-pump
+            - entity: text.alocasia_todo_list
+              name: Todo List
+            - entity: text.alocasia_other_recommendations
+              name: Other Recommendations
           - type: history-graph
             entities:
-              - entity: sensor.alocasia_moisture
+            - entity: sensor.alocasia_moisture
             hours_to_show: 48
 
       - type: vertical-stack
@@ -153,18 +178,40 @@ views:
               ## 🌿 Dracaena
           - type: entities
             entities:
-              - entity: switch.dracaena_grow_light_control
-                name: Grow Light
-                icon: mdi:lightbulb
-              - entity: switch.dracaena_auto_watering_control
-                name: Auto Watering
-                icon: mdi:water-pump
-              - entity: text.dracaena_air_humidity_recommendation
-                name: Humidity Recommendation
-              - entity: text.dracaena_air_temperature_recommendation
-                name: Temperature Recommendation
-              - entity: text.dracaena_watering_frequency_recommendation
-                name: Watering Frequency
+            - entity: sensor.dracaena_soil_moisture_state
+              name: Soil Moisture
+              icon: mdi:water-percent
+            - entity: sensor.dracaena_soil_moisture_zone
+              name: Moisture Zone
+            - entity: number.dracaena_soil_moisture_yellow_threshold
+              name: Soil Moisture Yellow Threshold
+            - entity: number.dracaena_soil_moisture_red_threshold
+              name: Soil Moisture Red Threshold
+            - entity: sensor.dracaena_air_humidity_meter
+              name: Air Humidity
+            - entity: sensor.dracaena_air_humidity_zone
+              name: Humidity Zone
+            - entity: number.dracaena_air_humidity_min
+              name: Air Humidity Min
+            - entity: number.dracaena_air_humidity_max
+              name: Air Humidity Max
+            - entity: sensor.dracaena_air_temperature_meter
+              name: Temperature
+            - entity: sensor.dracaena_air_temperature_zone
+              name: Temperature Zone
+            - entity: number.dracaena_air_temperature_min
+              name: Air Temperature Min
+            - entity: number.dracaena_air_temperature_max
+              name: Air Temperature Max
+            - entity: sensor.dracaena_auto_watering_state
+              name: Auto Watering State
+            - entity: switch.auto_waterer_control
+              name: Auto Watering
+              icon: mdi:water-pump
+            - entity: text.dracaena_todo_list
+              name: Todo List
+            - entity: text.dracaena_other_recommendations
+              name: Other Recommendations
 
       - type: vertical-stack
         cards:
@@ -173,20 +220,40 @@ views:
               ## 🌳 Ficus Elastica Robusta
           - type: entities
             entities:
-              - entity: switch.ficus_elastica_robusta_grow_light_control
-                name: Grow Light
-                icon: mdi:lightbulb
-              - entity: switch.ficus_elastica_robusta_auto_watering_control
-                name: Auto Watering
-                icon: mdi:water-pump
-              - entity: text.ficus_elastica_robusta_air_humidity_recommendation
-                name: Humidity Recommendation
-              - entity: text.ficus_elastica_robusta_air_temperature_recommendation
-                name: Temperature Recommendation
-              - entity: text.ficus_elastica_robusta_minimum_soil_moisture_recommendation
-                name: Min Soil Moisture
-              - entity: text.ficus_elastica_robusta_watering_frequency_recommendation
-                name: Watering Frequency
+            - entity: sensor.ficus_elastica_robusta_soil_moisture_state
+              name: Soil Moisture
+              icon: mdi:water-percent
+            - entity: sensor.ficus_elastica_robusta_soil_moisture_zone
+              name: Moisture Zone
+            - entity: number.ficus_elastica_robusta_soil_moisture_yellow_threshold
+              name: Soil Moisture Yellow Threshold
+            - entity: number.ficus_elastica_robusta_soil_moisture_red_threshold
+              name: Soil Moisture Red Threshold
+            - entity: sensor.ficus_elastica_robusta_air_humidity_meter
+              name: Air Humidity
+            - entity: sensor.ficus_elastica_robusta_air_humidity_zone
+              name: Humidity Zone
+            - entity: number.ficus_elastica_robusta_air_humidity_min
+              name: Air Humidity Min
+            - entity: number.ficus_elastica_robusta_air_humidity_max
+              name: Air Humidity Max
+            - entity: sensor.ficus_elastica_robusta_air_temperature_meter
+              name: Temperature
+            - entity: sensor.ficus_elastica_robusta_air_temperature_zone
+              name: Temperature Zone
+            - entity: number.ficus_elastica_robusta_air_temperature_min
+              name: Air Temperature Min
+            - entity: number.ficus_elastica_robusta_air_temperature_max
+              name: Air Temperature Max
+            - entity: sensor.ficus_elastica_robusta_auto_watering_state
+              name: Auto Watering State
+            - entity: switch.auto_waterer_control
+              name: Auto Watering
+              icon: mdi:water-pump
+            - entity: text.ficus_elastica_robusta_todo_list
+              name: Todo List
+            - entity: text.ficus_elastica_robusta_other_recommendations
+              name: Other Recommendations
 
       - type: vertical-stack
         cards:
@@ -195,24 +262,40 @@ views:
               ## 🌳 Ficus Elastica Tineke
           - type: entities
             entities:
-              - entity: sensor.ficus_elastica_tineke_grow_light_state
-                name: Grow Light State
-              - entity: sensor.ficus_elastica_tineke_soil_moisture_state
-                name: Soil Moisture
-              - entity: switch.ficus_elastica_tineke_grow_light_control
-                name: Grow Light
-                icon: mdi:lightbulb
-              - entity: switch.ficus_elastica_tineke_auto_watering_control
-                name: Auto Watering
-                icon: mdi:water-pump
-              - entity: text.ficus_elastica_tineke_air_humidity_recommendation
-                name: Humidity Recommendation
-              - entity: text.ficus_elastica_tineke_air_temperature_recommendation
-                name: Temperature Recommendation
-              - entity: text.ficus_elastica_tineke_minimum_soil_moisture_recommendation
-                name: Min Soil Moisture
-              - entity: text.ficus_elastica_tineke_watering_frequency_recommendation
-                name: Watering Frequency
+            - entity: sensor.ficus_elastica_tineke_soil_moisture_state
+              name: Soil Moisture
+              icon: mdi:water-percent
+            - entity: sensor.ficus_elastica_tineke_soil_moisture_zone
+              name: Moisture Zone
+            - entity: number.ficus_elastica_tineke_soil_moisture_yellow_threshold
+              name: Soil Moisture Yellow Threshold
+            - entity: number.ficus_elastica_tineke_soil_moisture_red_threshold
+              name: Soil Moisture Red Threshold
+            - entity: sensor.ficus_elastica_tineke_air_humidity_meter
+              name: Air Humidity
+            - entity: sensor.ficus_elastica_tineke_air_humidity_zone
+              name: Humidity Zone
+            - entity: number.ficus_elastica_tineke_air_humidity_min
+              name: Air Humidity Min
+            - entity: number.ficus_elastica_tineke_air_humidity_max
+              name: Air Humidity Max
+            - entity: sensor.ficus_elastica_tineke_air_temperature_meter
+              name: Temperature
+            - entity: sensor.ficus_elastica_tineke_air_temperature_zone
+              name: Temperature Zone
+            - entity: number.ficus_elastica_tineke_air_temperature_min
+              name: Air Temperature Min
+            - entity: number.ficus_elastica_tineke_air_temperature_max
+              name: Air Temperature Max
+            - entity: sensor.ficus_elastica_tineke_auto_watering_state
+              name: Auto Watering State
+            - entity: switch.auto_waterer_control
+              name: Auto Watering
+              icon: mdi:water-pump
+            - entity: text.ficus_elastica_tineke_todo_list
+              name: Todo List
+            - entity: text.ficus_elastica_tineke_other_recommendations
+              name: Other Recommendations
 
       - type: vertical-stack
         cards:
@@ -221,30 +304,40 @@ views:
               ## 🌿 Liana
           - type: entities
             entities:
-              - entity: sensor.liana_light_state
-                name: Grow Light State
-              - entity: sensor.liana_moisture
-                name: Soil Moisture
-              - entity: sensor.liana_humidity_meter
-                name: Air Humidity
-              - entity: sensor.liana_air_temperature_meter
-                name: Temperature
-              - entity: sensor.liana_auto_watering_state
-                name: Auto Watering State
-              - entity: switch.liana_light_power
-                name: Grow Light
-                icon: mdi:lightbulb
-              - entity: switch.liana_auto_watering_control
-                name: Auto Watering
-                icon: mdi:water-pump
-              - entity: text.liana_air_humidity_recommendation
-                name: Humidity Recommendation
-              - entity: text.liana_air_temperature_recommendation
-                name: Temperature Recommendation
-              - entity: text.liana_minimum_soil_moisture_recommendation
-                name: Min Soil Moisture
-              - entity: text.liana_watering_frequency_recommendation
-                name: Watering Frequency
+            - entity: sensor.liana_moisture
+              name: Soil Moisture
+              icon: mdi:water-percent
+            - entity: sensor.liana_soil_moisture_zone
+              name: Moisture Zone
+            - entity: number.liana_soil_moisture_yellow_threshold
+              name: Soil Moisture Yellow Threshold
+            - entity: number.liana_soil_moisture_red_threshold
+              name: Soil Moisture Red Threshold
+            - entity: sensor.liana_humidity_meter
+              name: Air Humidity
+            - entity: sensor.liana_air_humidity_zone
+              name: Humidity Zone
+            - entity: number.liana_air_humidity_min
+              name: Air Humidity Min
+            - entity: number.liana_air_humidity_max
+              name: Air Humidity Max
+            - entity: sensor.liana_air_temperature_meter
+              name: Temperature
+            - entity: sensor.liana_air_temperature_zone
+              name: Temperature Zone
+            - entity: number.liana_air_temperature_min
+              name: Air Temperature Min
+            - entity: number.liana_air_temperature_max
+              name: Air Temperature Max
+            - entity: sensor.liana_auto_watering_state
+              name: Auto Watering State
+            - entity: switch.auto_waterer_control
+              name: Auto Watering
+              icon: mdi:water-pump
+            - entity: text.liana_todo_list
+              name: Todo List
+            - entity: text.liana_other_recommendations
+              name: Other Recommendations
 
       - type: vertical-stack
         cards:
@@ -253,34 +346,43 @@ views:
               ## 🌴 Majesty Palm
           - type: entities
             entities:
-              - entity: sensor.majesty_palm_moisture
-                name: Soil Moisture
-                icon: mdi:water-percent
-              - entity: sensor.majesty_palm_humidity_meter
-                name: Air Humidity
-              - entity: sensor.majesty_palm_air_temperature_meter
-                name: Temperature
-              - entity: sensor.majesty_palm_light_state
-                name: Grow Light State
-              - entity: sensor.majesty_palm_auto_watering_state
-                name: Auto Watering State
-              - entity: switch.majesty_palm_auto_watering_control
-                name: Auto Watering
-                icon: mdi:water-pump
-              - entity: switch.majesty_palm_light_power
-                name: Grow Light
-                icon: mdi:lightbulb
-              - entity: text.majesty_palm_air_humidity_recommendation
-                name: Humidity Recommendation
-              - entity: text.majesty_palm_air_temperature_recommendation
-                name: Temperature Recommendation
-              - entity: text.majesty_palm_minimum_soil_moisture_recommendation
-                name: Min Soil Moisture
-              - entity: text.majesty_palm_watering_frequency_recommendation
-                name: Watering Frequency
+            - entity: sensor.majesty_palm_moisture
+              name: Soil Moisture
+              icon: mdi:water-percent
+            - entity: sensor.majesty_palm_soil_moisture_zone
+              name: Moisture Zone
+            - entity: number.majesty_palm_soil_moisture_yellow_threshold
+              name: Soil Moisture Yellow Threshold
+            - entity: number.majesty_palm_soil_moisture_red_threshold
+              name: Soil Moisture Red Threshold
+            - entity: sensor.majesty_palm_humidity_meter
+              name: Air Humidity
+            - entity: sensor.majesty_palm_air_humidity_zone
+              name: Humidity Zone
+            - entity: number.majesty_palm_air_humidity_min
+              name: Air Humidity Min
+            - entity: number.majesty_palm_air_humidity_max
+              name: Air Humidity Max
+            - entity: sensor.majesty_palm_air_temperature_meter
+              name: Temperature
+            - entity: sensor.majesty_palm_air_temperature_zone
+              name: Temperature Zone
+            - entity: number.majesty_palm_air_temperature_min
+              name: Air Temperature Min
+            - entity: number.majesty_palm_air_temperature_max
+              name: Air Temperature Max
+            - entity: sensor.majesty_palm_auto_watering_state
+              name: Auto Watering State
+            - entity: switch.auto_waterer_control
+              name: Auto Watering
+              icon: mdi:water-pump
+            - entity: text.majesty_palm_todo_list
+              name: Todo List
+            - entity: text.majesty_palm_other_recommendations
+              name: Other Recommendations
           - type: history-graph
             entities:
-              - entity: sensor.majesty_palm_moisture
+            - entity: sensor.majesty_palm_moisture
             hours_to_show: 48
 
       - type: vertical-stack
@@ -290,34 +392,43 @@ views:
               ## 🌳 Malcolm Ficus
           - type: entities
             entities:
-              - entity: sensor.malcolm_ficus_moisture
-                name: Soil Moisture
-                icon: mdi:water-percent
-              - entity: sensor.malcolm_ficus_humidity_meter
-                name: Air Humidity
-              - entity: sensor.malcolm_ficus_air_temperature_meter
-                name: Temperature
-              - entity: sensor.malcolm_ficus_light_state
-                name: Grow Light State
-              - entity: sensor.malcolm_ficus_auto_watering_state
-                name: Auto Watering State
-              - entity: switch.malcolm_ficus_light_power
-                name: Grow Light
-                icon: mdi:lightbulb
-              - entity: switch.malcolm_ficus_auto_watering_control
-                name: Auto Watering
-                icon: mdi:water-pump
-              - entity: text.malcolm_ficus_air_humidity_recommendation
-                name: Humidity Recommendation
-              - entity: text.malcolm_ficus_air_temperature_recommendation
-                name: Temperature Recommendation
-              - entity: text.malcolm_ficus_minimum_soil_moisture_recommendation
-                name: Min Soil Moisture
-              - entity: text.malcolm_ficus_watering_frequency_recommendation
-                name: Watering Frequency
+            - entity: sensor.malcolm_ficus_moisture
+              name: Soil Moisture
+              icon: mdi:water-percent
+            - entity: sensor.malcolm_ficus_soil_moisture_zone
+              name: Moisture Zone
+            - entity: number.malcolm_ficus_soil_moisture_yellow_threshold
+              name: Soil Moisture Yellow Threshold
+            - entity: number.malcolm_ficus_soil_moisture_red_threshold
+              name: Soil Moisture Red Threshold
+            - entity: sensor.malcolm_ficus_humidity_meter
+              name: Air Humidity
+            - entity: sensor.malcolm_ficus_air_humidity_zone
+              name: Humidity Zone
+            - entity: number.malcolm_ficus_air_humidity_min
+              name: Air Humidity Min
+            - entity: number.malcolm_ficus_air_humidity_max
+              name: Air Humidity Max
+            - entity: sensor.malcolm_ficus_air_temperature_meter
+              name: Temperature
+            - entity: sensor.malcolm_ficus_air_temperature_zone
+              name: Temperature Zone
+            - entity: number.malcolm_ficus_air_temperature_min
+              name: Air Temperature Min
+            - entity: number.malcolm_ficus_air_temperature_max
+              name: Air Temperature Max
+            - entity: sensor.malcolm_ficus_auto_watering_state
+              name: Auto Watering State
+            - entity: switch.auto_waterer_control
+              name: Auto Watering
+              icon: mdi:water-pump
+            - entity: text.malcolm_ficus_todo_list
+              name: Todo List
+            - entity: text.malcolm_ficus_other_recommendations
+              name: Other Recommendations
           - type: history-graph
             entities:
-              - entity: sensor.malcolm_ficus_moisture
+            - entity: sensor.malcolm_ficus_moisture
             hours_to_show: 48
 
       - type: vertical-stack
@@ -327,30 +438,40 @@ views:
               ## 🌿 Maranta
           - type: entities
             entities:
-              - entity: sensor.maranta_grow_light_state
-                name: Grow Light State
-              - entity: sensor.maranta_soil_moisture_state
-                name: Soil Moisture
-              - entity: sensor.maranta_air_humidity_meter
-                name: Air Humidity
-              - entity: sensor.maranta_air_temperature_meter
-                name: Temperature
-              - entity: sensor.maranta_auto_watering_state
-                name: Auto Watering State
-              - entity: switch.maranta_grow_light_control
-                name: Grow Light
-                icon: mdi:lightbulb
-              - entity: switch.maranta_auto_watering_control
-                name: Auto Watering
-                icon: mdi:water-pump
-              - entity: text.maranta_air_humidity_recommendation
-                name: Humidity Recommendation
-              - entity: text.maranta_air_temperature_recommendation
-                name: Temperature Recommendation
-              - entity: text.maranta_minimum_soil_moisture_recommendation
-                name: Min Soil Moisture
-              - entity: text.maranta_watering_frequency_recommendation
-                name: Watering Frequency
+            - entity: sensor.maranta_soil_moisture_state
+              name: Soil Moisture
+              icon: mdi:water-percent
+            - entity: sensor.maranta_soil_moisture_zone
+              name: Moisture Zone
+            - entity: number.maranta_soil_moisture_yellow_threshold
+              name: Soil Moisture Yellow Threshold
+            - entity: number.maranta_soil_moisture_red_threshold
+              name: Soil Moisture Red Threshold
+            - entity: sensor.maranta_air_humidity_meter
+              name: Air Humidity
+            - entity: sensor.maranta_air_humidity_zone
+              name: Humidity Zone
+            - entity: number.maranta_air_humidity_min
+              name: Air Humidity Min
+            - entity: number.maranta_air_humidity_max
+              name: Air Humidity Max
+            - entity: sensor.maranta_air_temperature_meter
+              name: Temperature
+            - entity: sensor.maranta_air_temperature_zone
+              name: Temperature Zone
+            - entity: number.maranta_air_temperature_min
+              name: Air Temperature Min
+            - entity: number.maranta_air_temperature_max
+              name: Air Temperature Max
+            - entity: sensor.maranta_auto_watering_state
+              name: Auto Watering State
+            - entity: switch.auto_waterer_control
+              name: Auto Watering
+              icon: mdi:water-pump
+            - entity: text.maranta_todo_list
+              name: Todo List
+            - entity: text.maranta_other_recommendations
+              name: Other Recommendations
 
       - type: vertical-stack
         cards:
@@ -359,34 +480,43 @@ views:
               ## 🫒 Olive Tree
           - type: entities
             entities:
-              - entity: sensor.olive_tree_moisture
-                name: Soil Moisture
-                icon: mdi:water-percent
-              - entity: sensor.olive_tree_humidity_meter
-                name: Air Humidity
-              - entity: sensor.olive_tree_air_temperature_meter
-                name: Temperature
-              - entity: sensor.olive_tree_light_state
-                name: Grow Light State
-              - entity: sensor.olive_tree_auto_watering_state
-                name: Auto Watering State
-              - entity: switch.olive_tree_light_power
-                name: Grow Light
-                icon: mdi:lightbulb
-              - entity: switch.olive_tree_auto_watering_control
-                name: Auto Watering
-                icon: mdi:water-pump
-              - entity: text.olive_tree_air_humidity_recommendation
-                name: Humidity Recommendation
-              - entity: text.olive_tree_air_temperature_recommendation
-                name: Temperature Recommendation
-              - entity: text.olive_tree_minimum_soil_moisture_recommendation
-                name: Min Soil Moisture
-              - entity: text.olive_tree_watering_frequency_recommendation
-                name: Watering Frequency
+            - entity: sensor.olive_tree_moisture
+              name: Soil Moisture
+              icon: mdi:water-percent
+            - entity: sensor.olive_tree_soil_moisture_zone
+              name: Moisture Zone
+            - entity: number.olive_tree_soil_moisture_yellow_threshold
+              name: Soil Moisture Yellow Threshold
+            - entity: number.olive_tree_soil_moisture_red_threshold
+              name: Soil Moisture Red Threshold
+            - entity: sensor.olive_tree_humidity_meter
+              name: Air Humidity
+            - entity: sensor.olive_tree_air_humidity_zone
+              name: Humidity Zone
+            - entity: number.olive_tree_air_humidity_min
+              name: Air Humidity Min
+            - entity: number.olive_tree_air_humidity_max
+              name: Air Humidity Max
+            - entity: sensor.olive_tree_air_temperature_meter
+              name: Temperature
+            - entity: sensor.olive_tree_air_temperature_zone
+              name: Temperature Zone
+            - entity: number.olive_tree_air_temperature_min
+              name: Air Temperature Min
+            - entity: number.olive_tree_air_temperature_max
+              name: Air Temperature Max
+            - entity: sensor.olive_tree_auto_watering_state
+              name: Auto Watering State
+            - entity: switch.auto_waterer_control
+              name: Auto Watering
+              icon: mdi:water-pump
+            - entity: text.olive_tree_todo_list
+              name: Todo List
+            - entity: text.olive_tree_other_recommendations
+              name: Other Recommendations
           - type: history-graph
             entities:
-              - entity: sensor.olive_tree_moisture
+            - entity: sensor.olive_tree_moisture
             hours_to_show: 48
 
       - type: vertical-stack
@@ -396,30 +526,40 @@ views:
               ## 🌿 Philodendron
           - type: entities
             entities:
-              - entity: sensor.philodendron_grow_light_state
-                name: Grow Light State
-              - entity: sensor.philodendron_soil_moisture_state
-                name: Soil Moisture
-              - entity: sensor.philodendron_air_humidity_meter
-                name: Air Humidity
-              - entity: sensor.philodendron_air_temperature_meter
-                name: Temperature
-              - entity: sensor.philodendron_auto_watering_state
-                name: Auto Watering State
-              - entity: switch.philodendron_grow_light_control
-                name: Grow Light
-                icon: mdi:lightbulb
-              - entity: switch.philodendron_auto_watering_control
-                name: Auto Watering
-                icon: mdi:water-pump
-              - entity: text.philodendron_air_humidity_recommendation
-                name: Humidity Recommendation
-              - entity: text.philodendron_air_temperature_recommendation
-                name: Temperature Recommendation
-              - entity: text.philodendron_minimum_soil_moisture_recommendation
-                name: Min Soil Moisture
-              - entity: text.philodendron_watering_frequency_recommendation
-                name: Watering Frequency
+            - entity: sensor.philodendron_soil_moisture_state
+              name: Soil Moisture
+              icon: mdi:water-percent
+            - entity: sensor.philodendron_soil_moisture_zone
+              name: Moisture Zone
+            - entity: number.philodendron_soil_moisture_yellow_threshold
+              name: Soil Moisture Yellow Threshold
+            - entity: number.philodendron_soil_moisture_red_threshold
+              name: Soil Moisture Red Threshold
+            - entity: sensor.philodendron_air_humidity_meter
+              name: Air Humidity
+            - entity: sensor.philodendron_air_humidity_zone
+              name: Humidity Zone
+            - entity: number.philodendron_air_humidity_min
+              name: Air Humidity Min
+            - entity: number.philodendron_air_humidity_max
+              name: Air Humidity Max
+            - entity: sensor.philodendron_air_temperature_meter
+              name: Temperature
+            - entity: sensor.philodendron_air_temperature_zone
+              name: Temperature Zone
+            - entity: number.philodendron_air_temperature_min
+              name: Air Temperature Min
+            - entity: number.philodendron_air_temperature_max
+              name: Air Temperature Max
+            - entity: sensor.philodendron_auto_watering_state
+              name: Auto Watering State
+            - entity: switch.auto_waterer_control
+              name: Auto Watering
+              icon: mdi:water-pump
+            - entity: text.philodendron_todo_list
+              name: Todo List
+            - entity: text.philodendron_other_recommendations
+              name: Other Recommendations
 
       - type: vertical-stack
         cards:
@@ -428,39 +568,43 @@ views:
               ## 🌳 Rubber Plant
           - type: entities
             entities:
-              - entity: sensor.rubber_plant_moisture
-                name: Soil Moisture
-              - entity: sensor.rubber_plant_humidity_meter
-                name: Air Humidity
-              - entity: sensor.rubber_plant_air_temperature_meter
-                name: Temperature
-              - entity: sensor.rubber_plant_light_state
-                name: Grow Light State
-              - entity: sensor.rubber_plant_humidifier_state
-                name: Humidifier State
-              - entity: sensor.rubber_plant_auto_watering_state
-                name: Auto Watering State
-              - entity: switch.rubber_plant_light_power
-                name: Grow Light
-                icon: mdi:lightbulb
-              - entity: switch.rubber_plant_auto_watering_control
-                name: Auto Watering
-                icon: mdi:water-pump
-              - entity: switch.rubber_plant_humidifier_control
-                name: Humidifier
-                icon: mdi:air-humidifier
-              - entity: text.rubber_plant_air_humidity_recommendation
-                name: Humidity Recommendation
-              - entity: text.rubber_plant_air_temperature_recommendation
-                name: Temperature Recommendation
-              - entity: text.rubber_plant_minimum_soil_moisture_recommendation
-                name: Min Soil Moisture
-              - entity: text.rubber_plant_watering_frequency_recommendation
-                name: Watering Frequency
-              - entity: text.rubber_plant_todo_list
-                name: Todo List
-              - entity: text.rubber_plant_other_recommendations
-                name: Other Recommendations
+            - entity: sensor.rubber_plant_moisture
+              name: Soil Moisture
+              icon: mdi:water-percent
+            - entity: sensor.rubber_plant_soil_moisture_zone
+              name: Moisture Zone
+            - entity: number.rubber_plant_soil_moisture_yellow_threshold
+              name: Soil Moisture Yellow Threshold
+            - entity: number.rubber_plant_soil_moisture_red_threshold
+              name: Soil Moisture Red Threshold
+            - entity: sensor.rubber_plant_humidity_meter
+              name: Air Humidity
+            - entity: sensor.rubber_plant_air_humidity_zone
+              name: Humidity Zone
+            - entity: number.rubber_plant_air_humidity_min
+              name: Air Humidity Min
+            - entity: number.rubber_plant_air_humidity_max
+              name: Air Humidity Max
+            - entity: sensor.rubber_plant_air_temperature_meter
+              name: Temperature
+            - entity: sensor.rubber_plant_air_temperature_zone
+              name: Temperature Zone
+            - entity: number.rubber_plant_air_temperature_min
+              name: Air Temperature Min
+            - entity: number.rubber_plant_air_temperature_max
+              name: Air Temperature Max
+            - entity: sensor.rubber_plant_auto_watering_state
+              name: Auto Watering State
+            - entity: switch.auto_waterer_control
+              name: Auto Watering
+              icon: mdi:water-pump
+            - entity: switch.humidifier_control
+              name: Humidifier
+              icon: mdi:air-humidifier
+            - entity: text.rubber_plant_todo_list
+              name: Todo List
+            - entity: text.rubber_plant_other_recommendations
+              name: Other Recommendations
 
       - type: vertical-stack
         cards:
@@ -469,30 +613,40 @@ views:
               ## 🌳 Triangularis Ficus
           - type: entities
             entities:
-              - entity: sensor.triangularis_ficus_moisture
-                name: Soil Moisture
-              - entity: sensor.triangularis_ficus_humidity_meter
-                name: Air Humidity
-              - entity: sensor.triangularis_ficus_air_temperature_meter
-                name: Temperature
-              - entity: sensor.triangularis_ficus_light_state
-                name: Grow Light State
-              - entity: sensor.triangularis_ficus_auto_watering_state
-                name: Auto Watering State
-              - entity: switch.triangularis_ficus_light_power
-                name: Grow Light
-                icon: mdi:lightbulb
-              - entity: switch.triangularis_ficus_auto_watering_control
-                name: Auto Watering
-                icon: mdi:water-pump
-              - entity: text.triangularis_ficus_air_humidity_recommendation
-                name: Humidity Recommendation
-              - entity: text.triangularis_ficus_air_temperature_recommendation
-                name: Temperature Recommendation
-              - entity: text.triangularis_ficus_minimum_soil_moisture_recommendation
-                name: Min Soil Moisture
-              - entity: text.triangularis_ficus_watering_frequency_recommendation
-                name: Watering Frequency
+            - entity: sensor.triangularis_ficus_moisture
+              name: Soil Moisture
+              icon: mdi:water-percent
+            - entity: sensor.triangularis_ficus_soil_moisture_zone
+              name: Moisture Zone
+            - entity: number.triangularis_ficus_soil_moisture_yellow_threshold
+              name: Soil Moisture Yellow Threshold
+            - entity: number.triangularis_ficus_soil_moisture_red_threshold
+              name: Soil Moisture Red Threshold
+            - entity: sensor.triangularis_ficus_humidity_meter
+              name: Air Humidity
+            - entity: sensor.triangularis_ficus_air_humidity_zone
+              name: Humidity Zone
+            - entity: number.triangularis_ficus_air_humidity_min
+              name: Air Humidity Min
+            - entity: number.triangularis_ficus_air_humidity_max
+              name: Air Humidity Max
+            - entity: sensor.triangularis_ficus_air_temperature_meter
+              name: Temperature
+            - entity: sensor.triangularis_ficus_air_temperature_zone
+              name: Temperature Zone
+            - entity: number.triangularis_ficus_air_temperature_min
+              name: Air Temperature Min
+            - entity: number.triangularis_ficus_air_temperature_max
+              name: Air Temperature Max
+            - entity: sensor.triangularis_ficus_auto_watering_state
+              name: Auto Watering State
+            - entity: switch.auto_waterer_control
+              name: Auto Watering
+              icon: mdi:water-pump
+            - entity: text.triangularis_ficus_todo_list
+              name: Todo List
+            - entity: text.triangularis_ficus_other_recommendations
+              name: Other Recommendations
 
       - type: vertical-stack
         cards:
@@ -501,34 +655,110 @@ views:
               ## 🌵 Yucca
           - type: entities
             entities:
-              - entity: sensor.yucca_moisture
-                name: Soil Moisture
-              - entity: sensor.yucca_humidity_meter
-                name: Air Humidity
-              - entity: sensor.yucca_air_temperature_meter
-                name: Temperature
-              - entity: sensor.yucca_light_state
-                name: Grow Light State
-              - entity: sensor.yucca_auto_watering_state
-                name: Auto Watering State
-              - entity: switch.yucca_light_power
-                name: Grow Light
-                icon: mdi:lightbulb
-              - entity: switch.yucca_auto_watering_control
-                name: Auto Watering
-                icon: mdi:water-pump
-              - entity: text.yucca_air_humidity_recommendation
-                name: Humidity Recommendation
-              - entity: text.yucca_air_temperature_recommendation
-                name: Temperature Recommendation
-              - entity: text.yucca_minimum_soil_moisture_recommendation
-                name: Min Soil Moisture
-              - entity: text.yucca_watering_frequency_recommendation
-                name: Watering Frequency
+            - entity: sensor.yucca_moisture
+              name: Soil Moisture
+              icon: mdi:water-percent
+            - entity: sensor.yucca_soil_moisture_zone
+              name: Moisture Zone
+            - entity: number.yucca_soil_moisture_yellow_threshold
+              name: Soil Moisture Yellow Threshold
+            - entity: number.yucca_soil_moisture_red_threshold
+              name: Soil Moisture Red Threshold
+            - entity: sensor.yucca_humidity_meter
+              name: Air Humidity
+            - entity: sensor.yucca_air_humidity_zone
+              name: Humidity Zone
+            - entity: number.yucca_air_humidity_min
+              name: Air Humidity Min
+            - entity: number.yucca_air_humidity_max
+              name: Air Humidity Max
+            - entity: sensor.yucca_air_temperature_meter
+              name: Temperature
+            - entity: sensor.yucca_air_temperature_zone
+              name: Temperature Zone
+            - entity: number.yucca_air_temperature_min
+              name: Air Temperature Min
+            - entity: number.yucca_air_temperature_max
+              name: Air Temperature Max
+            - entity: sensor.yucca_auto_watering_state
+              name: Auto Watering State
+            - entity: switch.auto_waterer_control
+              name: Auto Watering
+              icon: mdi:water-pump
+            - entity: text.yucca_todo_list
+              name: Todo List
+            - entity: text.yucca_other_recommendations
+              name: Other Recommendations
+
+  - title: Automations
+    path: automations
+    cards:
+      - type: custom:auto-entities
+        card:
+          type: entities
+          title: Plant Automations
+        filter:
+          include:
+            - domain: automation
+              label: plants
+              options:
+                secondary_info: last-triggered
+                tap_action:
+                  action: more-info
+        sort:
+          method: friendly_name
+
+      - type: custom:auto-entities
+        card:
+          type: logbook
+          title: Automation Log
+          hours_to_show: 24
+        filter:
+          include:
+            - domain: automation
+              label: plants
+
+  - title: All Devices
+    path: devices
+    cards:
+      - type: entities
+        title: Horizontal Grow Light
+        entities:
+          - entity: sensor.horizontal_grow_light_state
+            name: State
+          - entity: switch.horizontal_grow_light_control
+            name: Control
+            icon: mdi:lightbulb
+
+      - type: entities
+        title: Vertical Grow Light
+        entities:
+          - entity: sensor.vertical_grow_light_state
+            name: State
+          - entity: switch.vertical_grow_light_control
+            name: Control
+            icon: mdi:lightbulb
+
+      - type: entities
+        title: Auto Waterer
+        entities:
+          - entity: sensor.auto_waterer_state
+            name: State
+          - entity: switch.auto_waterer_control
+            name: Control
+            icon: mdi:water-pump
+
+      - type: entities
+        title: Humidifier
+        entities:
+          - entity: sensor.humidifier_state
+            name: State
+          - entity: switch.humidifier_control
+            name: Control
+            icon: mdi:air-humidifier
 
   - title: Graphs
     path: graphs
-    icon: mdi:chart-line
     cards:
       - type: markdown
         content: |
@@ -565,7 +795,6 @@ views:
 
   - title: Humidity
     path: humidity
-    icon: mdi:water-percent
     cards:
       - type: markdown
         content: |

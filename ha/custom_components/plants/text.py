@@ -16,30 +16,6 @@ MAX_RECOMMENDATION_LENGTH = 120
 # Format: (field_key, entity_name, friendly_name_with_example, max_length)
 FIELDS: list[tuple[str, str, str, int | None]] = [
     (
-        "watering_frequency_recommendation",
-        "Watering Frequency Recommendation",
-        "Watering Frequency Recommendation (e.g., once a week)",
-        MAX_RECOMMENDATION_LENGTH,
-    ),
-    (
-        "soil_moisture_recommendation",
-        "Minimum Soil Moisture Recommendation",
-        "Minimum Soil Moisture for Watering Recommendation (e.g., 25%)",
-        MAX_RECOMMENDATION_LENGTH,
-    ),
-    (
-        "air_temperature_recommendation",
-        "Air Temperature Recommendation",
-        "Air Temperature Recommendation (e.g., 20-24 C)",
-        MAX_RECOMMENDATION_LENGTH,
-    ),
-    (
-        "air_humidity_recommendation",
-        "Air Humidity Recommendation",
-        "Air Humidity Recommendation (e.g., 50-60%)",
-        MAX_RECOMMENDATION_LENGTH,
-    ),
-    (
         "other_recommendations",
         "Other Recommendations",
         "Other Recommendations (e.g., - rotate weekly; - avoid drafts;)",

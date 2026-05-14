@@ -1,0 +1,56 @@
+# Loads default set of integrations. Do not remove.
+default_config:
+
+# Load frontend themes from the themes folder
+frontend:
+  themes: !include_dir_merge_named themes
+
+automation: !include automations.yaml
+script: !include scripts.yaml
+scene: !include scenes.yaml
+
+# Lovelace Dashboards
+lovelace:
+  mode: storage
+  dashboards:
+    plants-dashboard:
+      mode: yaml
+      title: Plants
+      icon: mdi:flower
+      show_in_sidebar: true
+      filename: dashboards/plants.yaml
+
+template:
+  - sensor:
+      - name: "Alocasia Moisture Yellow Threshold"
+        unique_id: "tpl_alocasia_moisture_yellow"
+        state: "{{ states('number.alocasia_soil_moisture_yellow_threshold') | float(30) }}"
+        unit_of_measurement: "%"
+      - name: "Alocasia Moisture Red Threshold"
+        unique_id: "tpl_alocasia_moisture_red"
+        state: "{{ states('number.alocasia_soil_moisture_red_threshold') | float(15) }}"
+        unit_of_measurement: "%"
+      - name: "Majesty Palm Moisture Yellow Threshold"
+        unique_id: "tpl_majesty_palm_moisture_yellow"
+        state: "{{ states('number.majesty_palm_soil_moisture_yellow_threshold') | float(30) }}"
+        unit_of_measurement: "%"
+      - name: "Majesty Palm Moisture Red Threshold"
+        unique_id: "tpl_majesty_palm_moisture_red"
+        state: "{{ states('number.majesty_palm_soil_moisture_red_threshold') | float(15) }}"
+        unit_of_measurement: "%"
+      - name: "Malcolm Ficus Moisture Yellow Threshold"
+        unique_id: "tpl_malcolm_ficus_moisture_yellow"
+        state: "{{ states('number.malcolm_ficus_soil_moisture_yellow_threshold') | float(30) }}"
+        unit_of_measurement: "%"
+      - name: "Malcolm Ficus Moisture Red Threshold"
+        unique_id: "tpl_malcolm_ficus_moisture_red"
+        state: "{{ states('number.malcolm_ficus_soil_moisture_red_threshold') | float(15) }}"
+        unit_of_measurement: "%"
+      - name: "Olive Tree Moisture Yellow Threshold"
+        unique_id: "tpl_olive_tree_moisture_yellow"
+        state: "{{ states('number.olive_tree_soil_moisture_yellow_threshold') | float(30) }}"
+        unit_of_measurement: "%"
+      - name: "Olive Tree Moisture Red Threshold"
+        unique_id: "tpl_olive_tree_moisture_red"
+        state: "{{ states('number.olive_tree_soil_moisture_red_threshold') | float(15) }}"
+        unit_of_measurement: "%"
