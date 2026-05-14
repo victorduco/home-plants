@@ -75,12 +75,23 @@ deploy_dashboard() {
   echo "✓ Dashboard deployed (refresh the browser to see changes)"
 }
 
+deploy_automations() {
+  if [ ! -d "$REPO_ROOT/ha/automations" ]; then
+    return
+  fi
+  echo "→ Deploying automations via HA API..."
+  python3 "$REPO_ROOT/ha-commands/deploy_automations.py"
+  echo "✓ Automations deployed"
+}
+
 case "${1:-all}" in
   integration) deploy_integration ;;
   dashboard)   deploy_dashboard ;;
+  automations) deploy_automations ;;
   all)
     deploy_integration
     deploy_dashboard
+    deploy_automations
     ;;
   *)
     echo "Usage: $0 [integration|dashboard|all]"

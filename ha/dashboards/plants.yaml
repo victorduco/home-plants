@@ -332,6 +332,242 @@ views:
           - switch.auto_waterer_control
           - switch.humidifier_control
 
+  - title: Air Climate
+    path: air-climate
+    panel: true
+    cards:
+      - type: vertical-stack
+        cards:
+          - type: custom:apexcharts-card
+            header:
+              show: true
+              title: 🌡️ Air Temperature (°F)
+            graph_span: 72h
+            series:
+              - entity: sensor.gw1200b_indoor_temperature
+                name: Temperature
+                stroke_width: 2
+              - entity: number.alocasia_air_temperature_min
+                name: Alocasia min
+                stroke_width: 1
+                curve: stepline
+              - entity: number.alocasia_air_temperature_max
+                name: Alocasia max
+                stroke_width: 1
+                curve: stepline
+              - entity: number.liana_air_temperature_min
+                name: Liana min
+                stroke_width: 1
+                curve: stepline
+              - entity: number.liana_air_temperature_max
+                name: Liana max
+                stroke_width: 1
+                curve: stepline
+              - entity: number.majesty_palm_air_temperature_min
+                name: Majesty Palm min
+                stroke_width: 1
+                curve: stepline
+              - entity: number.majesty_palm_air_temperature_max
+                name: Majesty Palm max
+                stroke_width: 1
+                curve: stepline
+              - entity: number.malcolm_ficus_air_temperature_min
+                name: Malcolm Ficus min
+                stroke_width: 1
+                curve: stepline
+              - entity: number.malcolm_ficus_air_temperature_max
+                name: Malcolm Ficus max
+                stroke_width: 1
+                curve: stepline
+              - entity: number.maranta_air_temperature_min
+                name: Maranta min
+                stroke_width: 1
+                curve: stepline
+              - entity: number.maranta_air_temperature_max
+                name: Maranta max
+                stroke_width: 1
+                curve: stepline
+              - entity: number.olive_tree_air_temperature_min
+                name: Olive Tree min
+                stroke_width: 1
+                curve: stepline
+              - entity: number.olive_tree_air_temperature_max
+                name: Olive Tree max
+                stroke_width: 1
+                curve: stepline
+              - entity: number.philodendron_air_temperature_min
+                name: Philodendron min
+                stroke_width: 1
+                curve: stepline
+              - entity: number.philodendron_air_temperature_max
+                name: Philodendron max
+                stroke_width: 1
+                curve: stepline
+              - entity: number.yucca_air_temperature_min
+                name: Yucca min
+                stroke_width: 1
+                curve: stepline
+              - entity: number.yucca_air_temperature_max
+                name: Yucca max
+                stroke_width: 1
+                curve: stepline
+          - type: custom:apexcharts-card
+            header:
+              show: true
+              title: 💧 Air Humidity (%)
+            graph_span: 72h
+            series:
+              - entity: sensor.gw1200b_indoor_humidity
+                name: Humidity
+                stroke_width: 2
+              - entity: number.alocasia_air_humidity_min
+                name: Alocasia min
+                stroke_width: 1
+                curve: stepline
+              - entity: number.alocasia_air_humidity_max
+                name: Alocasia max
+                stroke_width: 1
+                curve: stepline
+              - entity: number.liana_air_humidity_min
+                name: Liana min
+                stroke_width: 1
+                curve: stepline
+              - entity: number.liana_air_humidity_max
+                name: Liana max
+                stroke_width: 1
+                curve: stepline
+              - entity: number.majesty_palm_air_humidity_min
+                name: Majesty Palm min
+                stroke_width: 1
+                curve: stepline
+              - entity: number.majesty_palm_air_humidity_max
+                name: Majesty Palm max
+                stroke_width: 1
+                curve: stepline
+              - entity: number.malcolm_ficus_air_humidity_min
+                name: Malcolm Ficus min
+                stroke_width: 1
+                curve: stepline
+              - entity: number.malcolm_ficus_air_humidity_max
+                name: Malcolm Ficus max
+                stroke_width: 1
+                curve: stepline
+              - entity: number.maranta_air_humidity_min
+                name: Maranta min
+                stroke_width: 1
+                curve: stepline
+              - entity: number.maranta_air_humidity_max
+                name: Maranta max
+                stroke_width: 1
+                curve: stepline
+              - entity: number.olive_tree_air_humidity_min
+                name: Olive Tree min
+                stroke_width: 1
+                curve: stepline
+              - entity: number.olive_tree_air_humidity_max
+                name: Olive Tree max
+                stroke_width: 1
+                curve: stepline
+              - entity: number.philodendron_air_humidity_min
+                name: Philodendron min
+                stroke_width: 1
+                curve: stepline
+              - entity: number.philodendron_air_humidity_max
+                name: Philodendron max
+                stroke_width: 1
+                curve: stepline
+              - entity: number.yucca_air_humidity_min
+                name: Yucca min
+                stroke_width: 1
+                curve: stepline
+              - entity: number.yucca_air_humidity_max
+                name: Yucca max
+                stroke_width: 1
+                curve: stepline
+
+  - title: Soil Moisture
+    path: soil-moisture
+    panel: true
+    cards:
+      - type: vertical-stack
+        cards:
+          - type: custom:apexcharts-card
+            header:
+              show: true
+              title: 🌱 Alocasia Soil Moisture (%)
+            graph_span: 72h
+            series:
+              - entity: sensor.alocasia_moisture
+                name: Moisture
+                stroke_width: 2
+              - entity: number.alocasia_soil_moisture_yellow_threshold
+                name: Yellow threshold
+                stroke_width: 1
+                curve: stepline
+                color: "#f4b942"
+              - entity: number.alocasia_soil_moisture_red_threshold
+                name: Red threshold
+                stroke_width: 1
+                curve: stepline
+                color: "#e74c3c"
+          - type: custom:apexcharts-card
+            header:
+              show: true
+              title: 🌴 Majesty Palm Soil Moisture (%)
+            graph_span: 72h
+            series:
+              - entity: sensor.majesty_palm_moisture
+                name: Moisture
+                stroke_width: 2
+              - entity: number.majesty_palm_soil_moisture_yellow_threshold
+                name: Yellow threshold
+                stroke_width: 1
+                curve: stepline
+                color: "#f4b942"
+              - entity: number.majesty_palm_soil_moisture_red_threshold
+                name: Red threshold
+                stroke_width: 1
+                curve: stepline
+                color: "#e74c3c"
+          - type: custom:apexcharts-card
+            header:
+              show: true
+              title: 🌳 Malcolm Ficus Soil Moisture (%)
+            graph_span: 72h
+            series:
+              - entity: sensor.malcolm_ficus_moisture
+                name: Moisture
+                stroke_width: 2
+              - entity: number.malcolm_ficus_soil_moisture_yellow_threshold
+                name: Yellow threshold
+                stroke_width: 1
+                curve: stepline
+                color: "#f4b942"
+              - entity: number.malcolm_ficus_soil_moisture_red_threshold
+                name: Red threshold
+                stroke_width: 1
+                curve: stepline
+                color: "#e74c3c"
+          - type: custom:apexcharts-card
+            header:
+              show: true
+              title: 🫒 Olive Tree Soil Moisture (%)
+            graph_span: 72h
+            series:
+              - entity: sensor.olive_tree_moisture
+                name: Moisture
+                stroke_width: 2
+              - entity: number.olive_tree_soil_moisture_yellow_threshold
+                name: Yellow threshold
+                stroke_width: 1
+                curve: stepline
+                color: "#f4b942"
+              - entity: number.olive_tree_soil_moisture_red_threshold
+                name: Red threshold
+                stroke_width: 1
+                curve: stepline
+                color: "#e74c3c"
+
   - title: Automations
     path: automations
     cards:

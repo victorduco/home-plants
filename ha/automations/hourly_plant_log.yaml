@@ -1,0 +1,22 @@
+- id: hourly_plant_log
+  alias: "Hourly Plant Status Log"
+  description: "Every hour logs soil moisture for all plants + air humidity and temperature."
+  trigger:
+    - platform: time_pattern
+      hours: "/1"
+  action:
+    - service: logbook.log
+      data:
+        name: "🌿 Hourly Plant Status"
+        message: >-
+          {% set ns = namespace(lines=[]) %}
+          {% for s in states.sensor | selectattr('entity_id', 'search', '_soil_moisture_state$') | rejectattr('state', 'in', ['unknown', 'unavailable']) | list %}
+          {% set ns.lines = ns.lines + [s.attributes.friendly_name | replace(' Soil Moisture State', '') ~ ': soil ' ~ (s.state | float | round(0) | int) ~ '%'] %}
+          {% endfor %}
+          {% for s in states.sensor | selectattr('entity_id', 'search', '_air_humidity_meter$') | rejectattr('state', 'in', ['unknown', 'unavailable']) | list %}
+          {% set ns.lines = ns.lines + [s.attributes.friendly_name | replace(' Air Humidity Meter', '') ~ ': humidity ' ~ (s.state | float | round(0) | int) ~ '%'] %}
+          {% endfor %}
+          {% for s in states.sensor | selectattr('entity_id', 'search', '_air_temperature_meter$') | rejectattr('state', 'in', ['unknown', 'unavailable']) | list %}
+          {% set ns.lines = ns.lines + [s.attributes.friendly_name | replace(' Air Temperature Meter', '') ~ ': temp ' ~ (s.state | float | round(1)) ~ (s.attributes.unit_of_measurement | default('°F'))] %}
+          {% endfor %}
+          {{ ns.lines | join(' | ') }}
