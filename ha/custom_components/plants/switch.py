@@ -1,4 +1,4 @@
-"""Switch platform for Plants light control."""
+"""Switch platform for Plants device control."""
 
 from __future__ import annotations
 
@@ -8,8 +8,11 @@ from homeassistant.const import STATE_ON
 from homeassistant.core import HomeAssistant, callback
 from homeassistant.helpers.device_registry import DeviceInfo
 from homeassistant.helpers.event import async_track_state_change_event
+
 from .const import DOMAIN
-from .data import PlantsData
+from .data import AutoWaterersData, GrowLightsData, HumidifiersData
+
+WATER_CONTROL_DOMAINS = ("valve", "switch")
 
 
 async def async_setup_entry(
@@ -19,51 +22,58 @@ async def async_setup_entry(
 ) -> None:
     """Set up Plants switch entities from a config entry."""
     entry_data = hass.data[DOMAIN][entry.entry_id]
-    if entry_data["type"] == "meter_locations":
-        return
-    data: PlantsData = entry_data["data"]
-    entities = []
-    for plant_id in data.plants:
-        entities.append(PlantLightSwitch(data, plant_id))
-        entities.append(PlantHumidifierSwitch(data, plant_id))
-        entities.append(PlantWaterSwitch(data, plant_id))
+    entry_type = entry_data["type"]
+    data = entry_data["data"]
+    entities: list[SwitchEntity] = []
+
+    if entry_type == "grow_lights":
+        for grow_light_id in data.grow_lights:
+            entities.append(GrowLightSwitch(data, grow_light_id))
+    elif entry_type == "humidifiers":
+        for humidifier_id in data.humidifiers:
+            entities.append(HumidifierSwitch(data, humidifier_id))
+    elif entry_type == "auto_waterers":
+        for waterer_id in data.auto_waterers:
+            entities.append(AutoWatererSwitch(data, waterer_id))
+
     if entities:
         async_add_entities(entities)
 
-CONTROL_DOMAINS = ("switch", "light", "input_boolean")
-WATER_CONTROL_DOMAINS = ("valve", "switch")
-HUMIDIFIER_CONTROL_DOMAINS = ("switch", "input_boolean")
+
+# ---------------------------------------------------------------------------
+# GrowLight switch
+# ---------------------------------------------------------------------------
 
 
-class PlantLightSwitch(SwitchEntity):
-    """Proxy switch for a plant light outlet."""
+class GrowLightSwitch(SwitchEntity):
+    """Proxy switch for a grow light outlet."""
 
-    def __init__(self, data: PlantsData, plant_id: str) -> None:
+    def __init__(self, data: GrowLightsData, grow_light_id: str) -> None:
         self._data = data
-        self._plant_id = plant_id
-        plant = data.plants[plant_id]
-        self._attr_name = f"{plant.name} Grow Light Control"
-        self._attr_unique_id = f"plant_{plant_id}_light_power"
+        self._grow_light_id = grow_light_id
+        gl = data.grow_lights[grow_light_id]
+        self._attr_name = f"{gl.name} Control"
+        self._attr_unique_id = f"grow_light_{grow_light_id}_control"
         self._attr_device_info = DeviceInfo(
-            identifiers={(DOMAIN, f"plant_{plant_id}")},
-            name=plant.name,
+            identifiers={(DOMAIN, f"grow_light_{grow_light_id}")},
+            name=gl.name,
             manufacturer="Custom",
-            model="Plant",
+            model="Grow Light",
         )
 
     @property
     def _outlet_entity_id(self) -> str | None:
-        return self._data.plants[self._plant_id].light_entity_id
+        return self._data.grow_lights[self._grow_light_id].light_entity_id
 
     @property
     def available(self) -> bool:
         outlet = self._outlet_entity_id
-        return bool(outlet and self.hass.states.get(outlet))
+        return bool(outlet and self.hass and self.hass.states.get(outlet))
 
     @property
     def is_on(self) -> bool:
         outlet = self._outlet_entity_id
-        if not outlet:
+        if not outlet or not self.hass:
             return False
         state = self.hass.states.get(outlet)
         if state is None:
@@ -100,36 +110,112 @@ class PlantLightSwitch(SwitchEntity):
         async_track_state_change_event(self.hass, [outlet], _handle_state_change)
 
 
-class PlantWaterSwitch(SwitchEntity):
-    """Proxy switch for a plant water outlet (valve or switch)."""
+# ---------------------------------------------------------------------------
+# Humidifier switch
+# ---------------------------------------------------------------------------
 
-    def __init__(self, data: PlantsData, plant_id: str) -> None:
+
+class HumidifierSwitch(SwitchEntity):
+    """Proxy switch for a humidifier device."""
+
+    def __init__(self, data: HumidifiersData, humidifier_id: str) -> None:
         self._data = data
-        self._plant_id = plant_id
-        plant = data.plants[plant_id]
-        self._attr_name = f"{plant.name} Auto Watering Control"
-        self._attr_unique_id = f"plant_{plant_id}_auto_watering_control"
+        self._humidifier_id = humidifier_id
+        hd = data.humidifiers[humidifier_id]
+        self._attr_name = f"{hd.name} Control"
+        self._attr_unique_id = f"humidifier_{humidifier_id}_control"
         self._attr_device_info = DeviceInfo(
-            identifiers={(DOMAIN, f"plant_{plant_id}")},
-            name=plant.name,
+            identifiers={(DOMAIN, f"humidifier_{humidifier_id}")},
+            name=hd.name,
             manufacturer="Custom",
-            model="Plant",
+            model="Humidifier",
+        )
+
+    @property
+    def _control_entity_id(self) -> str | None:
+        return self._data.humidifiers[self._humidifier_id].humidifier_entity_id
+
+    @property
+    def available(self) -> bool:
+        entity_id = self._control_entity_id
+        if not entity_id or not self.hass:
+            return False
+        return bool(self.hass.states.get(entity_id))
+
+    @property
+    def is_on(self) -> bool:
+        entity_id = self._control_entity_id
+        if not entity_id or not self.hass:
+            return False
+        state = self.hass.states.get(entity_id)
+        if state is None:
+            return False
+        return state.state == STATE_ON
+
+    async def async_turn_on(self, **kwargs) -> None:
+        entity_id = self._control_entity_id
+        if not entity_id or not self.hass:
+            return
+        domain = entity_id.split(".")[0]
+        await self.hass.services.async_call(
+            domain, "turn_on", {"entity_id": entity_id}, blocking=True
+        )
+
+    async def async_turn_off(self, **kwargs) -> None:
+        entity_id = self._control_entity_id
+        if not entity_id or not self.hass:
+            return
+        domain = entity_id.split(".")[0]
+        await self.hass.services.async_call(
+            domain, "turn_off", {"entity_id": entity_id}, blocking=True
+        )
+
+    async def async_added_to_hass(self) -> None:
+        entity_id = self._control_entity_id
+        if not entity_id or not self.hass:
+            return
+
+        @callback
+        def _handle_state_change(event) -> None:
+            self.async_write_ha_state()
+
+        async_track_state_change_event(self.hass, [entity_id], _handle_state_change)
+
+
+# ---------------------------------------------------------------------------
+# AutoWaterer switch
+# ---------------------------------------------------------------------------
+
+
+class AutoWatererSwitch(SwitchEntity):
+    """Proxy switch for an auto waterer valve/switch."""
+
+    def __init__(self, data: AutoWaterersData, waterer_id: str) -> None:
+        self._data = data
+        self._waterer_id = waterer_id
+        aw = data.auto_waterers[waterer_id]
+        self._attr_name = f"{aw.name} Control"
+        self._attr_unique_id = f"auto_waterer_{waterer_id}_control"
+        self._attr_device_info = DeviceInfo(
+            identifiers={(DOMAIN, f"auto_waterer_{waterer_id}")},
+            name=aw.name,
+            manufacturer="Custom",
+            model="Auto Waterer",
         )
 
     @property
     def _outlet_entity_id(self) -> str | None:
-        return self._data.plants[self._plant_id].water_entity_id
+        return self._data.auto_waterers[self._waterer_id].water_entity_id
 
     @property
     def available(self) -> bool:
         outlet = self._outlet_entity_id
-        if not outlet or outlet == "None" or not self.hass:
+        if not outlet or not self.hass:
             return False
         domain = outlet.split(".")[0]
         if domain not in WATER_CONTROL_DOMAINS:
             return False
-        state = self.hass.states.get(outlet)
-        return state is not None
+        return bool(self.hass.states.get(outlet))
 
     @property
     def is_on(self) -> bool:
@@ -139,7 +225,6 @@ class PlantWaterSwitch(SwitchEntity):
         state = self.hass.states.get(outlet)
         if state is None:
             return False
-        # Support both valve (open/opening) and switch (on) states
         return state.state in ("on", "open", "opening")
 
     async def async_turn_on(self, **kwargs) -> None:
@@ -172,77 +257,3 @@ class PlantWaterSwitch(SwitchEntity):
             self.async_write_ha_state()
 
         async_track_state_change_event(self.hass, [outlet], _handle_state_change)
-
-
-class PlantHumidifierSwitch(SwitchEntity):
-    """Proxy switch for a plant humidifier device."""
-
-    def __init__(self, data: PlantsData, plant_id: str) -> None:
-        self._data = data
-        self._plant_id = plant_id
-        plant = data.plants[plant_id]
-        self._attr_name = f"{plant.name} Air Humidifier Control"
-        self._attr_unique_id = f"plant_{plant_id}_humidifier_control"
-        self._attr_device_info = DeviceInfo(
-            identifiers={(DOMAIN, f"plant_{plant_id}")},
-            name=plant.name,
-            manufacturer="Custom",
-            model="Plant",
-        )
-
-    @property
-    def _control_entity_id(self) -> str | None:
-        return self._data.plants[self._plant_id].humidifier_entity_id
-
-    @property
-    def available(self) -> bool:
-        entity_id = self._control_entity_id
-        if not entity_id or not self.hass:
-            return False
-        domain = entity_id.split(".")[0]
-        if domain not in HUMIDIFIER_CONTROL_DOMAINS:
-            return False
-        return bool(self.hass.states.get(entity_id))
-
-    @property
-    def is_on(self) -> bool:
-        entity_id = self._control_entity_id
-        if not entity_id or not self.hass:
-            return False
-        state = self.hass.states.get(entity_id)
-        if state is None:
-            return False
-        return state.state == STATE_ON
-
-    async def async_turn_on(self, **kwargs) -> None:
-        entity_id = self._control_entity_id
-        if not entity_id or not self.hass:
-            return
-        domain = entity_id.split(".")[0]
-        if domain not in HUMIDIFIER_CONTROL_DOMAINS:
-            return
-        await self.hass.services.async_call(
-            domain, "turn_on", {"entity_id": entity_id}, blocking=True
-        )
-
-    async def async_turn_off(self, **kwargs) -> None:
-        entity_id = self._control_entity_id
-        if not entity_id or not self.hass:
-            return
-        domain = entity_id.split(".")[0]
-        if domain not in HUMIDIFIER_CONTROL_DOMAINS:
-            return
-        await self.hass.services.async_call(
-            domain, "turn_off", {"entity_id": entity_id}, blocking=True
-        )
-
-    async def async_added_to_hass(self) -> None:
-        entity_id = self._control_entity_id
-        if not entity_id or not self.hass:
-            return
-
-        @callback
-        def _handle_state_change(event) -> None:
-            self.async_write_ha_state()
-
-        async_track_state_change_event(self.hass, [entity_id], _handle_state_change)

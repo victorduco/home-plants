@@ -8,7 +8,13 @@ from homeassistant import config_entries
 from homeassistant.helpers import selector
 
 from .const import DOMAIN
-from .data import MeterLocationsData, PlantsData
+from .data import (
+    AutoWaterersData,
+    GrowLightsData,
+    HumidifiersData,
+    MeterLocationsData,
+    PlantsData,
+)
 
 
 class PlantsConfigFlow(config_entries.ConfigFlow, domain=DOMAIN):
@@ -22,6 +28,12 @@ class PlantsConfigFlow(config_entries.ConfigFlow, domain=DOMAIN):
         entry_type = config_entry.data.get("entry_type", "plants")
         if entry_type == "meter_locations":
             return MeterLocationsOptionsFlow()
+        if entry_type == "grow_lights":
+            return GrowLightsOptionsFlow()
+        if entry_type == "humidifiers":
+            return HumidifiersOptionsFlow()
+        if entry_type == "auto_waterers":
+            return AutoWaterersOptionsFlow()
         return PlantsOptionsFlow()
 
     async def async_step_user(self, user_input=None):
@@ -33,6 +45,9 @@ class PlantsConfigFlow(config_entries.ConfigFlow, domain=DOMAIN):
                         {
                             "plants": "Plants",
                             "meter_locations": "Meter Locations",
+                            "grow_lights": "Grow Lights",
+                            "humidifiers": "Humidifiers",
+                            "auto_waterers": "Auto Waterers",
                         }
                     )
                 }
@@ -41,13 +56,15 @@ class PlantsConfigFlow(config_entries.ConfigFlow, domain=DOMAIN):
         entry_type = user_input["entry_type"]
         for existing in self._async_current_entries():
             if existing.data.get("entry_type", "plants") == entry_type:
-                reason = (
-                    "plants_instance_allowed"
-                    if entry_type == "plants"
-                    else "meter_locations_instance_allowed"
-                )
-                return self.async_abort(reason=reason)
-        title = "Plants" if entry_type == "plants" else "Meter Locations"
+                return self.async_abort(reason=f"{entry_type}_instance_allowed")
+        titles = {
+            "plants": "Plants",
+            "meter_locations": "Meter Locations",
+            "grow_lights": "Grow Lights",
+            "humidifiers": "Humidifiers",
+            "auto_waterers": "Auto Waterers",
+        }
+        title = titles.get(entry_type, entry_type.replace("_", " ").title())
         return self.async_create_entry(title=title, data={"entry_type": entry_type})
 
 
@@ -62,7 +79,6 @@ class PlantsOptionsFlow(config_entries.OptionsFlow):
                 "add_plant",
                 "remove_plant",
                 "set_moisture_entity",
-                "set_light_entity",
             ],
         )
 
@@ -111,7 +127,6 @@ class PlantsOptionsFlow(config_entries.OptionsFlow):
         )
         return self.async_show_form(step_id="remove_plant", data_schema=schema)
 
-
     async def async_step_set_moisture_entity(self, user_input=None):
         """Set plant moisture entity."""
         data: PlantsData = self.hass.data[DOMAIN][self.config_entry.entry_id]["data"]
@@ -137,30 +152,6 @@ class PlantsOptionsFlow(config_entries.OptionsFlow):
             }
         )
         return self.async_show_form(step_id="set_moisture_entity", data_schema=schema)
-
-    async def async_step_set_light_entity(self, user_input=None):
-        """Set plant light entity."""
-        data: PlantsData = self.hass.data[DOMAIN][self.config_entry.entry_id]["data"]
-        plant_labels, plant_label_to_id = self._plant_label_maps(data)
-
-        if user_input is not None:
-            label = user_input["plant_label"]
-            plant_id = plant_label_to_id.get(label)
-            if plant_id:
-                data.set_plant_light(plant_id, user_input.get("light_entity_id"))
-                await data.async_save()
-                await self.hass.config_entries.async_reload(self.config_entry.entry_id)
-            return self.async_create_entry(title="", data={})
-
-        schema = vol.Schema(
-            {
-                vol.Required("plant_label"): vol.In(plant_labels),
-                vol.Optional("light_entity_id"): selector.EntitySelector(
-                    selector.EntitySelectorConfig(domain=["switch"])
-                ),
-            }
-        )
-        return self.async_show_form(step_id="set_light_entity", data_schema=schema)
 
     @staticmethod
     def _plant_label_maps(data: PlantsData) -> tuple[list[str], dict[str, str]]:
@@ -275,3 +266,216 @@ class MeterLocationsOptionsFlow(config_entries.OptionsFlow):
                 vol.Optional("comments"): str,
             }
         )
+
+
+class GrowLightsOptionsFlow(config_entries.OptionsFlow):
+    """Handle Grow Lights options."""
+
+    async def async_step_init(self, user_input=None):
+        """Show the options menu."""
+        return self.async_show_menu(
+            step_id="init",
+            menu_options=[
+                "add_grow_light",
+                "remove_grow_light",
+            ],
+        )
+
+    async def async_step_add_grow_light(self, user_input=None):
+        """Add a grow light device."""
+        if user_input is not None:
+            data: GrowLightsData = self.hass.data[DOMAIN][self.config_entry.entry_id][
+                "data"
+            ]
+            data.add_grow_light(
+                name=user_input["name"],
+                light_entity_id=user_input.get("light_entity_id"),
+            )
+            await data.async_save()
+            await self.hass.config_entries.async_reload(self.config_entry.entry_id)
+            return self.async_create_entry(title="", data={})
+
+        schema = vol.Schema(
+            {
+                vol.Required("name"): str,
+                vol.Optional("light_entity_id"): selector.EntitySelector(
+                    selector.EntitySelectorConfig(domain=["switch"])
+                ),
+            }
+        )
+        return self.async_show_form(step_id="add_grow_light", data_schema=schema)
+
+    async def async_step_remove_grow_light(self, user_input=None):
+        """Remove a grow light device."""
+        data: GrowLightsData = self.hass.data[DOMAIN][self.config_entry.entry_id][
+            "data"
+        ]
+        labels, label_to_id = self._label_maps(data)
+
+        if user_input is not None:
+            label = user_input["grow_light_label"]
+            grow_light_id = label_to_id.get(label)
+            if grow_light_id:
+                data.remove_grow_light(grow_light_id)
+                await data.async_save()
+                await self.hass.config_entries.async_reload(self.config_entry.entry_id)
+            return self.async_create_entry(title="", data={})
+
+        schema = vol.Schema(
+            {
+                vol.Required("grow_light_label"): vol.In(labels),
+            }
+        )
+        return self.async_show_form(step_id="remove_grow_light", data_schema=schema)
+
+    @staticmethod
+    def _label_maps(data: GrowLightsData) -> tuple[list[str], dict[str, str]]:
+        labels: list[str] = []
+        label_to_id: dict[str, str] = {}
+        for grow_light_id, gl in data.grow_lights.items():
+            labels.append(gl.name)
+            label_to_id[gl.name] = grow_light_id
+        labels.sort()
+        return labels, label_to_id
+
+
+class HumidifiersOptionsFlow(config_entries.OptionsFlow):
+    """Handle Humidifiers options."""
+
+    async def async_step_init(self, user_input=None):
+        """Show the options menu."""
+        return self.async_show_menu(
+            step_id="init",
+            menu_options=[
+                "add_humidifier",
+                "remove_humidifier",
+            ],
+        )
+
+    async def async_step_add_humidifier(self, user_input=None):
+        """Add a humidifier device."""
+        if user_input is not None:
+            data: HumidifiersData = self.hass.data[DOMAIN][self.config_entry.entry_id][
+                "data"
+            ]
+            data.add_humidifier(
+                name=user_input["name"],
+                humidifier_entity_id=user_input.get("humidifier_entity_id"),
+            )
+            await data.async_save()
+            await self.hass.config_entries.async_reload(self.config_entry.entry_id)
+            return self.async_create_entry(title="", data={})
+
+        schema = vol.Schema(
+            {
+                vol.Required("name"): str,
+                vol.Optional("humidifier_entity_id"): selector.EntitySelector(
+                    selector.EntitySelectorConfig(domain=["switch"])
+                ),
+            }
+        )
+        return self.async_show_form(step_id="add_humidifier", data_schema=schema)
+
+    async def async_step_remove_humidifier(self, user_input=None):
+        """Remove a humidifier device."""
+        data: HumidifiersData = self.hass.data[DOMAIN][self.config_entry.entry_id][
+            "data"
+        ]
+        labels, label_to_id = self._label_maps(data)
+
+        if user_input is not None:
+            label = user_input["humidifier_label"]
+            humidifier_id = label_to_id.get(label)
+            if humidifier_id:
+                data.remove_humidifier(humidifier_id)
+                await data.async_save()
+                await self.hass.config_entries.async_reload(self.config_entry.entry_id)
+            return self.async_create_entry(title="", data={})
+
+        schema = vol.Schema(
+            {
+                vol.Required("humidifier_label"): vol.In(labels),
+            }
+        )
+        return self.async_show_form(step_id="remove_humidifier", data_schema=schema)
+
+    @staticmethod
+    def _label_maps(data: HumidifiersData) -> tuple[list[str], dict[str, str]]:
+        labels: list[str] = []
+        label_to_id: dict[str, str] = {}
+        for humidifier_id, hd in data.humidifiers.items():
+            labels.append(hd.name)
+            label_to_id[hd.name] = humidifier_id
+        labels.sort()
+        return labels, label_to_id
+
+
+class AutoWaterersOptionsFlow(config_entries.OptionsFlow):
+    """Handle Auto Waterers options."""
+
+    async def async_step_init(self, user_input=None):
+        """Show the options menu."""
+        return self.async_show_menu(
+            step_id="init",
+            menu_options=[
+                "add_auto_waterer",
+                "remove_auto_waterer",
+            ],
+        )
+
+    async def async_step_add_auto_waterer(self, user_input=None):
+        """Add an auto waterer device."""
+        if user_input is not None:
+            data: AutoWaterersData = self.hass.data[DOMAIN][
+                self.config_entry.entry_id
+            ]["data"]
+            data.add_auto_waterer(
+                name=user_input["name"],
+                water_entity_id=user_input.get("water_entity_id"),
+            )
+            await data.async_save()
+            await self.hass.config_entries.async_reload(self.config_entry.entry_id)
+            return self.async_create_entry(title="", data={})
+
+        schema = vol.Schema(
+            {
+                vol.Required("name"): str,
+                vol.Optional("water_entity_id"): selector.EntitySelector(
+                    selector.EntitySelectorConfig(domain=["switch", "valve"])
+                ),
+            }
+        )
+        return self.async_show_form(step_id="add_auto_waterer", data_schema=schema)
+
+    async def async_step_remove_auto_waterer(self, user_input=None):
+        """Remove an auto waterer device."""
+        data: AutoWaterersData = self.hass.data[DOMAIN][self.config_entry.entry_id][
+            "data"
+        ]
+        labels, label_to_id = self._label_maps(data)
+
+        if user_input is not None:
+            label = user_input["auto_waterer_label"]
+            waterer_id = label_to_id.get(label)
+            if waterer_id:
+                data.remove_auto_waterer(waterer_id)
+                await data.async_save()
+                await self.hass.config_entries.async_reload(self.config_entry.entry_id)
+            return self.async_create_entry(title="", data={})
+
+        schema = vol.Schema(
+            {
+                vol.Required("auto_waterer_label"): vol.In(labels),
+            }
+        )
+        return self.async_show_form(step_id="remove_auto_waterer", data_schema=schema)
+
+    @staticmethod
+    def _label_maps(data: AutoWaterersData) -> tuple[list[str], dict[str, str]]:
+        labels: list[str] = []
+        label_to_id: dict[str, str] = {}
+        for waterer_id, aw in data.auto_waterers.items():
+            labels.append(aw.name)
+            label_to_id[aw.name] = waterer_id
+        labels.sort()
+        return labels, label_to_id

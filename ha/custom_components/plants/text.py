@@ -1,12 +1,12 @@
-"""Text platform for Plants recommendations."""
+"""Text platform for Plants recommendations and device nearby-plants config."""
 
 from __future__ import annotations
 
 from homeassistant.components.text import TextEntity
 from homeassistant.config_entries import ConfigEntry
 from homeassistant.core import HomeAssistant
-from homeassistant.helpers.entity import EntityCategory
 from homeassistant.helpers.device_registry import DeviceInfo
+from homeassistant.helpers.entity import EntityCategory
 
 from .const import DOMAIN
 from .data import MeterLocationsData, PlantsData
@@ -69,13 +69,17 @@ async def async_setup_entry(
     entry_type = entry_data["type"]
     data = entry_data["data"]
     entities: list[TextEntity] = []
+
     if entry_type == "meter_locations":
         for location_id in data.meter_locations:
             for field_key, label, max_length in LOCATION_FIELDS:
                 entities.append(
                     LocationNoteText(data, location_id, field_key, label, max_length)
                 )
+    elif entry_type in ("grow_lights", "humidifiers", "auto_waterers"):
+        pass  # plant slots handled by select platform
     else:
+        # plants
         for plant_id in data.plants:
             for field_key, entity_name, friendly_name, max_length in FIELDS:
                 entities.append(
@@ -83,8 +87,14 @@ async def async_setup_entry(
                         data, plant_id, field_key, entity_name, friendly_name, max_length
                     )
                 )
+
     if entities:
         async_add_entities(entities)
+
+
+# ---------------------------------------------------------------------------
+# Plant recommendation texts (unchanged)
+# ---------------------------------------------------------------------------
 
 
 class PlantRecommendationText(TextEntity):
@@ -105,13 +115,11 @@ class PlantRecommendationText(TextEntity):
         self._plant_id = plant_id
         self._field_key = field_key
         plant = data.plants[plant_id]
-        # With has_entity_name=True:
-        # - entity_id is generated from entity_name only (device name is prepended automatically)
-        # - Use entity_name without examples for clean entity_id
         self._attr_name = entity_name
-        # Store friendly_name with examples in extra attributes for reference
         self._attr_extra_state_attributes = {
-            "example": friendly_name.split("(e.g., ")[-1].rstrip(")") if "(e.g., " in friendly_name else None
+            "example": friendly_name.split("(e.g., ")[-1].rstrip(")")
+            if "(e.g., " in friendly_name
+            else None
         }
         self._attr_unique_id = f"plant_{plant_id}_{field_key}"
         self._attr_device_info = DeviceInfo(
@@ -133,6 +141,13 @@ class PlantRecommendationText(TextEntity):
         setattr(self._data.plants[self._plant_id], self._field_key, value)
         await self._data.async_save()
         self.async_write_ha_state()
+
+
+# ---------------------------------------------------------------------------
+# GrowLight / Humidifier / AutoWaterer nearby-plants texts
+# ---------------------------------------------------------------------------
+# MeterLocation note texts
+# ---------------------------------------------------------------------------
 
 
 class LocationNoteText(TextEntity):
@@ -172,4 +187,3 @@ class LocationNoteText(TextEntity):
         setattr(location, self._field_key, value)
         await self._data.async_save()
         self.async_write_ha_state()
-

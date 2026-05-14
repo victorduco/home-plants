@@ -11,8 +11,16 @@ from homeassistant.helpers import device_registry as dr
 from homeassistant.helpers import entity_registry as er
 
 from .const import DOMAIN, PLATFORMS
-from .data import MeterLocationsData, PlantsData
+from .data import (
+    AutoWaterersData,
+    GrowLightsData,
+    HumidifiersData,
+    MeterLocationsData,
+    PlantsData,
+)
 
+# Legacy unique_id suffixes that must be removed on upgrade.
+# Format: { entity_domain: (suffix, ...) }
 LEGACY_ENTITY_SUFFIXES: dict[str, tuple[str, ...]] = {
     "sensor": (
         "light_device",
@@ -21,8 +29,24 @@ LEGACY_ENTITY_SUFFIXES: dict[str, tuple[str, ...]] = {
         "humidifier_device",
         "moisture_state",
         "last_manual_watering",
+        # Removed plant-level device sensors (moved to dedicated device entries)
+        "light_state",
+        "humidifier_state",
     ),
-    "switch": ("moisture_device_control", "water_power"),
+    "switch": (
+        "moisture_device_control",
+        "water_power",
+        # Removed plant-level proxy switches
+        "light_power",
+        "humidifier_control",
+        "auto_watering_control",
+    ),
+    "select": (
+        # Removed plant-level device selects
+        "light_outlet",
+        "water_outlet",
+        "humidifier_source",
+    ),
     "text": ("manual_watering_comment",),
 }
 
@@ -31,7 +55,8 @@ def _cleanup_legacy_entities(
     entity_registry: er.EntityRegistry,
     plant_id: str,
 ) -> None:
-    # Remove legacy entities with old suffixes
+    """Remove legacy entities for a given plant_id."""
+    # Remove entities with known legacy unique_id suffixes.
     for domain, suffixes in LEGACY_ENTITY_SUFFIXES.items():
         for suffix in suffixes:
             unique_id = f"plant_{plant_id}_{suffix}"
@@ -39,16 +64,7 @@ def _cleanup_legacy_entities(
             if entity_id:
                 entity_registry.async_remove(entity_id)
 
-    # Remove old switch-based auto watering controls (they've been replaced with valve platform)
-    for entry in list(entity_registry.entities.values()):
-        if entry.platform != DOMAIN:
-            continue
-        if entry.entity_id.startswith("switch.") and entry.unique_id.endswith(
-            "_water_power"
-        ):
-            entity_registry.async_remove(entry.entity_id)
-
-    # Remove any valve entities (we migrated back to switch platform)
+    # Remove any surviving valve entities (migrated back to switch platform).
     for unique_id_suffix in ("water_power", "auto_watering_control"):
         unique_id = f"plant_{plant_id}_{unique_id_suffix}"
         valve_entity_id = entity_registry.async_get_entity_id(
@@ -59,51 +75,30 @@ def _cleanup_legacy_entities(
         if valve_entity_id:
             entity_registry.async_remove(valve_entity_id)
 
-    # Also clean up any orphaned switch entities with the new unique_id
-    # This handles migration from valve back to switch
-    old_switch_unique_id = f"plant_{plant_id}_auto_watering_control"
-    old_switch_entity_id = entity_registry.async_get_entity_id(
-        "switch",
-        DOMAIN,
-        old_switch_unique_id,
-    )
-    if old_switch_entity_id:
-        # Check if it's an old entity that needs to be recreated
-        entity = entity_registry.async_get(old_switch_entity_id)
-        if entity:
-            entity_registry.async_remove(old_switch_entity_id)
-
-    # Remove old text entities with examples in entity_id
-    # These need to be recreated with clean entity_ids
-    # Match old patterns like "text.watering_frequency_recommendation_e_g_once_a_week"
+    # Remove old text entities whose entity_id was generated with example text.
     old_recommendation_patterns = [
-        "_recommendation_e_g_",  # Most recommendations
-        "_todo_list_e_g_",       # Todo list
-        "_other_recommendations_e_g_",  # Other recommendations
+        "_recommendation_e_g_",
+        "_todo_list_e_g_",
+        "_other_recommendations_e_g_",
     ]
-
     for entry in list(entity_registry.entities.values()):
         if entry.platform != DOMAIN:
             continue
         if not entry.entity_id.startswith("text."):
             continue
-
-        # Check if entity_id matches old patterns with examples
-        should_remove = any(pattern in entry.entity_id for pattern in old_recommendation_patterns)
-
-        # Also check for the specific plant text entities by looking for the unique_id pattern
-        # All plant text entities have unique_id like "plant_{uuid}_{field_key}"
-        if entry.unique_id and entry.unique_id.startswith("plant_") and "_recommendation" in entry.unique_id:
-            # This is a plant recommendation entity, remove it to recreate with clean entity_id
+        should_remove = any(
+            pattern in entry.entity_id for pattern in old_recommendation_patterns
+        )
+        if entry.unique_id and entry.unique_id.startswith("plant_") and (
+            "_recommendation" in entry.unique_id
+            or "todo_list" in entry.unique_id
+            or "other_recommendations" in entry.unique_id
+        ):
             should_remove = True
-        elif entry.unique_id and entry.unique_id.startswith("plant_") and ("todo_list" in entry.unique_id or "other_recommendations" in entry.unique_id):
-            # Also handle todo_list and other_recommendations
-            should_remove = True
-
         if should_remove:
             entity_registry.async_remove(entry.entity_id)
 
-    # Remove old manual watering switch entities (migrated to event platform)
+    # Remove old manual watering switch entities (migrated to event platform).
     manual_watering_switch_id = f"plant_{plant_id}_manual_watering"
     old_manual_switch = entity_registry.async_get_entity_id(
         "switch",
@@ -120,6 +115,7 @@ async def async_setup_entry(hass: HomeAssistant, entry: ConfigEntry) -> bool:
     hass.data.setdefault(DOMAIN, {})
     device_registry = dr.async_get(hass)
     entity_registry = er.async_get(hass)
+
     if entry_type == "meter_locations":
         data = await MeterLocationsData.async_load(hass)
         hass.data[DOMAIN][entry.entry_id] = {"type": entry_type, "data": data}
@@ -131,9 +127,47 @@ async def async_setup_entry(hass: HomeAssistant, entry: ConfigEntry) -> bool:
                 manufacturer="Custom",
                 model="Meter Location",
             )
-    else:
-        data = await PlantsData.async_load(hass)
+
+    elif entry_type == "grow_lights":
+        data = await GrowLightsData.async_load(hass)
         hass.data[DOMAIN][entry.entry_id] = {"type": entry_type, "data": data}
+        for gl in data.grow_lights.values():
+            device_registry.async_get_or_create(
+                config_entry_id=entry.entry_id,
+                identifiers={(DOMAIN, f"grow_light_{gl.grow_light_id}")},
+                name=gl.name,
+                manufacturer="Custom",
+                model="Grow Light",
+            )
+
+    elif entry_type == "humidifiers":
+        data = await HumidifiersData.async_load(hass)
+        hass.data[DOMAIN][entry.entry_id] = {"type": entry_type, "data": data}
+        for hd in data.humidifiers.values():
+            device_registry.async_get_or_create(
+                config_entry_id=entry.entry_id,
+                identifiers={(DOMAIN, f"humidifier_{hd.humidifier_id}")},
+                name=hd.name,
+                manufacturer="Custom",
+                model="Humidifier",
+            )
+
+    elif entry_type == "auto_waterers":
+        data = await AutoWaterersData.async_load(hass)
+        hass.data[DOMAIN][entry.entry_id] = {"type": entry_type, "data": data}
+        for aw in data.auto_waterers.values():
+            device_registry.async_get_or_create(
+                config_entry_id=entry.entry_id,
+                identifiers={(DOMAIN, f"auto_waterer_{aw.waterer_id}")},
+                name=aw.name,
+                manufacturer="Custom",
+                model="Auto Waterer",
+            )
+
+    else:
+        # plants (default)
+        data = await PlantsData.async_load(hass)
+        hass.data[DOMAIN][entry.entry_id] = {"type": "plants", "data": data}
         for plant in data.plants.values():
             device_registry.async_get_or_create(
                 config_entry_id=entry.entry_id,
@@ -143,6 +177,8 @@ async def async_setup_entry(hass: HomeAssistant, entry: ConfigEntry) -> bool:
                 model="Plant",
             )
             _cleanup_legacy_entities(entity_registry, plant.plant_id)
+
+        # Register HA services (guard against double-registration on reload).
         services = hass.services.async_services()
         if DOMAIN not in services or "add_plant" not in services[DOMAIN]:
             async def async_handle_add(call) -> None:
@@ -209,6 +245,7 @@ async def async_setup_entry(hass: HomeAssistant, entry: ConfigEntry) -> bool:
                     }
                 ),
             )
+
     await hass.config_entries.async_forward_entry_setups(entry, PLATFORMS)
     return True
 
@@ -219,6 +256,11 @@ async def async_unload_entry(hass: HomeAssistant, entry: ConfigEntry) -> bool:
     if unload_ok and DOMAIN in hass.data:
         hass.data[DOMAIN].pop(entry.entry_id, None)
     return unload_ok
+
+
+# ---------------------------------------------------------------------------
+# Service handlers
+# ---------------------------------------------------------------------------
 
 
 async def _handle_add_plant(
@@ -288,30 +330,22 @@ async def _handle_record_watering(
     data: PlantsData = hass.data[DOMAIN][entry.entry_id]["data"]
     plant_name = call.data["plant"].strip().lower()
     plant_id = None
-
-    # Find plant by name
     for pid, plant in data.plants.items():
         if plant.name.lower() == plant_name:
             plant_id = pid
             break
-
     if not plant_id:
-        # Plant not found
         return
 
-    # Find the event entity
     entity_registry = er.async_get(hass)
     event_entity_id = entity_registry.async_get_entity_id(
         "event",
         DOMAIN,
         f"plant_{plant_id}_manual_watering",
     )
-
     if not event_entity_id:
-        # Event entity not found
         return
 
-    # Get the event entity and trigger the event
     entity = None
     for component in hass.data.get("entity_components", {}).values():
         for candidate in getattr(component, "entities", []):
@@ -338,30 +372,22 @@ async def _handle_record_shower(
     data: PlantsData = hass.data[DOMAIN][entry.entry_id]["data"]
     plant_name = call.data["plant"].strip().lower()
     plant_id = None
-
-    # Find plant by name
     for pid, plant in data.plants.items():
         if plant.name.lower() == plant_name:
             plant_id = pid
             break
-
     if not plant_id:
-        # Plant not found
         return
 
-    # Find the event entity
     entity_registry = er.async_get(hass)
     event_entity_id = entity_registry.async_get_entity_id(
         "event",
         DOMAIN,
         f"plant_{plant_id}_manual_shower",
     )
-
     if not event_entity_id:
-        # Event entity not found
         return
 
-    # Get the event entity and trigger the event
     entity = None
     for component in hass.data.get("entity_components", {}).values():
         for candidate in getattr(component, "entities", []):

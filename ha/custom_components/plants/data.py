@@ -2,13 +2,22 @@
 
 from __future__ import annotations
 
-from dataclasses import dataclass
+import logging
+from dataclasses import dataclass, field
 from uuid import uuid4
 
 from homeassistant.core import HomeAssistant
 from homeassistant.helpers.storage import Store
 
-from .const import DOMAIN, STORAGE_VERSION
+_LOGGER = logging.getLogger(__name__)
+
+from .const import (
+    DOMAIN,
+    STORAGE_AUTO_WATERERS,
+    STORAGE_GROW_LIGHTS,
+    STORAGE_HUMIDIFIERS,
+    STORAGE_VERSION,
+)
 
 DEFAULT_PLANTS = ["Rose", "Tulip", "Aloe", "Basil"]
 
@@ -22,9 +31,6 @@ class Plant:
     moisture_entity_id: str | None
     humidity_entity_id: str | None
     air_temperature_entity_id: str | None
-    light_entity_id: str | None
-    water_entity_id: str | None
-    humidifier_entity_id: str | None
     watering_frequency_recommendation: str | None
     soil_moisture_recommendation: str | None
     air_temperature_recommendation: str | None
@@ -39,13 +45,18 @@ class PlantsData:
 
     store: Store
     plants: dict[str, Plant]
+    # Migration data: populated when loading existing plants that had device refs.
+    # Maps plant_id -> entity_id for each device type.
+    _migrated_light_entities: dict[str, str] = field(default_factory=dict)
+    _migrated_water_entities: dict[str, str] = field(default_factory=dict)
+    _migrated_humidifier_entities: dict[str, str] = field(default_factory=dict)
 
     @classmethod
     async def async_load(cls, hass: HomeAssistant) -> "PlantsData":
         """Load plants from storage."""
         store = Store(hass, STORAGE_VERSION, DOMAIN)
         raw = await store.async_load() or {}
-        plants = cls._parse_raw(raw)
+        plants, migrated_light, migrated_water, migrated_humidifier = cls._parse_raw(raw)
         if not plants:
             for name in DEFAULT_PLANTS:
                 plant_id = str(uuid4())
@@ -55,9 +66,6 @@ class PlantsData:
                     moisture_entity_id=None,
                     humidity_entity_id=None,
                     air_temperature_entity_id=None,
-                    light_entity_id=None,
-                    water_entity_id=None,
-                    humidifier_entity_id=None,
                     watering_frequency_recommendation=None,
                     soil_moisture_recommendation=None,
                     air_temperature_recommendation=None,
@@ -68,11 +76,27 @@ class PlantsData:
             data = cls(store=store, plants=plants)
             await data.async_save()
             return data
-        return cls(store=store, plants=plants)
+        return cls(
+            store=store,
+            plants=plants,
+            _migrated_light_entities=migrated_light,
+            _migrated_water_entities=migrated_water,
+            _migrated_humidifier_entities=migrated_humidifier,
+        )
 
     @staticmethod
-    def _parse_raw(raw: dict) -> dict[str, Plant]:
+    def _parse_raw(
+        raw: dict,
+    ) -> tuple[
+        dict[str, Plant],
+        dict[str, str],
+        dict[str, str],
+        dict[str, str],
+    ]:
         plants: dict[str, Plant] = {}
+        migrated_light: dict[str, str] = {}
+        migrated_water: dict[str, str] = {}
+        migrated_humidifier: dict[str, str] = {}
         for item in raw.get("plants", []):
             plant_id = str(item.get("id"))
             if not plant_id:
@@ -83,9 +107,6 @@ class PlantsData:
                 moisture_entity_id=item.get("moisture_entity_id"),
                 humidity_entity_id=item.get("humidity_entity_id"),
                 air_temperature_entity_id=item.get("air_temperature_entity_id"),
-                light_entity_id=item.get("light_entity_id"),
-                water_entity_id=item.get("water_entity_id"),
-                humidifier_entity_id=item.get("humidifier_entity_id"),
                 watering_frequency_recommendation=item.get(
                     "watering_frequency_recommendation"
                 ),
@@ -99,10 +120,17 @@ class PlantsData:
                 other_recommendations=item.get("other_recommendations"),
                 todo_list=item.get("todo_list"),
             )
-        return plants
+            # Collect legacy device refs for migration tracking.
+            if item.get("light_entity_id"):
+                migrated_light[plant_id] = item["light_entity_id"]
+            if item.get("water_entity_id"):
+                migrated_water[plant_id] = item["water_entity_id"]
+            if item.get("humidifier_entity_id"):
+                migrated_humidifier[plant_id] = item["humidifier_entity_id"]
+        return plants, migrated_light, migrated_water, migrated_humidifier
 
     async def async_save(self) -> None:
-        """Persist plants."""
+        """Persist plants (without legacy device fields)."""
         payload = {
             "plants": [
                 {
@@ -111,9 +139,6 @@ class PlantsData:
                     "moisture_entity_id": plant.moisture_entity_id,
                     "humidity_entity_id": plant.humidity_entity_id,
                     "air_temperature_entity_id": plant.air_temperature_entity_id,
-                    "light_entity_id": plant.light_entity_id,
-                    "water_entity_id": plant.water_entity_id,
-                    "humidifier_entity_id": plant.humidifier_entity_id,
                     "watering_frequency_recommendation": (
                         plant.watering_frequency_recommendation
                     ),
@@ -147,9 +172,6 @@ class PlantsData:
             moisture_entity_id=moisture_entity_id,
             humidity_entity_id=None,
             air_temperature_entity_id=None,
-            light_entity_id=None,
-            water_entity_id=None,
-            humidifier_entity_id=None,
             watering_frequency_recommendation=None,
             soil_moisture_recommendation=None,
             air_temperature_recommendation=None,
@@ -160,11 +182,9 @@ class PlantsData:
         self.plants[plant_id] = plant
         return plant
 
-
     def remove_plant(self, plant_id: str) -> bool:
         """Remove a plant."""
         return self.plants.pop(plant_id, None) is not None
-
 
     def set_plant_moisture(self, plant_id: str, entity_id: str | None) -> None:
         """Set plant moisture entity."""
@@ -185,20 +205,6 @@ class PlantsData:
         if plant_id in self.plants:
             self.plants[plant_id].air_temperature_entity_id = entity_id
 
-    def set_plant_light(self, plant_id: str, entity_id: str | None) -> None:
-        """Set plant light entity."""
-        if plant_id in self.plants:
-            self.plants[plant_id].light_entity_id = entity_id
-
-    def set_plant_water(self, plant_id: str, entity_id: str | None) -> None:
-        """Set plant water entity."""
-        if plant_id in self.plants:
-            self.plants[plant_id].water_entity_id = entity_id
-
-    def set_plant_humidifier(self, plant_id: str, entity_id: str | None) -> None:
-        """Set plant humidifier entity."""
-        if plant_id in self.plants:
-            self.plants[plant_id].humidifier_entity_id = entity_id
 
 @dataclass
 class MeterLocation:
@@ -321,3 +327,300 @@ class MeterLocationsData:
         """Set meter location comments."""
         if location_id in self.meter_locations:
             self.meter_locations[location_id].comments = value
+
+
+# ---------------------------------------------------------------------------
+# GrowLight
+# ---------------------------------------------------------------------------
+
+
+@dataclass
+class GrowLight:
+    """Persisted grow light data."""
+
+    grow_light_id: str
+    name: str
+    light_entity_id: str | None
+    nearby_plant_ids: list[str]
+
+
+@dataclass
+class GrowLightsData:
+    """Persisted grow lights data."""
+
+    store: Store
+    grow_lights: dict[str, GrowLight]
+
+    @classmethod
+    async def async_load(cls, hass: HomeAssistant) -> "GrowLightsData":
+        """Load grow lights from storage."""
+        store = Store(hass, STORAGE_VERSION, STORAGE_GROW_LIGHTS)
+        raw = await store.async_load() or {}
+        grow_lights = cls._parse_raw(raw)
+        return cls(store=store, grow_lights=grow_lights)
+
+    @staticmethod
+    def _parse_raw(raw: dict) -> dict[str, GrowLight]:
+        grow_lights: dict[str, GrowLight] = {}
+        for item in raw.get("grow_lights", []):
+            grow_light_id = str(item.get("id"))
+            if not grow_light_id:
+                continue
+            grow_lights[grow_light_id] = GrowLight(
+                grow_light_id=grow_light_id,
+                name=item.get("name") or grow_light_id,
+                light_entity_id=item.get("light_entity_id"),
+                nearby_plant_ids=list(item.get("nearby_plant_ids") or []),
+            )
+        return grow_lights
+
+    async def async_save(self) -> None:
+        """Persist grow lights."""
+        payload = {
+            "grow_lights": [
+                {
+                    "id": gl.grow_light_id,
+                    "name": gl.name,
+                    "light_entity_id": gl.light_entity_id,
+                    "nearby_plant_ids": gl.nearby_plant_ids,
+                }
+                for gl in self.grow_lights.values()
+            ],
+        }
+        await self.store.async_save(payload)
+
+    def add_grow_light(
+        self,
+        name: str,
+        light_entity_id: str | None = None,
+    ) -> GrowLight:
+        """Add a new grow light."""
+        grow_light_id = str(uuid4())
+        gl = GrowLight(
+            grow_light_id=grow_light_id,
+            name=name,
+            light_entity_id=light_entity_id,
+            nearby_plant_ids=[],
+        )
+        self.grow_lights[grow_light_id] = gl
+        return gl
+
+    def remove_grow_light(self, grow_light_id: str) -> bool:
+        """Remove a grow light."""
+        return self.grow_lights.pop(grow_light_id, None) is not None
+
+    def set_grow_light_source(
+        self,
+        grow_light_id: str,
+        entity_id: str | None,
+    ) -> None:
+        """Set grow light source entity."""
+        if grow_light_id in self.grow_lights:
+            self.grow_lights[grow_light_id].light_entity_id = entity_id
+
+    def set_grow_light_nearby_plants(
+        self,
+        grow_light_id: str,
+        plant_ids: list[str],
+    ) -> None:
+        """Set nearby plant IDs for a grow light."""
+        if grow_light_id in self.grow_lights:
+            self.grow_lights[grow_light_id].nearby_plant_ids = plant_ids
+
+
+# ---------------------------------------------------------------------------
+# HumidifierDevice
+# ---------------------------------------------------------------------------
+
+
+@dataclass
+class HumidifierDevice:
+    """Persisted humidifier device data."""
+
+    humidifier_id: str
+    name: str
+    humidifier_entity_id: str | None
+    nearby_plant_ids: list[str]
+
+
+@dataclass
+class HumidifiersData:
+    """Persisted humidifiers data."""
+
+    store: Store
+    humidifiers: dict[str, HumidifierDevice]
+
+    @classmethod
+    async def async_load(cls, hass: HomeAssistant) -> "HumidifiersData":
+        """Load humidifiers from storage."""
+        store = Store(hass, STORAGE_VERSION, STORAGE_HUMIDIFIERS)
+        raw = await store.async_load() or {}
+        humidifiers = cls._parse_raw(raw)
+        return cls(store=store, humidifiers=humidifiers)
+
+    @staticmethod
+    def _parse_raw(raw: dict) -> dict[str, HumidifierDevice]:
+        humidifiers: dict[str, HumidifierDevice] = {}
+        for item in raw.get("humidifiers", []):
+            humidifier_id = str(item.get("id"))
+            if not humidifier_id:
+                continue
+            humidifiers[humidifier_id] = HumidifierDevice(
+                humidifier_id=humidifier_id,
+                name=item.get("name") or humidifier_id,
+                humidifier_entity_id=item.get("humidifier_entity_id"),
+                nearby_plant_ids=list(item.get("nearby_plant_ids") or []),
+            )
+        return humidifiers
+
+    async def async_save(self) -> None:
+        """Persist humidifiers."""
+        payload = {
+            "humidifiers": [
+                {
+                    "id": hd.humidifier_id,
+                    "name": hd.name,
+                    "humidifier_entity_id": hd.humidifier_entity_id,
+                    "nearby_plant_ids": hd.nearby_plant_ids,
+                }
+                for hd in self.humidifiers.values()
+            ],
+        }
+        await self.store.async_save(payload)
+
+    def add_humidifier(
+        self,
+        name: str,
+        humidifier_entity_id: str | None = None,
+    ) -> HumidifierDevice:
+        """Add a new humidifier device."""
+        humidifier_id = str(uuid4())
+        hd = HumidifierDevice(
+            humidifier_id=humidifier_id,
+            name=name,
+            humidifier_entity_id=humidifier_entity_id,
+            nearby_plant_ids=[],
+        )
+        self.humidifiers[humidifier_id] = hd
+        return hd
+
+    def remove_humidifier(self, humidifier_id: str) -> bool:
+        """Remove a humidifier device."""
+        return self.humidifiers.pop(humidifier_id, None) is not None
+
+    def set_humidifier_source(
+        self,
+        humidifier_id: str,
+        entity_id: str | None,
+    ) -> None:
+        """Set humidifier source entity."""
+        if humidifier_id in self.humidifiers:
+            self.humidifiers[humidifier_id].humidifier_entity_id = entity_id
+
+    def set_humidifier_nearby_plants(
+        self,
+        humidifier_id: str,
+        plant_ids: list[str],
+    ) -> None:
+        """Set nearby plant IDs for a humidifier."""
+        if humidifier_id in self.humidifiers:
+            self.humidifiers[humidifier_id].nearby_plant_ids = plant_ids
+
+
+# ---------------------------------------------------------------------------
+# AutoWaterer
+# ---------------------------------------------------------------------------
+
+
+@dataclass
+class AutoWaterer:
+    """Persisted auto waterer data."""
+
+    waterer_id: str
+    name: str
+    water_entity_id: str | None
+    plant_ids: list[str]
+
+
+@dataclass
+class AutoWaterersData:
+    """Persisted auto waterers data."""
+
+    store: Store
+    auto_waterers: dict[str, AutoWaterer]
+
+    @classmethod
+    async def async_load(cls, hass: HomeAssistant) -> "AutoWaterersData":
+        """Load auto waterers from storage."""
+        store = Store(hass, STORAGE_VERSION, STORAGE_AUTO_WATERERS)
+        raw = await store.async_load() or {}
+        auto_waterers = cls._parse_raw(raw)
+        return cls(store=store, auto_waterers=auto_waterers)
+
+    @staticmethod
+    def _parse_raw(raw: dict) -> dict[str, AutoWaterer]:
+        auto_waterers: dict[str, AutoWaterer] = {}
+        for item in raw.get("auto_waterers", []):
+            waterer_id = str(item.get("id"))
+            if not waterer_id:
+                continue
+            auto_waterers[waterer_id] = AutoWaterer(
+                waterer_id=waterer_id,
+                name=item.get("name") or waterer_id,
+                water_entity_id=item.get("water_entity_id"),
+                plant_ids=list(item.get("plant_ids") or []),
+            )
+        return auto_waterers
+
+    async def async_save(self) -> None:
+        """Persist auto waterers."""
+        payload = {
+            "auto_waterers": [
+                {
+                    "id": aw.waterer_id,
+                    "name": aw.name,
+                    "water_entity_id": aw.water_entity_id,
+                    "plant_ids": aw.plant_ids,
+                }
+                for aw in self.auto_waterers.values()
+            ],
+        }
+        await self.store.async_save(payload)
+
+    def add_auto_waterer(
+        self,
+        name: str,
+        water_entity_id: str | None = None,
+    ) -> AutoWaterer:
+        """Add a new auto waterer."""
+        waterer_id = str(uuid4())
+        aw = AutoWaterer(
+            waterer_id=waterer_id,
+            name=name,
+            water_entity_id=water_entity_id,
+            plant_ids=[],
+        )
+        self.auto_waterers[waterer_id] = aw
+        return aw
+
+    def remove_auto_waterer(self, waterer_id: str) -> bool:
+        """Remove an auto waterer."""
+        return self.auto_waterers.pop(waterer_id, None) is not None
+
+    def set_auto_waterer_source(
+        self,
+        waterer_id: str,
+        entity_id: str | None,
+    ) -> None:
+        """Set auto waterer source entity."""
+        if waterer_id in self.auto_waterers:
+            self.auto_waterers[waterer_id].water_entity_id = entity_id
+
+    def set_auto_waterer_plants(
+        self,
+        waterer_id: str,
+        plant_ids: list[str],
+    ) -> None:
+        """Set plant IDs for an auto waterer."""
+        if waterer_id in self.auto_waterers:
+            self.auto_waterers[waterer_id].plant_ids = plant_ids
