@@ -2,6 +2,8 @@
 
 from __future__ import annotations
 
+import asyncio
+
 from homeassistant.components.button import ButtonEntity
 from homeassistant.config_entries import ConfigEntry
 from homeassistant.core import HomeAssistant
@@ -10,6 +12,8 @@ from homeassistant.helpers.device_registry import DeviceInfo
 
 from .const import DOMAIN
 from .data import AutoWaterersData, PlantsData
+
+WATER_DURATIONS = [5, 10, 15, 30, 45, 60]
 
 
 async def async_setup_entry(
@@ -30,6 +34,8 @@ async def async_setup_entry(
     elif entry_type == "auto_waterers":
         for waterer_id in data.auto_waterers:
             entities.append(AutoWatererTriggerButton(hass, data, waterer_id))
+            for duration in WATER_DURATIONS:
+                entities.append(AutoWatererWaterButton(hass, data, waterer_id, duration))
 
     if entities:
         async_add_entities(entities)
@@ -182,3 +188,53 @@ class AutoWatererTriggerButton(ButtonEntity):
         await self.hass.services.async_call(
             domain, service, {"entity_id": outlet}, blocking=True
         )
+
+
+class AutoWatererWaterButton(ButtonEntity):
+    """Button that waters for a fixed number of seconds."""
+
+    _attr_has_entity_name = True
+
+    def __init__(
+        self,
+        hass: HomeAssistant,
+        data: AutoWaterersData,
+        waterer_id: str,
+        duration_seconds: int,
+    ) -> None:
+        self.hass = hass
+        self._data = data
+        self._waterer_id = waterer_id
+        self._duration = duration_seconds
+        aw = data.auto_waterers[waterer_id]
+
+        self._attr_name = f"Water {duration_seconds}s"
+        self._attr_unique_id = f"auto_waterer_{waterer_id}_water_{duration_seconds}s"
+        self._attr_icon = "mdi:water"
+        self._attr_device_info = DeviceInfo(
+            identifiers={(DOMAIN, f"auto_waterer_{waterer_id}")},
+            name=aw.name,
+            manufacturer="Custom",
+            model="Auto Waterer",
+        )
+
+    async def async_press(self) -> None:
+        """Turn on the outlet, wait duration, turn off — non-blocking."""
+        aw = self._data.auto_waterers[self._waterer_id]
+        outlet = aw.water_entity_id
+        if not outlet:
+            return
+        domain = outlet.split(".")[0]
+        on_service = "open_valve" if domain == "valve" else "turn_on"
+        off_service = "close_valve" if domain == "valve" else "turn_off"
+
+        async def _run() -> None:
+            await self.hass.services.async_call(
+                domain, on_service, {"entity_id": outlet}, blocking=True
+            )
+            await asyncio.sleep(self._duration)
+            await self.hass.services.async_call(
+                domain, off_service, {"entity_id": outlet}, blocking=True
+            )
+
+        self.hass.async_create_task(_run())

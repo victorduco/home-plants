@@ -308,7 +308,7 @@ def register_plant_care_tools(mcp: FastMCP) -> None:
             deduped.append(event)
         return deduped
 
-    def _group_watering_events_by_day(
+    def _group_care_events_by_day(
         events: list[dict[str, Any]],
     ) -> list[dict[str, Any]]:
         buckets: dict[str, dict[str, Any]] = {}
@@ -321,30 +321,34 @@ def register_plant_care_tools(mcp: FastMCP) -> None:
                 day,
                 {
                     "date": day,
-                    "auto": {"total_seconds": 0},
-                    "manual": {"total_liters": 0.0},
+                    "auto_watering": {"total_seconds": 0},
+                    "manual_watering": {"total_liters": 0.0, "count": 0},
+                    "shower": {"count": 0},
                 },
             )
             kind = event.get("type")
-            if kind == "auto":
+            if kind == "auto_watering":
                 duration = event.get("duration_seconds")
                 if isinstance(duration, int) and duration > 0:
-                    bucket["auto"]["total_seconds"] += duration
+                    bucket["auto_watering"]["total_seconds"] += duration
             elif kind == "manual":
+                bucket["manual_watering"]["count"] += 1
                 amount_ml = event.get("amount_ml")
                 if isinstance(amount_ml, (int, float)) and amount_ml > 0:
-                    bucket["manual"]["total_liters"] += float(amount_ml) / 1000.0
+                    bucket["manual_watering"]["total_liters"] += float(amount_ml) / 1000.0
+            elif kind == "shower":
+                bucket["shower"]["count"] += 1
 
         days = sorted(buckets.values(), key=lambda item: item.get("date") or "", reverse=True)
         for item in days:
-            manual = item.get("manual")
-            if isinstance(manual, dict) and isinstance(manual.get("total_liters"), float):
-                manual["total_liters"] = round(manual["total_liters"], 3)
+            mw = item.get("manual_watering")
+            if isinstance(mw, dict):
+                mw["total_liters"] = round(mw["total_liters"], 3)
         return days
 
     @mcp.tool
-    async def plant_care___full_status() -> dict[str, Any]:
-        """Return full info for all plants (empty if none)."""
+    async def plant_care___current_status() -> dict[str, Any]:
+        """Return current status for all plants: soil/humidity/temperature zones + care history."""
         states, error = await get_states_list()
         if error:
             return {"status": "error", "error": error}
@@ -428,39 +432,69 @@ def register_plant_care_tools(mcp: FastMCP) -> None:
                         entity_id = item.get("entity_id")
                         if entity_id in all_manual_ids:
                             logbook_by_entity.setdefault(entity_id, []).append(item)
+        # Build a quick lookup: entity_id -> state value for number entities
+        number_states: dict[str, str] = {}
+        for s in states:
+            if s.get("entity_id", "").startswith("number."):
+                number_states[s["entity_id"]] = s.get("state", "")
+
+        def _get_number(plant_id: str, suffix: str) -> float | None:
+            val = number_states.get(f"number.{plant_id}_{suffix}")
+            try:
+                return float(val) if val is not None else None
+            except (ValueError, TypeError):
+                return None
+
+        def _plant_id(name: str) -> str:
+            return name.lower().replace(" ", "_")
+
         plants = []
         for plant_name, plant in raw_plants.items():
-            grouped = {
-                "controls": [],
-                "sensors": [],
-                "recommendations": [],
+            pid = _plant_id(plant_name)
+
+            # Soil moisture
+            mval_raw = plant.get("moisture")
+            try:
+                mval = float(mval_raw) if mval_raw not in (None, "unknown", "unavailable") else None
+            except (ValueError, TypeError):
+                mval = None
+            mzone_id = plant.get("moisture_entity_id", "").replace("sensor.", "").replace(f"{pid}_", "", 1) if plant.get("moisture_entity_id") else None
+            mzone_state = next((s.get("state") for s in states if s.get("entity_id") == f"sensor.{pid}_soil_moisture_zone"), None)
+            soil = {
+                "value": f"{round(mval)}%" if mval is not None else None,
+                "zone": mzone_state,
+                "green_above": _get_number(pid, "soil_moisture_yellow_threshold"),
+                "red_below": _get_number(pid, "soil_moisture_red_threshold"),
             }
-            for entity in plant.get("entities", []):
-                entity_id = entity.get("entity_id", "")
-                attributes = entity.get("attributes", {})
-                name = attributes.get("friendly_name", entity_id)
-                unit = attributes.get("unit_of_measurement") or ""
-                value = entity.get("state")
-                display = f"{value} {unit}".strip() if value is not None else ""
-                domain = entity_id.split(".", 1)[0] if entity_id else ""
-                if domain == "text":
-                    category = "recommendations"
-                elif domain in {"switch", "valve"}:
-                    category = "controls"
-                elif domain == "select":
-                    continue
-                else:
-                    category = "sensors"
-                grouped[category].append(
-                    {
-                        "name": _strip_plant_name(name),
-                        "value": display,
-                    }
-                )
-            normalized = {}
-            for key, items in grouped.items():
-                items.sort(key=lambda item: item.get("name") or "")
-                normalized[key] = {item["name"]: item["value"] for item in items}
+
+            # Air humidity
+            hval_raw = plant.get("humidity")
+            try:
+                hval = float(hval_raw) if hval_raw not in (None, "unknown", "unavailable") else None
+            except (ValueError, TypeError):
+                hval = None
+            hzone_state = next((s.get("state") for s in states if s.get("entity_id") == f"sensor.{pid}_air_humidity_zone"), None)
+            humidity = {
+                "value": f"{round(hval)}%" if hval is not None else None,
+                "zone": hzone_state,
+                "needed_min": _get_number(pid, "air_humidity_min"),
+                "needed_max": _get_number(pid, "air_humidity_max"),
+            }
+
+            # Air temperature
+            tval_raw = plant.get("air_temperature")
+            try:
+                tval = float(tval_raw) if tval_raw not in (None, "unknown", "unavailable") else None
+            except (ValueError, TypeError):
+                tval = None
+            tzone_state = next((s.get("state") for s in states if s.get("entity_id") == f"sensor.{pid}_air_temperature_zone"), None)
+            temperature = {
+                "value": f"{tval}°F" if tval is not None else None,
+                "zone": tzone_state,
+                "needed_min_f": _get_number(pid, "air_temperature_min"),
+                "needed_max_f": _get_number(pid, "air_temperature_max"),
+            }
+
             water_meta = watering_entities.get(plant_name, {})
             auto_id = water_meta.get("auto")
             manual_watering_id = water_meta.get("manual")
@@ -475,7 +509,7 @@ def register_plant_care_tools(mcp: FastMCP) -> None:
                 events.extend(
                     _build_auto_watering_events(
                         history_by_entity.get(auto_id, []),
-                        "auto",
+                        "auto_watering",
                     )
                 )
             if manual_watering_id:
@@ -514,8 +548,14 @@ def register_plant_care_tools(mcp: FastMCP) -> None:
                 )
             events = _dedupe_events(events)
             events.sort(key=lambda item: item.get("start") or "", reverse=True)
-            normalized["watering_history"] = _group_watering_events_by_day(events)
-            plants.append({"name": plant_name, "fields": normalized})
+
+            plants.append({
+                "name": plant_name,
+                "soil_moisture": soil,
+                "air_humidity": humidity,
+                "air_temperature": temperature,
+                "care_history": _group_care_events_by_day(events),
+            })
         plants.sort(key=lambda plant: plant.get("name", ""))
 
         # Collect time data
@@ -526,63 +566,38 @@ def register_plant_care_tools(mcp: FastMCP) -> None:
             "sunset": None,
         }
 
-        weather_entities = []
-        weather_blacklist = {
-            "sensor.openweathermap_apparent_temperature",
-            "sensor.openweathermap_dew_point_temperature",
-            "sensor.openweathermap_wind_speed",
-            "sensor.openweathermap_wind_gust_speed",
-            "sensor.openweathermap_wind_direction",
-            "sensor.openweathermap_pressure",
-            "sensor.openweathermap_snow_intensity",
-            "sensor.openweathermap_precipitation_kind",
-            "sensor.openweathermap_weather_code",
+        weather_whitelist = {
+            "sensor.openweathermap_temperature",
+            "sensor.openweathermap_humidity",
+            "sensor.openweathermap_condition",
         }
+        weather: dict[str, Any] = {}
         for state in states:
             entity_id = state.get("entity_id", "")
             if not entity_id:
                 continue
-            if (
-                entity_id.startswith("weather.")
-                or "openweathermap" in entity_id
-                or entity_id == "sun.sun"
-            ):
-                if entity_id in weather_blacklist:
-                    continue
-                attributes = state.get("attributes", {})
-                if entity_id == "sun.sun":
-                    # Extract sunrise/sunset to time section and convert to local time
-                    if "next_rising" in attributes:
-                        sunrise_utc = _parse_timestamp(attributes.get("next_rising"))
-                        if sunrise_utc:
-                            time_data["sunrise"] = sunrise_utc.astimezone(la_tz).isoformat()
-                    if "next_setting" in attributes:
-                        sunset_utc = _parse_timestamp(attributes.get("next_setting"))
-                        if sunset_utc:
-                            time_data["sunset"] = sunset_utc.astimezone(la_tz).isoformat()
-                    continue
+            attributes = state.get("attributes", {})
+            if entity_id == "sun.sun":
+                if "next_rising" in attributes:
+                    sunrise_utc = _parse_timestamp(attributes.get("next_rising"))
+                    if sunrise_utc:
+                        time_data["sunrise"] = sunrise_utc.astimezone(la_tz).isoformat()
+                if "next_setting" in attributes:
+                    sunset_utc = _parse_timestamp(attributes.get("next_setting"))
+                    if sunset_utc:
+                        time_data["sunset"] = sunset_utc.astimezone(la_tz).isoformat()
+                continue
+            if entity_id in weather_whitelist:
                 unit = attributes.get("unit_of_measurement") or ""
                 value = state.get("state")
-                display = f"{value} {unit}".strip() if value is not None else ""
-                name = attributes.get("friendly_name", entity_id)
-                if name.startswith("OpenWeatherMap "):
-                    name = name.replace("OpenWeatherMap ", "", 1)
-                if name == "OpenWeatherMap":
-                    name = "Weather"
-                weather_entities.append(
-                    {
-                        "name": name,
-                        "value": display,
-                    }
-                )
-        weather_entities.sort(key=lambda item: item.get("entity_id") or "")
+                key = entity_id.replace("sensor.openweathermap_", "")
+                weather[key] = f"{value} {unit}".strip() if value is not None else None
 
         return {
             "status": "success",
             "time": time_data,
-            "weather": weather_entities,
-            "indoor_area": [],
-            "indoor_plants": plants,
+            "weather": weather,
+            "plants": plants,
         }
 
     @mcp.tool
