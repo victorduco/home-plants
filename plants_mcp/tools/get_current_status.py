@@ -1,34 +1,22 @@
-"""Plant care tools."""
+"""Tool: get_current_status."""
 
 from __future__ import annotations
 
-import math
 from typing import Any
-from datetime import datetime, timedelta, timezone
+from datetime import datetime
 from zoneinfo import ZoneInfo
 
 from fastmcp import FastMCP
 
 from .common import (
-    PLANT_SUFFIXES,
-    delay,
     get_states_list,
     ha_request,
     history_window,
-    match_plant_name,
     parse_plants_from_states,
-    sanitize_attributes,
 )
 
 
-def register_plant_care_tools(mcp: FastMCP) -> None:
-    """Register plant care tools."""
-
-    def _strip_plant_name(friendly_name: str) -> str:
-        for suffix in PLANT_SUFFIXES.values():
-            if friendly_name.endswith(f" {suffix}"):
-                return suffix
-        return friendly_name
+def register(mcp: FastMCP) -> None:
 
     def _parse_timestamp(value: str) -> datetime | None:
         if not value:
@@ -347,8 +335,8 @@ def register_plant_care_tools(mcp: FastMCP) -> None:
         return days
 
     @mcp.tool
-    async def plant_care___current_status() -> dict[str, Any]:
-        """Return current status for all plants: soil/humidity/temperature zones + care history."""
+    async def get_current_status() -> dict[str, Any]:
+        """Return current weather, time, and per-plant status: soil/humidity/temperature zones and care history."""
         states, error = await get_states_list()
         if error:
             return {"status": "error", "error": error}
@@ -600,255 +588,3 @@ def register_plant_care_tools(mcp: FastMCP) -> None:
             "plants": plants,
         }
 
-    @mcp.tool
-    async def plant_care___water(
-        identifier: str,
-        duration_seconds: int,
-    ) -> dict[str, Any]:
-        """Turn on the watering outlet for a plant for a set duration."""
-        if duration_seconds <= 0:
-            return {"status": "error", "error": "Duration must be positive"}
-        states, error = await get_states_list()
-        if error:
-            return {"status": "error", "error": error}
-        plants = parse_plants_from_states(states)
-        plant_name = match_plant_name(plants.keys(), identifier)
-        if not plant_name:
-            return {"status": "error", "error": "Plant not found"}
-        plant = plants[plant_name]
-        switch_entity_id = plant.get("water_power_entity_id")
-        if not switch_entity_id:
-            return {
-                "status": "error",
-                "error": (
-                    "No watering device is configured for this plant. "
-                    "You can only water it manually."
-                ),
-            }
-        outlet_state = next(
-            (
-                state
-                for state in states
-                if state.get("entity_id") == switch_entity_id
-            ),
-            None,
-        )
-        if not outlet_state or outlet_state.get("state") == "unavailable":
-            return {
-                "status": "error",
-                "error": (
-                    "The watering device for this plant is unavailable. "
-                    "You can only water it manually."
-                ),
-            }
-        _, _, error = await ha_request(
-            "POST",
-            "/api/services/switch/turn_on",
-            json={"entity_id": switch_entity_id},
-        )
-        if error:
-            return {"status": "error", "error": error}
-        await delay(duration_seconds)
-        _, _, error = await ha_request(
-            "POST",
-            "/api/services/switch/turn_off",
-            json={"entity_id": switch_entity_id},
-        )
-        if error:
-            return {"status": "error", "error": error}
-        return {
-            "status": "success",
-            "plant": plant_name,
-            "water_switch": switch_entity_id,
-            "duration_seconds": duration_seconds,
-        }
-
-    @mcp.tool
-    async def plant_care___record_manual_watering(
-        plant_name: str,
-        liters: float,
-    ) -> dict[str, Any]:
-        """Record a manual watering event for a plant.
-
-        Args:
-            plant_name: Plant name
-            liters: Amount of water in liters (number, required)
-        """
-        if not math.isfinite(liters) or liters <= 0:
-            return {"status": "error", "error": "Liters must be a positive number"}
-
-        states, error = await get_states_list()
-        if error:
-            return {"status": "error", "error": error}
-        plants = parse_plants_from_states(states)
-        matched_name = match_plant_name(plants.keys(), plant_name)
-        if not matched_name:
-            return {"status": "error", "error": "Plant not found"}
-
-        # Prepare service call data
-        service_data: dict[str, Any] = {"plant": matched_name}
-        service_data["amount_ml"] = int(round(liters * 1000))
-
-        _, _, error = await ha_request(
-            "POST",
-            "/api/services/plants/record_watering",
-            json=service_data,
-        )
-        if error:
-            return {"status": "error", "error": error}
-
-        return {
-            "status": "success",
-            "plant": matched_name,
-            "event": "watered",
-            "data": service_data,
-        }
-
-    @mcp.tool
-    async def plant_care___record_manual_shower(
-        plant_name: str,
-        duration_minutes: int | None = None,
-        notes: str | None = None,
-    ) -> dict[str, Any]:
-        """Record a manual shower event for a plant.
-
-        Args:
-            plant_name: Plant name
-            duration_minutes: Duration in minutes (optional)
-            notes: Additional notes about the shower (optional)
-        """
-        states, error = await get_states_list()
-        if error:
-            return {"status": "error", "error": error}
-        plants = parse_plants_from_states(states)
-        matched_name = match_plant_name(plants.keys(), plant_name)
-        if not matched_name:
-            return {"status": "error", "error": "Plant not found"}
-
-        # Prepare service call data
-        service_data: dict[str, Any] = {"plant": matched_name}
-        if duration_minutes is not None:
-            service_data["duration_minutes"] = duration_minutes
-        if notes:
-            service_data["notes"] = notes
-
-        _, _, error = await ha_request(
-            "POST",
-            "/api/services/plants/record_shower",
-            json=service_data,
-        )
-        if error:
-            return {"status": "error", "error": error}
-
-        return {
-            "status": "success",
-            "plant": matched_name,
-            "event": "showered",
-            "data": service_data,
-        }
-
-    @mcp.tool
-    async def plant_care___light_on(plant_name: str) -> dict[str, Any]:
-        """Turn on the grow light for a plant.
-
-        Args:
-            plant_name: Plant name
-        """
-        states, error = await get_states_list()
-        if error:
-            return {"status": "error", "error": error}
-        plants = parse_plants_from_states(states)
-        matched_name = match_plant_name(plants.keys(), plant_name)
-        if not matched_name:
-            return {"status": "error", "error": "Plant not found"}
-
-        plant = plants[matched_name]
-        light_entity_id = plant.get("light_power_entity_id")
-        if not light_entity_id:
-            return {
-                "status": "error",
-                "error": f"No grow light is configured for {matched_name}",
-            }
-
-        # Check if the light entity is available
-        outlet_state = next(
-            (
-                state
-                for state in states
-                if state.get("entity_id") == light_entity_id
-            ),
-            None,
-        )
-        if not outlet_state or outlet_state.get("state") == "unavailable":
-            return {
-                "status": "error",
-                "error": f"The grow light for {matched_name} is unavailable",
-            }
-
-        _, _, error = await ha_request(
-            "POST",
-            "/api/services/switch/turn_on",
-            json={"entity_id": light_entity_id},
-        )
-        if error:
-            return {"status": "error", "error": error}
-
-        return {
-            "status": "success",
-            "plant": matched_name,
-            "light_switch": light_entity_id,
-            "action": "turned_on",
-        }
-
-    @mcp.tool
-    async def plant_care___light_off(plant_name: str) -> dict[str, Any]:
-        """Turn off the grow light for a plant.
-
-        Args:
-            plant_name: Plant name
-        """
-        states, error = await get_states_list()
-        if error:
-            return {"status": "error", "error": error}
-        plants = parse_plants_from_states(states)
-        matched_name = match_plant_name(plants.keys(), plant_name)
-        if not matched_name:
-            return {"status": "error", "error": "Plant not found"}
-
-        plant = plants[matched_name]
-        light_entity_id = plant.get("light_power_entity_id")
-        if not light_entity_id:
-            return {
-                "status": "error",
-                "error": f"No grow light is configured for {matched_name}",
-            }
-
-        # Check if the light entity is available
-        outlet_state = next(
-            (
-                state
-                for state in states
-                if state.get("entity_id") == light_entity_id
-            ),
-            None,
-        )
-        if not outlet_state or outlet_state.get("state") == "unavailable":
-            return {
-                "status": "error",
-                "error": f"The grow light for {matched_name} is unavailable",
-            }
-
-        _, _, error = await ha_request(
-            "POST",
-            "/api/services/switch/turn_off",
-            json={"entity_id": light_entity_id},
-        )
-        if error:
-            return {"status": "error", "error": error}
-
-        return {
-            "status": "success",
-            "plant": matched_name,
-            "light_switch": light_entity_id,
-            "action": "turned_off",
-        }
