@@ -5,6 +5,7 @@ from __future__ import annotations
 from typing import Any
 
 from homeassistant.components.event import EventDeviceClass, EventEntity
+from homeassistant.components.logbook import async_log_entry
 from homeassistant.config_entries import ConfigEntry
 from homeassistant.core import HomeAssistant
 from homeassistant.helpers.device_registry import DeviceInfo
@@ -30,6 +31,9 @@ async def async_setup_entry(
         entities.append(PlantManualWateringEvent(data, plant_id))
         entities.append(PlantManualShowerEvent(data, plant_id))
         entities.append(PlantAutoWateringEvent(data, plant_id))
+        custom_event_entity = PlantCustomEvent(data, plant_id)
+        data.custom_event_entities[plant_id] = custom_event_entity
+        entities.append(custom_event_entity)
     if entities:
         async_add_entities(entities)
 
@@ -119,6 +123,55 @@ class PlantManualShowerEvent(EventEntity):
         self._attr_extra_state_attributes = {"event_data": event_data}
         self._trigger_event("showered", event_data)
         self.async_write_ha_state()
+
+
+class PlantCustomEvent(EventEntity):
+    """Event entity for custom plant care actions (fertilizing, pruning, moving, etc.)."""
+
+    _attr_has_entity_name = True
+    _attr_device_class = EventDeviceClass.BUTTON
+    _attr_event_types = ["custom"]
+
+    def __init__(self, data: PlantsData, plant_id: str) -> None:
+        """Initialize the event entity."""
+        self._data = data
+        self._plant_id = plant_id
+        plant = data.plants[plant_id]
+
+        self._attr_name = "Custom Event"
+        self._attr_unique_id = f"plant_{plant_id}_custom_event"
+        self._attr_device_info = DeviceInfo(
+            identifiers={(DOMAIN, f"plant_{plant_id}")},
+            name=plant.name,
+            manufacturer="Custom",
+            model="Plant",
+        )
+
+    def record_custom_event(
+        self,
+        hass: HomeAssistant,
+        plant_name: str,
+        notes: str,
+        category: str | None = None,
+    ) -> None:
+        """Record a custom plant care event."""
+        now = dt_util.utcnow()
+        event_data: dict[str, Any] = {"timestamp": now.isoformat(), "notes": notes}
+
+        if category:
+            event_data["category"] = category
+
+        self._attr_event_type = "custom"
+        self._attr_extra_state_attributes = event_data
+        self.async_write_ha_state()
+
+        async_log_entry(
+            hass=hass,
+            name=plant_name,
+            message=f"Custom event: {notes}",
+            domain=DOMAIN,
+            entity_id=self.entity_id,
+        )
 
 
 class PlantAutoWateringEvent(EventEntity):

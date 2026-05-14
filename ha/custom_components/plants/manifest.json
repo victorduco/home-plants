@@ -5,5 +5,6 @@
   "config_flow": true,
   "documentation": "https://example.invalid/plants",
   "integration_type": "device",
-  "single_config_entry": false
+  "single_config_entry": false,
+  "dependencies": ["logbook"]
 }

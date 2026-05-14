@@ -26,3 +26,27 @@ ssh:
 
 pull:
 	./ha-commands/pull.sh
+
+backup:
+	@BACKUP_DIR="backups/$$(date +%Y-%m-%d_%H-%M-%S)"; \
+	mkdir -p "$$BACKUP_DIR"; \
+	echo "→ Backing up plants storage files..."; \
+	ssh -i ~/.ssh/id_ed25519 -p 22 hassio@192.168.1.151 \
+		"sudo tar -czf - /config/.storage/plants* 2>/dev/null" \
+		> "$$BACKUP_DIR/plants_storage.tar.gz"; \
+	echo "→ Backing up entity & device registry..."; \
+	ssh -i ~/.ssh/id_ed25519 -p 22 hassio@192.168.1.151 \
+		"sudo tar -czf - /config/.storage/core.entity_registry /config/.storage/core.device_registry 2>/dev/null" \
+		> "$$BACKUP_DIR/registry.tar.gz"; \
+	echo "→ Backing up logbook & history (plants domain)..."; \
+	ssh -i ~/.ssh/id_ed25519 -p 22 hassio@192.168.1.151 \
+		"sudo python3 -c \"\
+import sqlite3, json; \
+conn = sqlite3.connect('/config/home-assistant_v2.db'); \
+cur = conn.cursor(); \
+cur.execute('SELECT et.event_type, ed.shared_data, e.time_fired_ts FROM events e JOIN event_types et ON e.event_type_id = et.event_type_id JOIN event_data ed ON e.data_id = ed.data_id WHERE ed.shared_data LIKE \\\"%plants%\\\"'); \
+rows = [{'event_type': r[0], 'data': json.loads(r[1]), 'time': r[2]} for r in cur.fetchall()]; \
+print(json.dumps(rows, ensure_ascii=False, indent=2)); \
+conn.close() \
+\"" > "$$BACKUP_DIR/plants_logbook.json"; \
+	echo "✓ Backup saved to $$BACKUP_DIR"

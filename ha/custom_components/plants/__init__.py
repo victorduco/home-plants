@@ -48,6 +48,12 @@ LEGACY_ENTITY_SUFFIXES: dict[str, tuple[str, ...]] = {
         "humidifier_source",
     ),
     "text": ("manual_watering_comment",),
+    "button": (
+        "custom_event_note",
+        "custom_event",
+        "add_custom_event",
+        "custom_event_button",
+    ),
 }
 
 

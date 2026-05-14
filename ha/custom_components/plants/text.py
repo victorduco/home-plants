@@ -63,6 +63,7 @@ async def async_setup_entry(
                         data, plant_id, field_key, entity_name, friendly_name, max_length
                     )
                 )
+            entities.append(PlantCustomEventNoteText(data, plant_id))
 
     if entities:
         async_add_entities(entities)
@@ -116,6 +117,54 @@ class PlantRecommendationText(TextEntity):
     async def async_set_value(self, value: str) -> None:
         setattr(self._data.plants[self._plant_id], self._field_key, value)
         await self._data.async_save()
+        self.async_write_ha_state()
+
+
+# ---------------------------------------------------------------------------
+# Custom event note text (input for Add Custom Event button)
+# ---------------------------------------------------------------------------
+
+
+class PlantCustomEventNoteText(TextEntity):
+    """Text entity for logging a custom plant care event.
+
+    Saving a non-empty value fires the custom event and clears the field.
+    """
+
+    _attr_has_entity_name = True
+
+    def __init__(self, data: PlantsData, plant_id: str) -> None:
+        self._data = data
+        self._plant_id = plant_id
+        plant = data.plants[plant_id]
+        self._attr_name = "Log Custom Event"
+        self._attr_unique_id = f"plant_{plant_id}_custom_event_note"
+        self._attr_icon = "mdi:note-plus"
+        self._attr_device_info = DeviceInfo(
+            identifiers={(DOMAIN, f"plant_{plant_id}")},
+            name=plant.name,
+            manufacturer="Custom",
+            model="Plant",
+        )
+        self._note: str = ""
+
+    @property
+    def native_value(self) -> str:
+        return self._note
+
+    async def async_set_value(self, value: str) -> None:
+        note = value.strip()
+        if not note:
+            return
+        event_entity = self._data.custom_event_entities.get(self._plant_id)
+        if event_entity:
+            plant_name = self._data.plants[self._plant_id].name
+            event_entity.record_custom_event(
+                hass=self.hass,
+                plant_name=plant_name,
+                notes=note,
+            )
+        self._note = ""
         self.async_write_ha_state()
 
 

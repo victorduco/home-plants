@@ -4,13 +4,13 @@ from homeassistant.const import Platform
 
 DOMAIN = "plants"
 PLATFORMS: list[Platform] = [
+    Platform.TEXT,
+    Platform.EVENT,
     Platform.BUTTON,
     Platform.NUMBER,
     Platform.SENSOR,
     Platform.SELECT,
     Platform.SWITCH,
-    Platform.TEXT,
-    Platform.EVENT,
 ]
 STORAGE_VERSION = 1
 DEFAULT_SOIL_MOISTURE = 50.0

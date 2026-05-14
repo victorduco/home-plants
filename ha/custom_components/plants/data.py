@@ -4,6 +4,7 @@ from __future__ import annotations
 
 import logging
 from dataclasses import dataclass, field
+from typing import Any
 from uuid import uuid4
 
 from homeassistant.core import HomeAssistant
@@ -54,6 +55,8 @@ class PlantsData:
     _migrated_light_entities: dict[str, str] = field(default_factory=dict)
     _migrated_water_entities: dict[str, str] = field(default_factory=dict)
     _migrated_humidifier_entities: dict[str, str] = field(default_factory=dict)
+    # Runtime entity references for cross-platform linking (not persisted).
+    custom_event_entities: dict[str, Any] = field(default_factory=dict)
 
     @classmethod
     async def async_load(cls, hass: HomeAssistant) -> "PlantsData":
