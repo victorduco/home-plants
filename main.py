@@ -32,15 +32,11 @@ async def _sync_skills_to_vendors(server: FastMCP) -> None:
             await sync_skills(client, target, overwrite=True)
 
 
-from plants_mcp.prompts import register_prompts
-from plants_mcp.resources import register_resources
 from plants_mcp.tools import register_tools
 
 mcp = FastMCP("My MCP Server")
 mcp.add_provider(SkillsDirectoryProvider(roots=SKILLS_DIR, reload=True))
 register_tools(mcp)
-register_prompts(mcp)
-register_resources(mcp)
 
 if __name__ == "__main__":
     asyncio.run(_sync_skills_to_vendors(mcp))
