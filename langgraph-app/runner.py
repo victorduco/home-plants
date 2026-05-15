@@ -8,6 +8,7 @@ Used by Heroku Scheduler (every 4 hours) and manually via:
 import asyncio
 import logging
 import sys
+import uuid
 from pathlib import Path
 
 sys.path.insert(0, str(Path(__file__).parent))
@@ -19,8 +20,9 @@ log = logging.getLogger("runner")
 
 
 async def run() -> None:
-    log.info("Starting plant regular check...")
-    await graph_regular_check.ainvoke({})
+    thread_id = str(uuid.uuid4())
+    log.info("Starting plant regular check (thread_id=%s)...", thread_id)
+    await graph_regular_check.ainvoke({}, config={"configurable": {"thread_id": thread_id}})
     log.info("Plant regular check complete.")
 
 
