@@ -141,6 +141,12 @@ def parse_plants_from_states(
             continue
         if matched_key in ("manual_watering", "manual_shower") and domain == "button":
             continue
+        _device_only_keys = {
+            "light_state", "auto_watering_state",
+            "humidifier_state", "humidifier_control", "humidifier_source",
+        }
+        if matched_key in _device_only_keys:
+            continue
         plant_name = plant_name.strip()
         if not plant_name:
             continue

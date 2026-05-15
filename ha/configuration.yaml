@@ -20,7 +20,45 @@ lovelace:
       show_in_sidebar: true
       filename: dashboards/plants.yaml
 
+sensor:
+  - platform: statistics
+    name: "Indoor Humidity 30min Average"
+    unique_id: "stat_indoor_humidity_30min_mean"
+    entity_id: sensor.gw1200b_indoor_humidity
+    state_characteristic: mean
+    max_age:
+      minutes: 30
+  - platform: statistics
+    name: "Indoor Humidity 30min Change"
+    unique_id: "stat_indoor_humidity_30min_change"
+    entity_id: sensor.gw1200b_indoor_humidity
+    state_characteristic: change
+    max_age:
+      minutes: 30
+
 template:
+  - sensor:
+      - name: "Humidifier Status"
+        unique_id: "tpl_humidifier_status"
+        state: >
+          {% if is_state('switch.humidifier_control', 'off') %}
+            Off
+          {% elif states('sensor.indoor_humidity_30min_average') | float(0) >= 60
+             or states('sensor.indoor_humidity_30min_change') | float(0) >= 5 %}
+            On
+          {% else %}
+            No Water
+          {% endif %}
+        icon: >
+          {% if is_state('switch.humidifier_control', 'off') %}
+            mdi:air-humidifier-off
+          {% elif states('sensor.indoor_humidity_30min_average') | float(0) >= 60
+             or states('sensor.indoor_humidity_30min_change') | float(0) >= 5 %}
+            mdi:air-humidifier
+          {% else %}
+            mdi:water-alert
+          {% endif %}
+
   - sensor:
       - name: "Alocasia Moisture Yellow Threshold"
         unique_id: "tpl_alocasia_moisture_yellow"

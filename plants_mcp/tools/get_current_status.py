@@ -581,10 +581,18 @@ def register(mcp: FastMCP) -> None:
                 key = entity_id.replace("sensor.openweathermap_", "")
                 weather[key] = f"{value} {unit}".strip() if value is not None else None
 
+        state_by_id: dict[str, str] = {s.get("entity_id", ""): s.get("state", "") for s in states}
+        devices = {
+            "horizontal_grow_light": "on" if state_by_id.get("sensor.horizontal_grow_light_state") == "Light is on" else "off",
+            "vertical_grow_light": "on" if state_by_id.get("sensor.vertical_grow_light_state") == "Light is on" else "off",
+            "humidifier": state_by_id.get("sensor.humidifier_status", "unknown").lower(),
+        }
+
         return {
             "status": "success",
             "time": time_data,
             "weather": weather,
+            "devices": devices,
             "plants": plants,
         }
 
