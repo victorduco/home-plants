@@ -4,3 +4,11 @@ COPY langgraph-app /deps/langgraph-app
 RUN pip install --no-cache-dir -e /deps/langgraph-app
 
 COPY langgraph-app/langgraph.json /deps/langgraph.json
+
+# Wrapper that bypasses the LangGraph server entrypoint for scheduler dyno.
+# If CMD starts with "python", run it directly; otherwise fall through to the
+# original entrypoint (LangGraph server for the web dyno).
+RUN printf '#!/bin/sh\ncase "$1" in\n  python*) exec "$@" ;;\n  *) exec /storage/entrypoint.sh "$@" ;;\nesac\n' > /entrypoint-wrapper.sh \
+    && chmod +x /entrypoint-wrapper.sh
+
+ENTRYPOINT ["/entrypoint-wrapper.sh"]
