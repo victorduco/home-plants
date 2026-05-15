@@ -63,3 +63,10 @@ config/*.yaml
 tmp/
 temp/
 *.tmp
+
+# LangGraph agent
+langgraph-app/__pycache__/
+langgraph-app/**/__pycache__/
+langgraph-app/*.egg-info/
+langgraph-app/.langgraph_api/
+langgraph-app/langgraph.log

@@ -27,6 +27,12 @@ ssh:
 pull:
 	./ha-commands/pull.sh
 
+agent-dev:
+	cd langgraph-app && langgraph dev
+
+agent-install:
+	cd langgraph-app && pip install -e .
+
 backup:
 	@BACKUP_DIR="backups/$$(date +%Y-%m-%d_%H-%M-%S)"; \
 	mkdir -p "$$BACKUP_DIR"; \
