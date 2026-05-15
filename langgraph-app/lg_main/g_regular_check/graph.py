@@ -182,6 +182,10 @@ async def act_agent(state: RegularCheckState) -> dict:
         response = await model.ainvoke(history)
         return {"messages": init_messages + [response]}
 
+    for i, m in enumerate(all_messages):
+        log.info("act_agent[%d]: type=%s msg_type=%s tool_call_id=%s content=%.200s",
+                 i, type(m).__name__, getattr(m, "type", "?"),
+                 getattr(m, "tool_call_id", "-"), repr(m.content)[:200])
     response = await model.ainvoke(all_messages)
     return {"messages": [response]}
 
