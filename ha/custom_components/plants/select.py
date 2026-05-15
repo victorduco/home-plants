@@ -179,7 +179,7 @@ class PlantHumiditySelect(SelectEntity):
 
     @property
     def current_option(self) -> str | None:
-        entity_id = self._data.plants[self._plant_id].humidity_entity_id
+        entity_id = self._data.plants[self._plant_id].air_humidity_entity_id
         return entity_id or OPTION_NONE
 
     async def async_select_option(self, option: str) -> None:

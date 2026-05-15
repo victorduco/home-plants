@@ -8,7 +8,7 @@ from homeassistant.components.sensor import SensorEntity
 from homeassistant.config_entries import ConfigEntry
 from homeassistant.core import HomeAssistant, callback
 from homeassistant.helpers.device_registry import DeviceInfo
-from homeassistant.helpers.event import async_track_state_change_event
+from homeassistant.helpers.event import async_call_later, async_track_state_change_event
 from homeassistant.helpers.storage import Store
 
 from .const import DOMAIN
@@ -148,10 +148,10 @@ class PlantHumiditySensor(SensorEntity):
 
     @property
     def native_value(self):
-        humidity_entity_id = self._data.plants[self._plant_id].humidity_entity_id
-        if not humidity_entity_id or not self.hass:
+        air_humidity_entity_id = self._data.plants[self._plant_id].air_humidity_entity_id
+        if not air_humidity_entity_id or not self.hass:
             return "No air humidity meter near the plant."
-        state = self.hass.states.get(humidity_entity_id)
+        state = self.hass.states.get(air_humidity_entity_id)
         if state is None or state.state in ("unknown", "unavailable"):
             return "No air humidity meter near the plant."
         try:
@@ -161,10 +161,10 @@ class PlantHumiditySensor(SensorEntity):
 
     @property
     def native_unit_of_measurement(self):
-        humidity_entity_id = self._data.plants[self._plant_id].humidity_entity_id
-        if not humidity_entity_id or not self.hass:
+        air_humidity_entity_id = self._data.plants[self._plant_id].air_humidity_entity_id
+        if not air_humidity_entity_id or not self.hass:
             return None
-        state = self.hass.states.get(humidity_entity_id)
+        state = self.hass.states.get(air_humidity_entity_id)
         if not state:
             return None
         return state.attributes.get("unit_of_measurement")
@@ -172,7 +172,24 @@ class PlantHumiditySensor(SensorEntity):
     @property
     def extra_state_attributes(self) -> dict:
         plant = self._data.plants[self._plant_id]
-        return {"humidity_entity_id": plant.humidity_entity_id}
+        return {"air_humidity_entity_id": plant.air_humidity_entity_id}
+
+    async def async_added_to_hass(self) -> None:
+        entity_id = self._data.plants[self._plant_id].air_humidity_entity_id
+        if not entity_id:
+            return
+
+        @callback
+        def _handle_state_change(event) -> None:
+            self.async_write_ha_state()
+
+        async_track_state_change_event(self.hass, [entity_id], _handle_state_change)
+
+        @callback
+        def _refresh(_now) -> None:
+            self.async_write_ha_state()
+
+        async_call_later(self.hass, 5, _refresh)
 
 
 class PlantAirTemperatureSensor(SensorEntity):
@@ -218,6 +235,23 @@ class PlantAirTemperatureSensor(SensorEntity):
     def extra_state_attributes(self) -> dict:
         plant = self._data.plants[self._plant_id]
         return {"air_temperature_entity_id": plant.air_temperature_entity_id}
+
+    async def async_added_to_hass(self) -> None:
+        entity_id = self._data.plants[self._plant_id].air_temperature_entity_id
+        if not entity_id:
+            return
+
+        @callback
+        def _handle_state_change(event) -> None:
+            self.async_write_ha_state()
+
+        async_track_state_change_event(self.hass, [entity_id], _handle_state_change)
+
+        @callback
+        def _refresh(_now) -> None:
+            self.async_write_ha_state()
+
+        async_call_later(self.hass, 5, _refresh)
 
 
 class PlantMoistureZoneSensor(SensorEntity):
@@ -276,9 +310,9 @@ class PlantHumidityZoneSensor(SensorEntity):
     @property
     def native_value(self) -> str:
         plant = self._data.plants[self._plant_id]
-        if not plant.humidity_entity_id or not self.hass:
+        if not plant.air_humidity_entity_id or not self.hass:
             return "unknown"
-        state = self.hass.states.get(plant.humidity_entity_id)
+        state = self.hass.states.get(plant.air_humidity_entity_id)
         if state is None or state.state in ("unknown", "unavailable"):
             return "unknown"
         try:
@@ -290,6 +324,23 @@ class PlantHumidityZoneSensor(SensorEntity):
         if humidity < h_min or humidity > h_max:
             return "red"
         return "green"
+
+    async def async_added_to_hass(self) -> None:
+        entity_id = self._data.plants[self._plant_id].air_humidity_entity_id
+        if not entity_id:
+            return
+
+        @callback
+        def _handle_state_change(event) -> None:
+            self.async_write_ha_state()
+
+        async_track_state_change_event(self.hass, [entity_id], _handle_state_change)
+
+        @callback
+        def _refresh(_now) -> None:
+            self.async_write_ha_state()
+
+        async_call_later(self.hass, 5, _refresh)
 
 
 class PlantTemperatureZoneSensor(SensorEntity):
@@ -325,6 +376,23 @@ class PlantTemperatureZoneSensor(SensorEntity):
         if temp < t_min or temp > t_max:
             return "red"
         return "green"
+
+    async def async_added_to_hass(self) -> None:
+        entity_id = self._data.plants[self._plant_id].air_temperature_entity_id
+        if not entity_id:
+            return
+
+        @callback
+        def _handle_state_change(event) -> None:
+            self.async_write_ha_state()
+
+        async_track_state_change_event(self.hass, [entity_id], _handle_state_change)
+
+        @callback
+        def _refresh(_now) -> None:
+            self.async_write_ha_state()
+
+        async_call_later(self.hass, 5, _refresh)
 
 
 class PlantAutoWateringStateSensor(SensorEntity):

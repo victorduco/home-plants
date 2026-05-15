@@ -67,12 +67,12 @@ print(len([e for e in s if 'plant' in e['entity_id'].lower()]))
 }
 
 deploy_dashboard() {
-  echo "→ Deploying dashboard (ha/dashboards/plants.yaml → /config/dashboards/plants.yaml)..."
+  echo "→ Deploying dashboards (ha/dashboards/ → /config/dashboards/)..."
   rsync -av \
     -e "ssh $SSH_OPTS" \
-    "$REPO_ROOT/ha/dashboards/plants.yaml" \
-    "$HA_HOST:/config/dashboards/plants.yaml"
-  echo "✓ Dashboard deployed (refresh the browser to see changes)"
+    "$REPO_ROOT/ha/dashboards/" \
+    "$HA_HOST:/config/dashboards/"
+  echo "✓ Dashboards deployed (refresh the browser to see changes)"
 }
 
 deploy_automations() {

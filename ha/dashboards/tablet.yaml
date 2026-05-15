@@ -1,0 +1,145 @@
+title: 🌿 Tablet
+theme: Backend-selected
+views:
+  - title: Plants
+    path: home
+    panel: true
+    cards:
+      - type: custom:html-template-card
+        ignore_line_breaks: true
+        content: |
+          <style>
+            :host, html, body { margin: 0; padding: 0; height: 100%; width: 100%; }
+            .tablet-wrap {
+              width: 100vw;
+              height: 100vh;
+              background: #111;
+              display: grid;
+              grid-template-columns: repeat(9, 1fr);
+              grid-template-rows: repeat(3, 1fr);
+              gap: 0;
+              box-sizing: border-box;
+            }
+            .cell {
+              display: flex;
+              flex-direction: column;
+              align-items: center;
+              justify-content: flex-start;
+              padding: 8px 4px;
+              position: relative;
+              border: 1px solid rgba(255,255,255,0.2);
+            }
+            .cell-label {
+              color: #fff;
+              font-family: sans-serif;
+              font-weight: 400;
+              font-size: clamp(0.7rem, 1.3vw, 1.1rem);
+              text-align: center;
+              padding: 0 4px;
+            }
+            .cell-hint {
+              position: absolute;
+              bottom: 8px;
+              color: #fff;
+              font-family: sans-serif;
+              font-size: clamp(0.7rem, 1.3vw, 1.1rem);
+              font-weight: 400;
+              text-align: center;
+            }
+            .green  { background: #00a85e; }
+            .yellow { background: #d4a800; color: rgba(0,0,0,0.7) !important; }
+            .red    { background: #cb2535; }
+          </style>
+
+          {% set plants = [
+            ('dracaena',              'Dracaena'),
+            ('ficus_elastica_robusta','Ficus Robusta'),
+            ('ficus_elastica_tineke', 'Ficus Tineke'),
+            ('liana',                 'Liana'),
+            ('malcolm_ficus',         'Malcolm Ficus'),
+            ('olive_tree',            'Olive Tree'),
+            ('rubber_plant',          'Rubber Plant'),
+            ('triangularis_ficus',    'Triangularis'),
+            ('yucca',                 'Yucca'),
+          ] %}
+
+          <div class="tablet-wrap">
+
+            {# Row 1: soil moisture #}
+            {% for (p, name) in plants %}
+              {% set zone  = states('sensor.' ~ p ~ '_soil_moisture_zone') %}
+              {% set val   = states('sensor.' ~ p ~ '_soil_moisture_state') | float(-1) %}
+              {% set yth   = states('number.' ~ p ~ '_soil_moisture_yellow_threshold') | float(0) %}
+              {% set rth   = states('number.' ~ p ~ '_soil_moisture_red_threshold') | float(0) %}
+              {% set cls   = 'green' if zone == 'green' else ('yellow' if zone == 'yellow' else 'red') %}
+              {% set diff  = (val - yth) | round(0) | int if val >= 0 else none %}
+              <div class="cell {{ cls }}">
+                <span class="cell-label">{{ name }}</span>
+                {% if cls == 'red' %}
+                  {% if val < 0 %}
+                    <span class="cell-hint">~ no data</span>
+                  {% elif diff < 0 %}
+                    <span class="cell-hint">~ {{ diff }}%</span>
+                  {% else %}
+                    <span class="cell-hint">~ +{{ diff }}%</span>
+                  {% endif %}
+                {% endif %}
+              </div>
+            {% endfor %}
+
+            {# Row 2: air humidity #}
+            {% for (p, name) in plants %}
+              {% set zone  = states('sensor.' ~ p ~ '_air_humidity_zone') %}
+              {% set val_air = states('sensor.' ~ p ~ '_air_humidity_meter') | float(-1) %}
+              {% set val = val_air if val_air >= 0 else states('sensor.' ~ p ~ '_humidity_meter') | float(-1) %}
+              {% set hmin  = states('number.' ~ p ~ '_air_humidity_min') | float(0) %}
+              {% set hmax  = states('number.' ~ p ~ '_air_humidity_max') | float(0) %}
+              {% set cls   = 'green' if zone == 'green' else ('yellow' if zone == 'yellow' else 'red') %}
+              {% if val < hmin %}
+                {% set diff = (val - hmin) | round(0) | int %}
+              {% elif val > hmax %}
+                {% set diff = (val - hmax) | round(0) | int %}
+              {% else %}
+                {% set diff = none %}
+              {% endif %}
+              <div class="cell {{ cls }}">
+                {% if cls == 'red' %}
+                  {% if val < 0 %}
+                    <span class="cell-hint">% no data</span>
+                  {% elif diff is not none and diff < 0 %}
+                    <span class="cell-hint">% {{ diff }}%</span>
+                  {% elif diff is not none %}
+                    <span class="cell-hint">% +{{ diff }}%</span>
+                  {% endif %}
+                {% endif %}
+              </div>
+            {% endfor %}
+
+            {# Row 3: temperature #}
+            {% for (p, name) in plants %}
+              {% set zone  = states('sensor.' ~ p ~ '_air_temperature_zone') %}
+              {% set val   = states('sensor.' ~ p ~ '_air_temperature_meter') | float(-1) %}
+              {% set tmin  = states('number.' ~ p ~ '_air_temperature_min') | float(0) %}
+              {% set tmax  = states('number.' ~ p ~ '_air_temperature_max') | float(0) %}
+              {% set cls   = 'green' if zone == 'green' else ('yellow' if zone == 'yellow' else 'red') %}
+              {% if val < tmin %}
+                {% set diff = (val - tmin) | round(1) %}
+              {% elif val > tmax %}
+                {% set diff = (val - tmax) | round(1) %}
+              {% else %}
+                {% set diff = none %}
+              {% endif %}
+              <div class="cell {{ cls }}">
+                {% if cls == 'red' %}
+                  {% if val < 0 %}
+                    <span class="cell-hint">° no data</span>
+                  {% elif diff is not none and diff < 0 %}
+                    <span class="cell-hint">° {{ diff }}°F</span>
+                  {% elif diff is not none %}
+                    <span class="cell-hint">° +{{ diff }}°F</span>
+                  {% endif %}
+                {% endif %}
+              </div>
+            {% endfor %}
+
+          </div>

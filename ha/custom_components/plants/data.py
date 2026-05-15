@@ -30,7 +30,7 @@ class Plant:
     plant_id: str
     name: str
     moisture_entity_id: str | None
-    humidity_entity_id: str | None
+    air_humidity_entity_id: str | None
     air_temperature_entity_id: str | None
     air_temperature_recommendation: str | None
     air_humidity_recommendation: str | None
@@ -71,7 +71,7 @@ class PlantsData:
                     plant_id=plant_id,
                     name=name,
                     moisture_entity_id=None,
-                    humidity_entity_id=None,
+                    air_humidity_entity_id=None,
                     air_temperature_entity_id=None,
                     watering_frequency_recommendation=None,
 
@@ -112,7 +112,7 @@ class PlantsData:
                 plant_id=plant_id,
                 name=item.get("name") or plant_id,
                 moisture_entity_id=item.get("moisture_entity_id"),
-                humidity_entity_id=item.get("humidity_entity_id"),
+                air_humidity_entity_id=item.get("air_humidity_entity_id"),
                 air_temperature_entity_id=item.get("air_temperature_entity_id"),
                 air_temperature_recommendation=item.get(
                     "air_temperature_recommendation"
@@ -144,7 +144,7 @@ class PlantsData:
                     "id": plant.plant_id,
                     "name": plant.name,
                     "moisture_entity_id": plant.moisture_entity_id,
-                    "humidity_entity_id": plant.humidity_entity_id,
+                    "air_humidity_entity_id": plant.air_humidity_entity_id,
                     "air_temperature_entity_id": plant.air_temperature_entity_id,
                     "air_temperature_recommendation": (
                         plant.air_temperature_recommendation
@@ -177,7 +177,7 @@ class PlantsData:
             plant_id=plant_id,
             name=name,
             moisture_entity_id=moisture_entity_id,
-            humidity_entity_id=None,
+            air_humidity_entity_id=None,
             air_temperature_entity_id=None,
             watering_frequency_recommendation=None,
             soil_moisture_recommendation=None,
@@ -201,7 +201,7 @@ class PlantsData:
     def set_plant_humidity(self, plant_id: str, entity_id: str | None) -> None:
         """Set plant humidity entity."""
         if plant_id in self.plants:
-            self.plants[plant_id].humidity_entity_id = entity_id
+            self.plants[plant_id].air_humidity_entity_id = entity_id
 
     def set_plant_air_temperature(
         self,
