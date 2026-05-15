@@ -37,17 +37,17 @@ Each plant has:
 ## Available actions via `call_ha_api`
 
 **Water a plant** — find `valve.*` entity_id in the plant's `entities`, then call:
-- method: POST, path: /api/services/valve/open_valve, body: {entity_id: <valve_entity_id>}
-- method: POST, path: /api/services/valve/close_valve, body: {entity_id: <valve_entity_id>}
+- method: POST, path: /api/services/valve/open_valve, body: {{"entity_id": "<valve_entity_id>"}}
+- method: POST, path: /api/services/valve/close_valve, body: {{"entity_id": "<valve_entity_id>"}}
 
 **Humidifier** — call `get_all_devices` first to get entity_id and which plants are nearby:
-- method: POST, path: /api/services/switch/turn_on, body: {entity_id: <humidifier_entity_id>}
-- method: POST, path: /api/services/switch/turn_off, body: {entity_id: <humidifier_entity_id>}
+- method: POST, path: /api/services/switch/turn_on, body: {{"entity_id": "<humidifier_entity_id>"}}
+- method: POST, path: /api/services/switch/turn_off, body: {{"entity_id": "<humidifier_entity_id>"}}
 Turn on if any nearby plant has humidity `red` or multiple are `yellow`. Turn off if all `green`.
 
 **Grow lights** — time-based, use `time.current` / `sunrise` / `sunset` from current status:
-- method: POST, path: /api/services/switch/turn_on, body: {entity_id: <light_entity_id>}
-- method: POST, path: /api/services/switch/turn_off, body: {entity_id: <light_entity_id>}
+- method: POST, path: /api/services/switch/turn_on, body: {{"entity_id": "<light_entity_id>"}}
+- method: POST, path: /api/services/switch/turn_off, body: {{"entity_id": "<light_entity_id>"}}
 Turn on during daytime, off at night. Don't adjust if already correct.
 """
 
