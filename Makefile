@@ -37,7 +37,7 @@ agent-deploy:
 	HEROKU_APP_NAME=home-plants-agent ./ha-commands/deploy-langgraph.sh
 
 agent-run:
-	cd langgraph-app && LANGGRAPH_API_URL=https://home-plants-agent-5910b5a018d0.herokuapp.com python runner.py
+	LANGGRAPH_API_URL=https://home-plants-agent-5910b5a018d0.herokuapp.com python langgraph-app/runner.py
 
 agent-logs:
 	HEROKU_API_KEY=$$(grep HEROKU_API_KEY .env | cut -d= -f2) \
