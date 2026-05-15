@@ -65,8 +65,8 @@ async def _send_ha_notification(title: str, message: str) -> None:
 
 
 async def agent(state: RegularCheckState) -> dict:
-    async with get_mcp_client() as client:
-        tools = await client.get_tools()
+    client = get_mcp_client()
+    tools = await client.get_tools()
 
     model = llm.bind_tools(tools)
     history = list(state.messages or [])
@@ -83,8 +83,8 @@ async def agent(state: RegularCheckState) -> dict:
 
 
 async def call_tools(state: RegularCheckState) -> dict:
-    async with get_mcp_client() as client:
-        tools = await client.get_tools()
+    client = get_mcp_client()
+    tools = await client.get_tools()
 
     tool_node = ToolNode(tools)
     return await tool_node.ainvoke(state)

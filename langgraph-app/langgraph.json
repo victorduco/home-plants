@@ -7,6 +7,7 @@
   },
   "env": "../.env",
   "python_version": "3.13",
+  "image_name": "langchain/langgraph-api:3.13-inmem",
   "dependencies": [
     "httpx>=0.27.0",
     "langchain>=1.2.9",

@@ -13,7 +13,7 @@ TAG="registry.heroku.com/$HEROKU_APP_NAME/web"
 
 echo "🌿 Deploying LangGraph agent → $HEROKU_APP_NAME"
 
-for cmd in heroku docker langgraph; do
+for cmd in heroku docker; do
     command -v "$cmd" &>/dev/null || { echo "❌ $cmd not found"; exit 1; }
 done
 
@@ -22,17 +22,10 @@ heroku apps:info -a "$HEROKU_APP_NAME" &>/dev/null || { echo "❌ App '$HEROKU_A
 
 heroku container:login
 
-cd "$LANGGRAPH_DIR"
-
-TMP_DOCKERFILE="$(mktemp -t langgraph.Dockerfile.XXXXXX)"
-trap 'rm -f "$TMP_DOCKERFILE"' EXIT
-
-langgraph dockerfile "$TMP_DOCKERFILE"
-
 export BUILDX_NO_DEFAULT_ATTESTATIONS=1
 docker buildx build \
     --platform linux/amd64 \
-    -f "$TMP_DOCKERFILE" \
+    -f "$LANGGRAPH_DIR/Dockerfile.heroku" \
     -t "$TAG" \
     --provenance=false \
     --sbom=false \
