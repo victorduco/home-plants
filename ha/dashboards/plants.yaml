@@ -498,6 +498,31 @@ views:
                 stroke_width: 1
                 curve: stepline
 
+  - title: Agent
+    path: agent
+    cards:
+      - type: markdown
+        title: 🤖 Issues Log
+        content: |
+          {% set val = states('text.plant_check_issues') %}
+          {% if val in ('unknown', 'unavailable', '') %}
+          _No issues recorded yet._
+          {% else %}
+          {{ val }}
+          {% endif %}
+
+      - type: markdown
+        title: ⚡ Actions Log
+        content: |
+          {% set val = states('text.plant_check_actions') %}
+          {% if val in ('unknown', 'unavailable', '') %}
+          _No actions recorded yet._
+          {% else %}
+          ```
+          {{ val }}
+          ```
+          {% endif %}
+
   - title: Soil Moisture
     path: soil-moisture
     panel: true
