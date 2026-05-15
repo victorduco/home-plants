@@ -3,7 +3,7 @@ from __future__ import annotations
 import logging
 from typing import Annotated, List, Optional
 
-from langchain_core.messages import AIMessage, AnyMessage, HumanMessage, SystemMessage
+from langchain_core.messages import AnyMessage, HumanMessage, SystemMessage
 from langchain_openai import ChatOpenAI
 from langgraph.graph import END, START, StateGraph
 from langgraph.graph.message import add_messages
@@ -27,41 +27,32 @@ Follow these steps:
    - Turn humidifier on/off based on nearby plants' humidity zones
    - Turn grow lights on/off based on time of day
    - Open/close valves to water plants with red/yellow soil moisture zones
-6. Send the final report as a Home Assistant persistent notification using call_ha_api:
-   POST /api/services/persistent_notification/create
-   body: {"title": "🌿 Plant Check", "message": "<your report>", "notification_id": "plant_regular_check"}
-7. The report in the notification should be split into two sections:
-   - **Done automatically:** every action you took, zone status per plant (🟢🟡🔴)
-   - **Needs your attention:** temperature issues, repotting, unavailable sensors, anything you couldn't fix
 
-Be decisive — act first, report after. Do not ask for confirmation before taking actions."""
+Be decisive — act first. Do not ask for confirmation before taking actions."""
+
+SUMMARIZE_PROMPT = """Based on the plant check conversation above, return a JSON summary.
+
+Rules for the "issues" list:
+- Include ONLY problems that need human attention
+- 🔴 humidity/soil zones that couldn't be fixed automatically
+- Unavailable sensors (❓): one item like "Sensors unavailable: Plant A, Plant B"
+- Broken/unconfigured devices (e.g. auto waterer not configured)
+- Temperature issues
+- Do NOT include: green zones, routine actions that worked, per-plant status table
+- If everything is fine — return empty list
+
+Return JSON only, no other text:
+{"issues": ["issue 1", "issue 2"]}"""
+
+
+class CheckResult(BaseModel):
+    issues: List[str] = Field(default_factory=list)
 
 
 class RegularCheckState(BaseModel):
     messages: Annotated[List[AnyMessage], add_messages] = Field(default_factory=list)
     trigger_message: Optional[str] = Field(default=None)
-
-
-async def _send_ha_notification(title: str, message: str) -> None:
-    ha_url = os.getenv("HA_URL", "http://homeassistant.local:8123").rstrip("/")
-    ha_token = os.getenv("HA_TOKEN", "")
-    headers = {"Authorization": f"Bearer {ha_token}", "Content-Type": "application/json"}
-    body = {
-        "title": title,
-        "message": message,
-        "notification_id": "plant_regular_check",
-    }
-    try:
-        async with httpx.AsyncClient(timeout=10) as client:
-            r = await client.post(
-                f"{ha_url}/api/services/persistent_notification/create",
-                headers=headers,
-                json=body,
-            )
-            r.raise_for_status()
-            log.info("HA notification sent: %s", title)
-    except Exception:
-        log.exception("Failed to send HA notification")
+    result: Optional[CheckResult] = Field(default=None)
 
 
 async def agent(state: RegularCheckState) -> dict:
@@ -85,24 +76,34 @@ async def agent(state: RegularCheckState) -> dict:
 async def call_tools(state: RegularCheckState) -> dict:
     client = get_mcp_client()
     tools = await client.get_tools()
-
     tool_node = ToolNode(tools)
     return await tool_node.ainvoke(state)
+
+
+async def summarize(state: RegularCheckState) -> dict:
+    structured_llm = llm.with_structured_output(CheckResult)
+    history = list(state.messages or [])
+    history.append(HumanMessage(content=SUMMARIZE_PROMPT))
+    result = await structured_llm.ainvoke(history)
+    log.info("Issues found: %d — %s", len(result.issues), result.issues)
+    return {"result": result}
 
 
 def should_continue(state: RegularCheckState) -> str:
     last = state.messages[-1] if state.messages else None
     if last and getattr(last, "tool_calls", None):
         return "tools"
-    return END
+    return "summarize"
 
 
 builder = StateGraph(RegularCheckState)
 builder.add_node("agent", agent)
 builder.add_node("tools", call_tools)
+builder.add_node("summarize", summarize)
 
 builder.add_edge(START, "agent")
 builder.add_conditional_edges("agent", should_continue)
 builder.add_edge("tools", "agent")
+builder.add_edge("summarize", END)
 
 graph_regular_check = builder.compile()
