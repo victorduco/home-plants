@@ -88,15 +88,16 @@ async def _ha_get(path: str) -> dict | None:
 
 
 async def fetch_previous_notifications(state: RegularCheckState) -> dict:
-    """Read last issues from plant_check_issues text entity in HA."""
-    data = await _ha_get("/api/states/text.agent_log_plant_check_issues")
+    """Read last issues from plant_check_issues sensor attributes in HA."""
+    data = await _ha_get("/api/states/sensor.agent_log_plant_check_issues")
     if not data:
         return {"previous_notifications": "No previous plant check data available."}
-    value = data.get("state", "")
-    if not value or value == "unknown":
+    items = data.get("attributes", {}).get("items", [])
+    if not items:
         return {"previous_notifications": "No previous plant check notifications recorded."}
-    log.info("Loaded previous issues from HA: %s", value[:120])
-    return {"previous_notifications": f"Previous issues (last check):\n{value}"}
+    text = "\n".join(f"- {i}" for i in items)
+    log.info("Loaded %d previous issue(s) from HA.", len(items))
+    return {"previous_notifications": f"Previous issues (last check):\n{text}"}
 
 
 async def agent(state: RegularCheckState) -> dict:

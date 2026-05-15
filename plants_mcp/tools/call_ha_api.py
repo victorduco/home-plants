@@ -10,23 +10,20 @@ from fastmcp import FastMCP
 from .common import ha_request
 
 _MUTATING = {"POST", "PUT", "PATCH", "DELETE"}
-_ACTIONS_ENTITY = "text.agent_log_plant_check_actions"
-
-
 async def _append_action_log(method: str, path: str, body: dict[str, Any] | None) -> None:
-    """Append one line to plant_check_actions text entity (best-effort)."""
+    """Append one action line to plant_check_actions sensor (best-effort)."""
     ts = datetime.now(timezone.utc).strftime("%Y-%m-%dT%H:%M:%SZ")
     line = f"[{ts}] {method} {path} {body or ''}"
-    _, existing, _ = await ha_request("GET", f"/api/states/{_ACTIONS_ENTITY}")
-    prev = (existing or {}).get("state", "") if isinstance(existing, dict) else ""
-    if prev in ("unknown", "", None):
-        prev = ""
-    combined = (prev.strip() + "\n" + line).strip()
-    combined = combined[-1000:]
+    _, existing, _ = await ha_request("GET", "/api/states/sensor.agent_log_plant_check_actions")
+    items: list[str] = []
+    if isinstance(existing, dict):
+        items = existing.get("attributes", {}).get("items", []) or []
+    items = list(items) + [line]
+    items = items[-20:]  # keep last 20 actions
     await ha_request(
         "POST",
-        "/api/services/text/set_value",
-        json={"entity_id": _ACTIONS_ENTITY, "value": combined},
+        "/api/services/plants/update_agent_log",
+        json={"field": "plant_check_actions", "items": items},
     )
 
 
@@ -39,7 +36,7 @@ def register(mcp: FastMCP) -> None:
         if error:
             return {"status": "error", "error": error}
         # Log mutating calls, but skip the log-write itself to avoid recursion.
-        if m in _MUTATING and _ACTIONS_ENTITY not in (body or {}).get("entity_id", ""):
+        if m in _MUTATING and path != "/api/services/plants/update_agent_log":
             try:
                 await _append_action_log(m, path, body)
             except Exception:

@@ -2,14 +2,19 @@
 
 from __future__ import annotations
 
+from datetime import datetime, timezone
+
 from homeassistant.components.sensor import SensorEntity
 from homeassistant.config_entries import ConfigEntry
 from homeassistant.core import HomeAssistant, callback
 from homeassistant.helpers.device_registry import DeviceInfo
 from homeassistant.helpers.event import async_track_state_change_event
+from homeassistant.helpers.storage import Store
 
 from .const import DOMAIN
 from .data import AutoWaterersData, GrowLightsData, HumidifiersData, MeterLocationsData, PlantsData
+
+STORAGE_AGENT_LOG = "plants_agent_log"
 
 
 async def async_setup_entry(
@@ -36,6 +41,14 @@ async def async_setup_entry(
     elif entry_type == "auto_waterers":
         for waterer_id in data.auto_waterers:
             entities.append(AutoWatererStateSensor(hass, data, waterer_id))
+    elif entry_type == "agent_log":
+        store = Store(hass, 1, STORAGE_AGENT_LOG)
+        raw = await store.async_load() or {}
+        issues_sensor = AgentLogSensor(store, "plant_check_issues", "Plant Check Issues", "mdi:alert-circle-outline", raw)
+        actions_sensor = AgentLogSensor(store, "plant_check_actions", "Plant Check Actions", "mdi:robot", raw)
+        entities.extend([issues_sensor, actions_sensor])
+        hass.data[DOMAIN][entry.entry_id]["issues_sensor"] = issues_sensor
+        hass.data[DOMAIN][entry.entry_id]["actions_sensor"] = actions_sensor
     else:
         # plants
         for plant_id in data.plants:
@@ -677,3 +690,64 @@ class LocationAirTemperatureSensor(SensorEntity):
     def extra_state_attributes(self) -> dict:
         location = self._data.meter_locations[self._location_id]
         return {"air_temperature_entity_id": location.air_temperature_entity_id}
+
+
+# ---------------------------------------------------------------------------
+# Agent Log sensors (issues + actions)
+# ---------------------------------------------------------------------------
+
+
+class AgentLogSensor(SensorEntity):
+    """Sensor storing agent log data in attributes — no length limit."""
+
+    _attr_has_entity_name = True
+    _attr_entity_category = None
+
+    def __init__(
+        self,
+        store: Store,
+        field_key: str,
+        entity_name: str,
+        icon: str,
+        initial_data: dict,
+    ) -> None:
+        self._store = store
+        self._field_key = field_key
+        self._items: list[str] = self._parse(initial_data.get(field_key, ""))
+        self._attr_name = entity_name
+        self._attr_unique_id = f"agent_log_{field_key}_sensor"
+        self._attr_icon = icon
+        self._attr_device_info = DeviceInfo(
+            identifiers={(DOMAIN, "agent_log")},
+            name="Agent Log",
+            manufacturer="Custom",
+            model="Agent Log",
+        )
+
+    @staticmethod
+    def _parse(raw: str) -> list[str]:
+        if not raw:
+            return []
+        try:
+            import json
+            return json.loads(raw)
+        except Exception:
+            return [line for line in raw.splitlines() if line.strip()]
+
+    @property
+    def native_value(self) -> str:
+        ts = datetime.now(timezone.utc).strftime("%Y-%m-%dT%H:%M:%SZ")
+        return f"{len(self._items)} items • {ts}"
+
+    @property
+    def extra_state_attributes(self) -> dict:
+        import json
+        return {"items": self._items, "raw": json.dumps(self._items)}
+
+    async def async_update_items(self, items: list[str]) -> None:
+        import json
+        self._items = items
+        raw = await self._store.async_load() or {}
+        raw[self._field_key] = json.dumps(items)
+        await self._store.async_save(raw)
+        self.async_write_ha_state()

@@ -504,22 +504,24 @@ views:
       - type: markdown
         title: 🤖 Issues Log
         content: |
-          {% set val = states('text.agent_log_plant_check_issues') %}
-          {% if val in ('unknown', 'unavailable', '') %}
+          {% set items = state_attr('sensor.agent_log_plant_check_issues', 'items') %}
+          {% if not items %}
           _No issues recorded yet._
           {% else %}
-          {{ val }}
+          {% for item in items %}- {{ item }}
+          {% endfor %}
           {% endif %}
 
       - type: markdown
         title: ⚡ Actions Log
         content: |
-          {% set val = states('text.agent_log_plant_check_actions') %}
-          {% if val in ('unknown', 'unavailable', '') %}
+          {% set items = state_attr('sensor.agent_log_plant_check_actions', 'items') %}
+          {% if not items %}
           _No actions recorded yet._
           {% else %}
           ```
-          {{ val }}
+          {% for item in items %}{{ item }}
+          {% endfor %}
           ```
           {% endif %}
 

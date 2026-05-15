@@ -47,20 +47,19 @@ async def send_notification_via_mcp(message: str) -> None:
 
 
 async def write_issues_to_ha(issues: list[str]) -> None:
-    """Write current issues to plant_check_issues text entity for deduplication."""
+    """Write current issues to plant_check_issues sensor for deduplication."""
     client = get_mcp_client()
     tools = await client.get_tools()
     tool = next((t for t in tools if t.name == "call_ha_api"), None)
     if not tool:
         log.warning("call_ha_api not found, cannot write plant_check_issues")
         return
-    value = "\n".join(issues) if issues else ""
-    await tool.ainvoke({
+    resp = await tool.ainvoke({
         "method": "POST",
-        "path": "/api/services/text/set_value",
-        "body": {"entity_id": "text.agent_log_plant_check_issues", "value": value[:255]},
+        "path": "/api/services/plants/update_agent_log",
+        "body": {"field": "plant_check_issues", "items": issues},
     })
-    log.info("Wrote %d issue(s) to plant_check_issues.", len(issues))
+    log.info("Wrote %d issue(s) to plant_check_issues. Response: %s", len(issues), resp)
 
 
 async def run() -> None:
