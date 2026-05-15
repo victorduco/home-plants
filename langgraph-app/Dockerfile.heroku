@@ -12,12 +12,13 @@ RUN pip install --no-cache-dir \
     "langgraph-prebuilt>=0.1.8" \
     "langgraph-sdk>=0.3.4" \
     "langsmith>=0.6.9" \
-    "python-dotenv>=1.0.0"
+    "python-dotenv>=1.0.0" \
+    "langgraph-cli>=0.4.12" \
+    "langgraph-api>=0.5.35"
 
 COPY langgraph-app /app/langgraph-app
 RUN pip install --no-cache-dir -e /app/langgraph-app
 
-# Web dyno: simple health-check server so Heroku doesn't complain
 COPY entrypoint.sh /app/entrypoint.sh
 RUN chmod +x /app/entrypoint.sh
 
