@@ -180,23 +180,6 @@ async def async_setup_entry(hass: HomeAssistant, entry: ConfigEntry) -> bool:
             model="Agent Log",
         )
 
-        async def async_handle_update_agent_log(call) -> None:
-            entry_data = hass.data[DOMAIN][entry.entry_id]
-            field = call.data["field"]
-            items = call.data["items"]
-            sensor = entry_data.get(f"{field}_sensor")
-            if sensor:
-                await sensor.async_update_items(items)
-
-        hass.services.async_register(
-            DOMAIN,
-            "update_agent_log",
-            async_handle_update_agent_log,
-            schema=vol.Schema({
-                vol.Required("field"): vol.In(["plant_check_issues", "plant_check_actions"]),
-                vol.Required("items"): [cv.string],
-            }),
-        )
 
     else:
         # plants (default)

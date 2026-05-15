@@ -10,10 +10,10 @@ from fastmcp import FastMCP
 from .common import ha_request
 
 _MUTATING = {"POST", "PUT", "PATCH", "DELETE"}
-async def _append_action_log(method: str, path: str, body: dict[str, Any] | None) -> None:
+async def _append_action_log(method: str, path: str, body: dict[str, Any] | None, reason: str) -> None:
     """Append one action line to plant_check_actions sensor (best-effort)."""
     ts = datetime.now(timezone.utc).strftime("%Y-%m-%dT%H:%M:%SZ")
-    line = f"[{ts}] {method} {path} {body or ''}"
+    line = f"[{ts}] {method} {path} {body or ''} | reason: {reason}"
     _, existing, _ = await ha_request("GET", "/api/states/sensor.agent_log_plant_check_actions")
     items: list[str] = []
     if isinstance(existing, dict):
@@ -29,8 +29,8 @@ async def _append_action_log(method: str, path: str, body: dict[str, Any] | None
 
 def register(mcp: FastMCP) -> None:
     @mcp.tool
-    async def call_ha_api(method: str, path: str, body: dict[str, Any] | None = None) -> dict[str, Any]:
-        """Call any Home Assistant REST API endpoint. method: GET/POST/etc, path: e.g. /api/services/switch/turn_on, body: optional JSON payload."""
+    async def call_ha_api(method: str, path: str, reason: str, body: dict[str, Any] | None = None) -> dict[str, Any]:
+        """Call any Home Assistant REST API endpoint. method: GET/POST/etc, path: e.g. /api/services/switch/turn_on, reason: why this call is being made, body: optional JSON payload."""
         m = method.upper()
         _, data, error = await ha_request(m, path, json=body)
         if error:
@@ -38,7 +38,7 @@ def register(mcp: FastMCP) -> None:
         # Log mutating calls, but skip the log-write itself to avoid recursion.
         if m in _MUTATING and path != "/api/services/plants/update_agent_log":
             try:
-                await _append_action_log(m, path, body)
+                await _append_action_log(m, path, body, reason)
             except Exception:
                 pass
         return {"status": "success", "data": data}

@@ -47,8 +47,24 @@ async def async_setup_entry(
         issues_sensor = AgentLogSensor(store, "plant_check_issues", "Plant Check Issues", "mdi:alert-circle-outline", raw)
         actions_sensor = AgentLogSensor(store, "plant_check_actions", "Plant Check Actions", "mdi:robot", raw)
         entities.extend([issues_sensor, actions_sensor])
-        hass.data[DOMAIN][entry.entry_id]["issues_sensor"] = issues_sensor
-        hass.data[DOMAIN][entry.entry_id]["actions_sensor"] = actions_sensor
+
+        async def async_handle_update_agent_log(call) -> None:
+            field = call.data["field"]
+            items = call.data["items"]
+            sensor = issues_sensor if field == "plant_check_issues" else actions_sensor
+            await sensor.async_update_items(items)
+
+        import voluptuous as vol
+        import homeassistant.helpers.config_validation as cv
+        hass.services.async_register(
+            DOMAIN,
+            "update_agent_log",
+            async_handle_update_agent_log,
+            schema=vol.Schema({
+                vol.Required("field"): vol.In(["plant_check_issues", "plant_check_actions"]),
+                vol.Required("items"): [cv.string],
+            }),
+        )
     else:
         # plants
         for plant_id in data.plants:
