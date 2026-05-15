@@ -1,25 +1,6 @@
-FROM python:3.13-slim
+FROM registry.heroku.com/langgraph-server/web:latest
 
-WORKDIR /app
+COPY langgraph-app /deps/langgraph-app
+RUN pip install --no-cache-dir -e /deps/langgraph-app
 
-RUN pip install --no-cache-dir \
-    "httpx>=0.27.0" \
-    "langchain>=1.2.9" \
-    "langchain-core>=1.2.9" \
-    "langchain-mcp-adapters>=0.1.0" \
-    "langchain-openai>=1.1.8" \
-    "langgraph>=1.0.8" \
-    "langgraph-prebuilt>=0.1.8" \
-    "langgraph-sdk>=0.3.4" \
-    "langsmith>=0.6.9" \
-    "python-dotenv>=1.0.0" \
-    "langgraph-cli>=0.4.12" \
-    "langgraph-api>=0.5.35"
-
-COPY langgraph-app /app/langgraph-app
-RUN pip install --no-cache-dir -e /app/langgraph-app
-
-COPY entrypoint.sh /app/entrypoint.sh
-RUN chmod +x /app/entrypoint.sh
-
-CMD ["/app/entrypoint.sh"]
+COPY langgraph-app/langgraph.json /deps/langgraph.json
