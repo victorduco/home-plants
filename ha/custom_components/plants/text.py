@@ -254,7 +254,7 @@ class AgentLogText(TextEntity):
             model="Agent Log",
         )
         self._attr_entity_category = EntityCategory.DIAGNOSTIC
-        self._attr_native_max = 255
+        self._attr_native_max = 1000
 
     @property
     def native_value(self) -> str:

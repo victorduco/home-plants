@@ -58,7 +58,7 @@ async def write_issues_to_ha(issues: list[str]) -> None:
     await tool.ainvoke({
         "method": "POST",
         "path": "/api/services/text/set_value",
-        "body": {"entity_id": "text.agent_log_plant_check_issues", "value": value[:1000]},
+        "body": {"entity_id": "text.agent_log_plant_check_issues", "value": value[:255]},
     })
     log.info("Wrote %d issue(s) to plant_check_issues.", len(issues))
 
