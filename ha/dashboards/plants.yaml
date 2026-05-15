@@ -600,21 +600,4 @@ views:
                 curve: stepline
                 color: "#e74c3c"
 
-  - title: Automations
-    path: automations
-    cards:
-      - type: custom:auto-entities
-        card:
-          type: entities
-          title: Plant Automations
-        filter:
-          include:
-            - domain: automation
-              label: plants
-              options:
-                secondary_info: last-triggered
-                tap_action:
-                  action: more-info
-        sort:
-          method: friendly_name
 
