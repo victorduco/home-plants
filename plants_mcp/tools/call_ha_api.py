@@ -32,6 +32,9 @@ def register(mcp: FastMCP) -> None:
     async def call_ha_api(method: str, path: str, reason: str, body: dict[str, Any] | None = None) -> dict[str, Any]:
         """Call any Home Assistant REST API endpoint. method: GET/POST/etc, path: e.g. /api/services/switch/turn_on, reason: why this call is being made, body: optional JSON payload."""
         m = method.upper()
+        if isinstance(body, str):
+            import json as _json
+            body = _json.loads(body)
         _, data, error = await ha_request(m, path, json=body)
         if error:
             return {"status": "error", "error": error}
