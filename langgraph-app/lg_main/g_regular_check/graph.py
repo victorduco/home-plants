@@ -1,10 +1,8 @@
 from __future__ import annotations
 
 import logging
-import os
 from typing import Annotated, List, Optional
 
-import httpx
 from langchain_core.messages import AIMessage, AnyMessage, HumanMessage, SystemMessage
 from langchain_openai import ChatOpenAI
 from langgraph.graph import END, START, StateGraph
@@ -29,7 +27,10 @@ Follow these steps:
    - Turn humidifier on/off based on nearby plants' humidity zones
    - Turn grow lights on/off based on time of day
    - Open/close valves to water plants with red/yellow soil moisture zones
-6. Write a concise report split into two sections:
+6. Send the final report as a Home Assistant persistent notification using call_ha_api:
+   POST /api/services/persistent_notification/create
+   body: {"title": "🌿 Plant Check", "message": "<your report>", "notification_id": "plant_regular_check"}
+7. The report in the notification should be split into two sections:
    - **Done automatically:** every action you took, zone status per plant (🟢🟡🔴)
    - **Needs your attention:** temperature issues, repotting, unavailable sensors, anything you couldn't fix
 
@@ -89,30 +90,19 @@ async def call_tools(state: RegularCheckState) -> dict:
     return await tool_node.ainvoke(state)
 
 
-async def notify(state: RegularCheckState) -> dict:
-    last = state.messages[-1] if state.messages else None
-    if isinstance(last, AIMessage):
-        report = str(last.content or "").strip()
-        if report:
-            await _send_ha_notification("🌿 Plant Check", report)
-    return {}
-
-
 def should_continue(state: RegularCheckState) -> str:
     last = state.messages[-1] if state.messages else None
     if last and getattr(last, "tool_calls", None):
         return "tools"
-    return "notify"
+    return END
 
 
 builder = StateGraph(RegularCheckState)
 builder.add_node("agent", agent)
 builder.add_node("tools", call_tools)
-builder.add_node("notify", notify)
 
 builder.add_edge(START, "agent")
 builder.add_conditional_edges("agent", should_continue)
 builder.add_edge("tools", "agent")
-builder.add_edge("notify", END)
 
 graph_regular_check = builder.compile()

@@ -10,7 +10,7 @@ PLANTS_MCP_API_KEY = os.getenv("FASTMCP_API_KEY", "")
 def get_mcp_client() -> MultiServerMCPClient:
     headers = {}
     if PLANTS_MCP_API_KEY:
-        headers["X-API-Key"] = PLANTS_MCP_API_KEY
+        headers["Authorization"] = f"Bearer {PLANTS_MCP_API_KEY}"
 
     return MultiServerMCPClient(
         {

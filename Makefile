@@ -33,6 +33,20 @@ agent-dev:
 agent-install:
 	cd langgraph-app && pip install -e .
 
+agent-deploy:
+	HEROKU_APP_NAME=home-plants-agent ./ha-commands/deploy-langgraph.sh
+
+agent-run:
+	cd langgraph-app && LANGGRAPH_API_URL=https://home-plants-agent-5910b5a018d0.herokuapp.com python runner.py
+
+agent-logs:
+	HEROKU_API_KEY=$$(grep HEROKU_API_KEY .env | cut -d= -f2) \
+	  heroku logs --tail -a home-plants-agent
+
+agent-scheduler:
+	HEROKU_API_KEY=$$(grep HEROKU_API_KEY .env | cut -d= -f2) \
+	  heroku addons:open scheduler -a home-plants-agent
+
 backup:
 	@BACKUP_DIR="backups/$$(date +%Y-%m-%d_%H-%M-%S)"; \
 	mkdir -p "$$BACKUP_DIR"; \
