@@ -2,14 +2,13 @@ from __future__ import annotations
 
 import json
 import logging
-from typing import Annotated, List, Optional
+from typing import List, Optional, TypedDict
 
 from langchain_core.messages import AnyMessage, HumanMessage, SystemMessage
 from langchain_openai import ChatOpenAI
 from langgraph.graph import END, START, StateGraph
-from langgraph.graph.message import add_messages
 from langgraph.prebuilt import ToolNode
-from pydantic import BaseModel, Field
+from pydantic import BaseModel, Field  # BaseModel/Field still used for ManualActions, Notifications
 
 from .mcp_tools import get_mcp_client
 
@@ -114,19 +113,13 @@ class Notifications(BaseModel):
 # ---------------------------------------------------------------------------
 
 
-class RegularCheckState(BaseModel):
-    # act_agent loop messages
-    messages: Annotated[List[AnyMessage], add_messages] = Field(default_factory=list)
-    # pre-fetched context injected into act_agent system prompt
-    current_status: str = Field(default="")
-    # pre-fetched issues from previous runs for deduplication
-    previous_issues: List[str] = Field(default_factory=list)
-    # output of define_manual_actions
-    manual_actions: List[str] = Field(default_factory=list)
-    # output of define_notifications
-    notifications: List[str] = Field(default_factory=list)
-    # trigger override (optional, for manual runs)
-    trigger_message: Optional[str] = Field(default=None)
+class RegularCheckState(TypedDict, total=False):
+    messages: List[AnyMessage]  # plain list, nodes manage accumulation manually
+    current_status: str
+    previous_issues: List[str]
+    manual_actions: List[str]
+    notifications: List[str]
+    trigger_message: Optional[str]
 
 
 # ---------------------------------------------------------------------------
@@ -155,7 +148,7 @@ async def fetch_context(state: RegularCheckState) -> dict:
         return {"current_status": "{}"}
 
     status_json = _parse_mcp_response(await status_tool.ainvoke({}))
-    return {"current_status": status_json}
+    return {"current_status": status_json, "messages": []}
 
 
 
@@ -166,28 +159,34 @@ async def act_agent(state: RegularCheckState) -> dict:
     allowed = {"call_ha_api", "get_all_devices"}
     act_tools = [t for t in tools if t.name in allowed]
 
+    all_messages = list(state.get("messages") or [])
     model = llm.bind_tools(act_tools)
-    # Use only messages from the current run (starting from the first SystemMessage).
-    # state.messages accumulates across runs on the same thread, so previous run's
-    # ToolMessages would appear without their preceding tool_calls AIMessage.
-    all_messages = list(state.messages or [])
-    log.info("act_agent: messages=%d types=%s", len(all_messages), [type(m).__name__ for m in all_messages])
-    has_system = any(isinstance(m, SystemMessage) for m in all_messages)
 
-    if not has_system:
-        system = ACT_SYSTEM_PROMPT.format(current_status=state.current_status)
-        trigger = state.trigger_message or "Please perform the regular plant check now."
+    # Find the start of the current run: last SystemMessage in state.messages.
+    # On the first call within a run it won't exist yet, so we inject one.
+    # On subsequent calls (after tool execution) it's already there.
+    last_system_idx = next(
+        (i for i in range(len(all_messages) - 1, -1, -1) if isinstance(all_messages[i], SystemMessage)),
+        None,
+    )
+
+    if last_system_idx is None:
+        # First call in this run — build fresh history
+        system = ACT_SYSTEM_PROMPT.format(current_status=state.get("current_status", ""))
+        trigger = state.get("trigger_message") or "Please perform the regular plant check now."
         init_messages = [SystemMessage(content=system), HumanMessage(content=trigger)]
-        history = init_messages + all_messages
-        response = await model.ainvoke(history)
+        response = await model.ainvoke(init_messages)
+        log.info("act_agent (init): messages=%d", len(init_messages))
         return {"messages": init_messages + [response]}
 
-    for i, m in enumerate(all_messages):
-        log.info("act_agent[%d]: type=%s msg_type=%s tool_call_id=%s content=%.200s",
-                 i, type(m).__name__, getattr(m, "type", "?"),
-                 getattr(m, "tool_call_id", "-"), repr(m.content)[:200])
-    response = await model.ainvoke(all_messages)
-    return {"messages": [response]}
+    # Subsequent call — use history from current run only (from last SystemMessage onward)
+    history = all_messages[last_system_idx:]
+    log.info("act_agent: messages=%d types=%s", len(history), [type(m).__name__ for m in history])
+    for i, m in enumerate(history):
+        log.info("act_agent[%d]: type=%s tool_call_id=%s content=%.200s",
+                 i, type(m).__name__, getattr(m, "tool_call_id", "-"), repr(m.content)[:200])
+    response = await model.ainvoke(history)
+    return {"messages": all_messages + [response]}
 
 
 async def act_tools(state: RegularCheckState) -> dict:
@@ -197,15 +196,18 @@ async def act_tools(state: RegularCheckState) -> dict:
     allowed = {"call_ha_api", "get_all_devices"}
     act_tools_list = [t for t in tools if t.name in allowed]
     tool_node = ToolNode(act_tools_list)
-    result = await tool_node.ainvoke({"messages": state.messages})
-    for m in result.get("messages", []):
+    current = list(state.get("messages", []))
+    result = await tool_node.ainvoke({"messages": current})
+    tool_messages = result.get("messages", [])
+    for m in tool_messages:
         log.info("act_tools result: tool_call_id=%s content_type=%s content=%.200s",
                  getattr(m, "tool_call_id", "?"), type(m.content).__name__, repr(m.content))
-    return result
+    return {"messages": current + tool_messages}
 
 
 def should_continue(state: RegularCheckState) -> str:
-    last = state.messages[-1] if state.messages else None
+    messages = state.get("messages", [])
+    last = messages[-1] if messages else None
     if last and getattr(last, "tool_calls", None):
         return "act_tools"
     return "define_manual_actions"
@@ -233,7 +235,7 @@ async def fetch_previous_issues(state: RegularCheckState) -> dict:
 async def define_manual_actions(state: RegularCheckState) -> dict:
     """AI node #2: structured extraction of what humans need to do manually."""
     structured_llm = llm.with_structured_output(ManualActions)
-    history = list(state.messages or [])
+    history = list(state.get("messages") or [])
     history.append(HumanMessage(content=DEFINE_MANUAL_ACTIONS_PROMPT))
     result: ManualActions = await structured_llm.ainvoke(history)
     log.info("Manual actions: %d — %s", len(result.manual_actions), result.manual_actions)
@@ -243,15 +245,14 @@ async def define_manual_actions(state: RegularCheckState) -> dict:
 async def define_notifications(state: RegularCheckState) -> dict:
     """AI node #3: decide which manual_actions are new (not in recent issues log)."""
     previous_issues_text = (
-        "\n".join(f"- {i}" for i in state.previous_issues)
-        if state.previous_issues
-        else "No previous issues recorded."
+        "\n".join(f"- {i}" for i in state.get("previous_issues") or [])
+        or "No previous issues recorded."
     )
 
-    if not state.manual_actions:
+    if not state.get("manual_actions"):
         return {"notifications": []}
 
-    current_issues_text = "\n".join(f"- {a}" for a in state.manual_actions)
+    current_issues_text = "\n".join(f"- {a}" for a in state.get("manual_actions", []))
 
     structured_llm = llm.with_structured_output(Notifications)
     messages = [
@@ -287,17 +288,17 @@ async def notify(state: RegularCheckState) -> dict:
             "method": "POST",
             "path": "/api/services/plants/update_agent_log",
             "reason": "Persist current check issues for deduplication in next run",
-            "body": {"field": "plant_check_issues", "items": state.manual_actions},
+            "body": {"field": "plant_check_issues", "items": state.get("manual_actions", [])},
         })
-        log.info("Wrote %d issue(s) to plant_check_issues.", len(state.manual_actions))
+        log.info("Wrote %d issue(s) to plant_check_issues.", len(state.get("manual_actions", [])))
     except Exception as exc:
         log.warning("Failed to write issues log: %s", exc)
 
-    if not state.notifications:
+    if not state.get("notifications"):
         log.info("No new notifications to send.")
         return {}
 
-    message = "\n".join(f"- {n}" for n in state.notifications)
+    message = "\n".join(f"- {n}" for n in state.get("notifications", []))
     try:
         await call_tool.ainvoke({
             "method": "POST",
