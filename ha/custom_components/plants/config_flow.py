@@ -34,6 +34,8 @@ class PlantsConfigFlow(config_entries.ConfigFlow, domain=DOMAIN):
             return HumidifiersOptionsFlow()
         if entry_type == "auto_waterers":
             return AutoWaterersOptionsFlow()
+        if entry_type == "agent_log":
+            return AgentLogOptionsFlow()
         return PlantsOptionsFlow()
 
     async def async_step_user(self, user_input=None):
@@ -48,6 +50,7 @@ class PlantsConfigFlow(config_entries.ConfigFlow, domain=DOMAIN):
                             "grow_lights": "Grow Lights",
                             "humidifiers": "Humidifiers",
                             "auto_waterers": "Auto Waterers",
+                            "agent_log": "Agent Log",
                         }
                     )
                 }
@@ -63,6 +66,7 @@ class PlantsConfigFlow(config_entries.ConfigFlow, domain=DOMAIN):
             "grow_lights": "Grow Lights",
             "humidifiers": "Humidifiers",
             "auto_waterers": "Auto Waterers",
+            "agent_log": "Agent Log",
         }
         title = titles.get(entry_type, entry_type.replace("_", " ").title())
         return self.async_create_entry(title=title, data={"entry_type": entry_type})
@@ -479,3 +483,10 @@ class AutoWaterersOptionsFlow(config_entries.OptionsFlow):
             label_to_id[aw.name] = waterer_id
         labels.sort()
         return labels, label_to_id
+
+
+class AgentLogOptionsFlow(config_entries.OptionsFlow):
+    """No configurable options for Agent Log."""
+
+    async def async_step_init(self, user_input=None):
+        return self.async_create_entry(title="", data={})

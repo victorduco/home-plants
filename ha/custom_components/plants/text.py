@@ -7,9 +7,12 @@ from homeassistant.config_entries import ConfigEntry
 from homeassistant.core import HomeAssistant
 from homeassistant.helpers.device_registry import DeviceInfo
 from homeassistant.helpers.entity import EntityCategory
+from homeassistant.helpers.storage import Store
 
 from .const import DOMAIN
 from .data import MeterLocationsData, PlantsData
+
+STORAGE_AGENT_LOG = "plants_agent_log"
 
 MAX_RECOMMENDATION_LENGTH = 120
 
@@ -54,6 +57,11 @@ async def async_setup_entry(
                 )
     elif entry_type in ("grow_lights", "humidifiers", "auto_waterers"):
         pass  # plant slots handled by select platform
+    elif entry_type == "agent_log":
+        store = Store(hass, 1, STORAGE_AGENT_LOG)
+        raw = await store.async_load() or {}
+        entities.append(AgentLogText(hass, store, "plant_check_issues", "Plant Check Issues", raw))
+        entities.append(AgentLogText(hass, store, "plant_check_actions", "Plant Check Actions", raw))
     else:
         # plants
         for plant_id in data.plants:
@@ -211,4 +219,50 @@ class LocationNoteText(TextEntity):
         location = self._data.meter_locations[self._location_id]
         setattr(location, self._field_key, value)
         await self._data.async_save()
+        self.async_write_ha_state()
+
+
+# ---------------------------------------------------------------------------
+# Agent Log texts (plant_check_issues, plant_check_actions)
+# ---------------------------------------------------------------------------
+
+
+class AgentLogText(TextEntity):
+    """Text entity for agent log fields — writable via HA API by the runner."""
+
+    _attr_has_entity_name = True
+
+    def __init__(
+        self,
+        hass: HomeAssistant,
+        store: Store,
+        field_key: str,
+        entity_name: str,
+        initial_data: dict,
+    ) -> None:
+        self._hass = hass
+        self._store = store
+        self._field_key = field_key
+        self._value: str = initial_data.get(field_key, "")
+        self._attr_name = entity_name
+        self._attr_unique_id = f"agent_log_{field_key}"
+        self._attr_icon = "mdi:robot" if field_key == "plant_check_actions" else "mdi:alert-circle-outline"
+        self._attr_device_info = DeviceInfo(
+            identifiers={(DOMAIN, "agent_log")},
+            name="Agent Log",
+            manufacturer="Custom",
+            model="Agent Log",
+        )
+        self._attr_entity_category = EntityCategory.DIAGNOSTIC
+        self._attr_native_max = 255
+
+    @property
+    def native_value(self) -> str:
+        return self._value
+
+    async def async_set_value(self, value: str) -> None:
+        self._value = value
+        raw = await self._store.async_load() or {}
+        raw[self._field_key] = value
+        await self._store.async_save(raw)
         self.async_write_ha_state()

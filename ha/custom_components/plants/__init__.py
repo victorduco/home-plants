@@ -170,10 +170,34 @@ async def async_setup_entry(hass: HomeAssistant, entry: ConfigEntry) -> bool:
                 model="Auto Waterer",
             )
 
+    elif entry_type == "agent_log":
+        hass.data[DOMAIN][entry.entry_id] = {"type": entry_type, "data": None}
+        device_registry.async_get_or_create(
+            config_entry_id=entry.entry_id,
+            identifiers={(DOMAIN, "agent_log")},
+            name="Agent Log",
+            manufacturer="Custom",
+            model="Agent Log",
+        )
+
     else:
         # plants (default)
         data = await PlantsData.async_load(hass)
         hass.data[DOMAIN][entry.entry_id] = {"type": "plants", "data": data}
+        known_identifiers = {
+            (DOMAIN, f"plant_{plant.plant_id}") for plant in data.plants.values()
+        }
+        for device in list(device_registry.devices.values()):
+            if entry.entry_id not in device.config_entries:
+                continue
+            if any(id in known_identifiers for id in device.identifiers):
+                continue
+            for entity_entry in er.async_entries_for_device(
+                entity_registry, device.id, include_disabled_entities=True
+            ):
+                entity_registry.async_remove(entity_entry.entity_id)
+            device_registry.async_remove_device(device.id)
+
         for plant in data.plants.values():
             device_registry.async_get_or_create(
                 config_entry_id=entry.entry_id,
@@ -184,73 +208,69 @@ async def async_setup_entry(hass: HomeAssistant, entry: ConfigEntry) -> bool:
             )
             _cleanup_legacy_entities(entity_registry, plant.plant_id)
 
-        # Register HA services (guard against double-registration on reload).
-        services = hass.services.async_services()
-        if DOMAIN not in services or "add_plant" not in services[DOMAIN]:
-            async def async_handle_add(call) -> None:
-                await _handle_add_plant(hass, entry, call)
+        # Always re-register services so the closure captures the current entry
+        # after a reload (stale entry reference would silently do nothing).
+        async def async_handle_add(call) -> None:
+            await _handle_add_plant(hass, entry, call)
 
-            hass.services.async_register(
-                DOMAIN,
-                "add_plant",
-                async_handle_add,
-                schema=vol.Schema(
-                    {
-                        vol.Required("name"): cv.string,
-                        vol.Optional("moisture_entity_id"): cv.entity_id,
-                    }
-                ),
-            )
-        services = hass.services.async_services()
-        if DOMAIN not in services or "remove_plant" not in services[DOMAIN]:
-            async def async_handle_remove(call) -> None:
-                await _handle_remove_plant(hass, entry, call)
+        hass.services.async_register(
+            DOMAIN,
+            "add_plant",
+            async_handle_add,
+            schema=vol.Schema(
+                {
+                    vol.Required("name"): cv.string,
+                    vol.Optional("moisture_entity_id"): cv.entity_id,
+                }
+            ),
+        )
 
-            hass.services.async_register(
-                DOMAIN,
-                "remove_plant",
-                async_handle_remove,
-                schema=vol.Schema(
-                    {
-                        vol.Required("name"): cv.string,
-                    }
-                ),
-            )
-        services = hass.services.async_services()
-        if DOMAIN not in services or "record_watering" not in services[DOMAIN]:
-            async def async_handle_record_watering(call) -> None:
-                await _handle_record_watering(hass, entry, call)
+        async def async_handle_remove(call) -> None:
+            await _handle_remove_plant(hass, entry, call)
 
-            hass.services.async_register(
-                DOMAIN,
-                "record_watering",
-                async_handle_record_watering,
-                schema=vol.Schema(
-                    {
-                        vol.Required("plant"): cv.string,
-                        vol.Optional("duration_minutes"): cv.positive_int,
-                        vol.Optional("amount_ml"): cv.positive_int,
-                        vol.Optional("notes"): cv.string,
-                    }
-                ),
-            )
-        services = hass.services.async_services()
-        if DOMAIN not in services or "record_shower" not in services[DOMAIN]:
-            async def async_handle_record_shower(call) -> None:
-                await _handle_record_shower(hass, entry, call)
+        hass.services.async_register(
+            DOMAIN,
+            "remove_plant",
+            async_handle_remove,
+            schema=vol.Schema(
+                {
+                    vol.Required("name"): cv.string,
+                }
+            ),
+        )
 
-            hass.services.async_register(
-                DOMAIN,
-                "record_shower",
-                async_handle_record_shower,
-                schema=vol.Schema(
-                    {
-                        vol.Required("plant"): cv.string,
-                        vol.Optional("duration_minutes"): cv.positive_int,
-                        vol.Optional("notes"): cv.string,
-                    }
-                ),
-            )
+        async def async_handle_record_watering(call) -> None:
+            await _handle_record_watering(hass, entry, call)
+
+        hass.services.async_register(
+            DOMAIN,
+            "record_watering",
+            async_handle_record_watering,
+            schema=vol.Schema(
+                {
+                    vol.Required("plant"): cv.string,
+                    vol.Optional("duration_minutes"): cv.positive_int,
+                    vol.Optional("amount_ml"): cv.positive_int,
+                    vol.Optional("notes"): cv.string,
+                }
+            ),
+        )
+
+        async def async_handle_record_shower(call) -> None:
+            await _handle_record_shower(hass, entry, call)
+
+        hass.services.async_register(
+            DOMAIN,
+            "record_shower",
+            async_handle_record_shower,
+            schema=vol.Schema(
+                {
+                    vol.Required("plant"): cv.string,
+                    vol.Optional("duration_minutes"): cv.positive_int,
+                    vol.Optional("notes"): cv.string,
+                }
+            ),
+        )
 
     await hass.config_entries.async_forward_entry_setups(entry, PLATFORMS)
     return True

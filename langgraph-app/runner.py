@@ -46,6 +46,23 @@ async def send_notification_via_mcp(message: str) -> None:
     log.info("Notification sent.")
 
 
+async def write_issues_to_ha(issues: list[str]) -> None:
+    """Write current issues to plant_check_issues text entity for deduplication."""
+    client = get_mcp_client()
+    tools = await client.get_tools()
+    tool = next((t for t in tools if t.name == "call_ha_api"), None)
+    if not tool:
+        log.warning("call_ha_api not found, cannot write plant_check_issues")
+        return
+    value = "\n".join(issues) if issues else ""
+    await tool.ainvoke({
+        "method": "POST",
+        "path": "/api/services/text/set_value",
+        "body": {"entity_id": "text.plant_check_issues", "value": value[:255]},
+    })
+    log.info("Wrote %d issue(s) to plant_check_issues.", len(issues))
+
+
 async def run() -> None:
     log.info("Starting plant regular check...")
     result = await graph_regular_check.ainvoke({})
@@ -53,11 +70,14 @@ async def run() -> None:
     check_result = result.get("result")
     if not check_result or not check_result.issues:
         log.info("No issues found, skipping notification.")
+        await write_issues_to_ha([])
         return
 
+    log.info("Issues found: %d — %s", len(check_result.issues), check_result.issues)
     log.info("Issues: %s", check_result.issues)
     message = "\n".join(f"- {issue}" for issue in check_result.issues)
     await send_notification_via_mcp(message)
+    await write_issues_to_ha(check_result.issues)
 
 
 if __name__ == "__main__":

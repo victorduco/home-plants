@@ -2,7 +2,6 @@ from __future__ import annotations
 
 import logging
 import os
-from datetime import datetime, timezone
 from typing import Annotated, List, Optional
 
 import httpx
@@ -72,40 +71,32 @@ class RegularCheckState(BaseModel):
     result: Optional[CheckResult] = Field(default=None)
 
 
-async def fetch_previous_notifications(state: RegularCheckState) -> dict:
-    """Fetch persistent notifications from HA for the last 2 days."""
+async def _ha_get(path: str) -> dict | None:
+    """GET from HA REST API, return parsed JSON or None on error."""
     ha_url = os.environ.get("HA_URL", "http://homeassistant.local:8123").rstrip("/")
     ha_token = os.environ.get("HA_TOKEN", "")
     headers = {"Authorization": f"Bearer {ha_token}"}
-
     try:
         async with httpx.AsyncClient(timeout=10) as client:
-            # Get logbook for persistent_notification domain over last 48h
-            r = await client.get(
-                f"{ha_url}/api/logbook",
-                headers=headers,
-                params={"hours_to_show": 48, "entity_id": "persistent_notification.plant_regular_check"},
-            )
+            r = await client.get(f"{ha_url}{path}", headers=headers)
             r.raise_for_status()
-            entries = r.json()
+            return r.json()
+    except Exception as exc:
+        log.warning("HA GET %s failed: %s", path, exc)
+        return None
 
-        if not entries:
-            return {"previous_notifications": "No previous plant check notifications in the last 2 days."}
 
-        lines = []
-        for e in entries:
-            when = e.get("when", "")
-            msg = e.get("message", e.get("state", ""))
-            if msg:
-                lines.append(f"[{when}] {msg}")
 
-        text = "\n".join(lines) if lines else "No previous plant check notifications in the last 2 days."
-        log.info("Fetched %d previous notification entries.", len(lines))
-        return {"previous_notifications": text}
-
-    except Exception as e:
-        log.warning("Could not fetch previous notifications: %s", e)
-        return {"previous_notifications": "Could not fetch previous notifications."}
+async def fetch_previous_notifications(state: RegularCheckState) -> dict:
+    """Read last issues from plant_check_issues text entity in HA."""
+    data = await _ha_get("/api/states/text.plant_check_issues")
+    if not data:
+        return {"previous_notifications": "No previous plant check data available."}
+    value = data.get("state", "")
+    if not value or value == "unknown":
+        return {"previous_notifications": "No previous plant check notifications recorded."}
+    log.info("Loaded previous issues from HA: %s", value[:120])
+    return {"previous_notifications": f"Previous issues (last check):\n{value}"}
 
 
 async def agent(state: RegularCheckState) -> dict:
