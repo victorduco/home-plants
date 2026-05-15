@@ -35,6 +35,14 @@ async def send_notification_via_mcp(message: str) -> None:
             "notification_id": "plant_regular_check",
         },
     })
+    await tool.ainvoke({
+        "method": "POST",
+        "path": "/api/services/notify/mobile_app_iphone_2",
+        "body": {
+            "title": "🌿 Plant Check",
+            "message": message,
+        },
+    })
     log.info("Notification sent.")
 
 
