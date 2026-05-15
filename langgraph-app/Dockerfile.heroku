@@ -1,4 +1,4 @@
-FROM registry.heroku.com/langgraph-server/web:latest
+FROM langchain/langgraph-api:3.13
 
 COPY langgraph-app /deps/langgraph-app
 RUN pip install --no-cache-dir -e /deps/langgraph-app
