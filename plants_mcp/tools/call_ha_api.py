@@ -10,7 +10,7 @@ from fastmcp import FastMCP
 from .common import ha_request
 
 _MUTATING = {"POST", "PUT", "PATCH", "DELETE"}
-_ACTIONS_ENTITY = "text.plant_check_actions"
+_ACTIONS_ENTITY = "text.agent_log_plant_check_actions"
 
 
 async def _append_action_log(method: str, path: str, body: dict[str, Any] | None) -> None:
@@ -22,7 +22,7 @@ async def _append_action_log(method: str, path: str, body: dict[str, Any] | None
     if prev in ("unknown", "", None):
         prev = ""
     combined = (prev.strip() + "\n" + line).strip()
-    combined = combined[-250:]
+    combined = combined[-1000:]
     await ha_request(
         "POST",
         "/api/services/text/set_value",

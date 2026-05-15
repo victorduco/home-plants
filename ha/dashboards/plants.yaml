@@ -504,7 +504,7 @@ views:
       - type: markdown
         title: 🤖 Issues Log
         content: |
-          {% set val = states('text.plant_check_issues') %}
+          {% set val = states('text.agent_log_plant_check_issues') %}
           {% if val in ('unknown', 'unavailable', '') %}
           _No issues recorded yet._
           {% else %}
@@ -514,7 +514,7 @@ views:
       - type: markdown
         title: ⚡ Actions Log
         content: |
-          {% set val = states('text.plant_check_actions') %}
+          {% set val = states('text.agent_log_plant_check_actions') %}
           {% if val in ('unknown', 'unavailable', '') %}
           _No actions recorded yet._
           {% else %}

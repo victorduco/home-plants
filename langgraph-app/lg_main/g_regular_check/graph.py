@@ -51,13 +51,13 @@ Rules:
 - Temperature issues
 - Do NOT include: green zones, successful automated actions, per-plant status table
 
-Previous notifications (last 2 days) are provided below. If an issue is already listed there and nothing has changed — SKIP it (don't repeat).
+Previous issues from the last check are provided below. Compare SEMANTICALLY — minor wording differences don't matter. Skip an issue if the same underlying problem was already reported (same affected plants, same root cause). Only include an issue if it's genuinely new or the affected set of plants has changed significantly.
 
 {previous_notifications}
 
 Return JSON only:
 {{"issues": ["issue 1", "issue 2"]}}
-If no new issues — return {{"issues": []}}"""
+If no new issues compared to last check — return {{"issues": []}}"""
 
 
 class CheckResult(BaseModel):
@@ -89,7 +89,7 @@ async def _ha_get(path: str) -> dict | None:
 
 async def fetch_previous_notifications(state: RegularCheckState) -> dict:
     """Read last issues from plant_check_issues text entity in HA."""
-    data = await _ha_get("/api/states/text.plant_check_issues")
+    data = await _ha_get("/api/states/text.agent_log_plant_check_issues")
     if not data:
         return {"previous_notifications": "No previous plant check data available."}
     value = data.get("state", "")
