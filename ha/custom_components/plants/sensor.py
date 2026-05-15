@@ -258,14 +258,8 @@ class PlantHumidityZoneSensor(SensorEntity):
             return "unknown"
         h_min = plant.humidity_min if plant.humidity_min is not None else 40.0
         h_max = plant.humidity_max if plant.humidity_max is not None else 70.0
-        if humidity < h_min:
+        if humidity < h_min or humidity > h_max:
             return "red"
-        if humidity > h_max:
-            return "red"
-        # yellow band: within 10% of the edges
-        band = (h_max - h_min) * 0.15
-        if humidity < h_min + band or humidity > h_max - band:
-            return "yellow"
         return "green"
 
 
@@ -301,9 +295,6 @@ class PlantTemperatureZoneSensor(SensorEntity):
         t_max = plant.temperature_max if plant.temperature_max is not None else 85.0
         if temp < t_min or temp > t_max:
             return "red"
-        band = (t_max - t_min) * 0.15
-        if temp < t_min + band or temp > t_max - band:
-            return "yellow"
         return "green"
 
 

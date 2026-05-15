@@ -43,7 +43,7 @@ template:
         state: >
           {% if is_state('switch.humidifier_control', 'off') %}
             Off
-          {% elif states('sensor.indoor_humidity_30min_average') | float(0) >= 60
+          {% elif states('sensor.indoor_humidity_30min_average') | float(0) >= 50
              or states('sensor.indoor_humidity_30min_change') | float(0) >= 5 %}
             On
           {% else %}
@@ -52,7 +52,7 @@ template:
         icon: >
           {% if is_state('switch.humidifier_control', 'off') %}
             mdi:air-humidifier-off
-          {% elif states('sensor.indoor_humidity_30min_average') | float(0) >= 60
+          {% elif states('sensor.indoor_humidity_30min_average') | float(0) >= 50
              or states('sensor.indoor_humidity_30min_change') | float(0) >= 5 %}
             mdi:air-humidifier
           {% else %}

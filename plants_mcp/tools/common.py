@@ -142,7 +142,8 @@ def parse_plants_from_states(
         if matched_key in ("manual_watering", "manual_shower") and domain == "button":
             continue
         _device_only_keys = {
-            "light_state", "auto_watering_state",
+            "light_state", "light_outlet", "light_power",
+            "auto_watering_state",
             "humidifier_state", "humidifier_control", "humidifier_source",
         }
         if matched_key in _device_only_keys:
@@ -163,7 +164,7 @@ def parse_plants_from_states(
         )
         plant_info[f"{matched_key}_entity_id"] = entity_id
         plant_info[matched_key] = state.get("state")
-    return plants
+    return {name: info for name, info in plants.items() if info.get("entities")}
 
 
 def collect_entity_ids(payload: Any) -> set[str]:
