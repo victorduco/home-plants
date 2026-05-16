@@ -36,14 +36,20 @@ views:
               {% set h_light = states('sensor.horizontal_grow_light_state') %}
               {% set v_light = states('sensor.vertical_grow_light_state') %}
               {% set humid = states('sensor.humidifier_status') %}
+              {% set therm = states('sensor.thermostat_state') %}
+              {% set therm_action = state_attr('sensor.thermostat_state', 'hvac_action') %}
+              {% set therm_target = state_attr('sensor.thermostat_state', 'target_temperature') %}
               {% set h_icon = '🟢' if h_light == 'Light is on' else '⚫' %}
               {% set v_icon = '🟢' if v_light == 'Light is on' else '⚫' %}
               {% set hum_icon = '🟢' if humid == 'On' else ('🔴' if humid == 'No Water' else '⚫') %}
+              {% set therm_cur = state_attr('sensor.thermostat_state', 'current_temperature') %}
+              {% set therm_icon = '🟢' if therm_action in ('heating','cooling') else '⚫' %}
               | Device | Status |
               |--------|--------|
               | 💡 Horizontal Light | {{ h_icon }} {{ 'On' if h_light == 'Light is on' else 'Off' }} |
               | 💡 Vertical Light | {{ v_icon }} {{ 'On' if v_light == 'Light is on' else 'Off' }} |
               | 💧 Humidifier | {{ hum_icon }} {{ humid }} |
+              | 🌡️ Thermostat | {{ therm_icon }} {{ therm_cur }}°F ({{ therm_action }}) → set {{ therm_target }}°F |
 
           - type: markdown
             title: 🌱 Plant Status

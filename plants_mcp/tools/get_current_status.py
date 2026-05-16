@@ -591,18 +591,20 @@ def register(mcp: FastMCP) -> None:
         thermostat_info: dict = {"status": "unknown"}
         if thermostat_sensor:
             climate_eid = (thermostat_sensor.get("attributes") or {}).get("climate_entity_id")
-            if climate_eid and climate_eid in state_by_id:
-                climate_attrs = attrs_by_id.get(climate_eid, {})
-                thermostat_info = {
-                    "climate_entity_id": climate_eid,
-                    "hvac_mode": state_by_id[climate_eid],
-                    "hvac_action": climate_attrs.get("hvac_action"),
-                    "current_temperature_f": climate_attrs.get("current_temperature"),
-                    "target_temperature_f": climate_attrs.get("temperature"),
-                    "min_temp_f": climate_attrs.get("min_temp"),
-                    "max_temp_f": climate_attrs.get("max_temp"),
-                    "hvac_modes": climate_attrs.get("hvac_modes"),
-                }
+            if climate_eid:
+                _, climate_state, _ = await ha_request("GET", f"/api/states/{climate_eid}")
+                if isinstance(climate_state, dict):
+                    climate_attrs = climate_state.get("attributes") or {}
+                    thermostat_info = {
+                        "climate_entity_id": climate_eid,
+                        "hvac_mode": climate_state.get("state"),
+                        "hvac_action": climate_attrs.get("hvac_action"),
+                        "current_temperature_f": climate_attrs.get("current_temperature"),
+                        "target_temperature_f": climate_attrs.get("temperature"),
+                        "min_temp_f": climate_attrs.get("min_temp"),
+                        "max_temp_f": climate_attrs.get("max_temp"),
+                        "hvac_modes": climate_attrs.get("hvac_modes"),
+                    }
 
         devices = {
             "horizontal_grow_light": "on" if state_by_id.get("sensor.horizontal_grow_light_state") == "Light is on" else "off",
