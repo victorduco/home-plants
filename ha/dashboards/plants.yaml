@@ -52,6 +52,17 @@ views:
               | 🌡️ Thermostat | {{ therm_icon }} {{ therm_cur }}°F ({{ therm_action }}) → set {{ therm_target }}°F |
 
           - type: markdown
+            title: 🏠 Indoor Climate
+            content: |
+              {% set t = states('sensor.gw1200b_indoor_temperature') | float(0) %}
+              {% set h = states('sensor.gw1200b_indoor_humidity') | float(0) %}
+              {% set td = states('sensor.indoor_temperature_2h_change') | float(0) | round(1) %}
+              {% set hd = states('sensor.indoor_humidity_2h_change') | float(0) | round(0) | int %}
+              {% set t_sign = '+' if td > 0 else '' %}
+              {% set h_sign = '+' if hd > 0 else '' %}
+              🌡️ **{{ t }}°F** ({{ t_sign }}{{ td }}°F) &nbsp;&nbsp; 💧 **{{ h | int }}%** ({{ h_sign }}{{ hd }}%)
+
+          - type: markdown
             title: 🌱 Plant Status
             content: |
               {% set plants = ['dracaena','ficus_elastica_robusta','ficus_elastica_tineke','liana','malcolm_ficus','olive_tree','rubber_plant','triangularis_ficus','yucca'] %}

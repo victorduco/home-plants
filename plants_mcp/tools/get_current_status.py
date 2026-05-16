@@ -613,11 +613,72 @@ def register(mcp: FastMCP) -> None:
             "thermostat": thermostat_info,
         }
 
+        # Indoor climate: current + 2h history at 15min steps
+        indoor_temp_now = state_by_id.get("sensor.gw1200b_indoor_temperature")
+        indoor_humidity_now = state_by_id.get("sensor.gw1200b_indoor_humidity")
+
+        indoor_history: list[dict[str, Any]] = []
+        try:
+            from datetime import timedelta
+            hist_start = datetime.now(ZoneInfo("UTC")) - timedelta(hours=2)
+            _, hist_data, hist_err = await ha_request(
+                "GET",
+                f"/api/history/period/{hist_start.isoformat()}",
+                params={
+                    "filter_entity_id": "sensor.gw1200b_indoor_temperature,sensor.gw1200b_indoor_humidity",
+                    "minimal_response": "true",
+                },
+            )
+            if not hist_err and isinstance(hist_data, list):
+                temp_series: list[dict] = []
+                humidity_series: list[dict] = []
+                for group in hist_data:
+                    if not group:
+                        continue
+                    eid = group[0].get("entity_id", "")
+                    if "temperature" in eid:
+                        temp_series = group
+                    elif "humidity" in eid:
+                        humidity_series = group
+
+                def _bucket_series(series: list[dict]) -> dict[str, str]:
+                    buckets: dict[str, str] = {}
+                    for item in series:
+                        ts_str = item.get("last_changed") or item.get("last_updated") or ""
+                        ts = _parse_timestamp(ts_str)
+                        if not ts:
+                            continue
+                        minute = (ts.minute // 15) * 15
+                        bucket_key = ts.replace(minute=minute, second=0, microsecond=0).astimezone(ZoneInfo("America/Los_Angeles")).strftime("%H:%M")
+                        buckets[bucket_key] = item.get("state", "")
+                    return buckets
+
+                temp_buckets = _bucket_series(temp_series)
+                hum_buckets = _bucket_series(humidity_series)
+                all_keys = sorted(set(temp_buckets) | set(hum_buckets))
+                for key in all_keys:
+                    indoor_history.append({
+                        "time": key,
+                        "temp_f": temp_buckets.get(key),
+                        "humidity_pct": hum_buckets.get(key),
+                    })
+        except Exception:
+            pass
+
+        indoor_climate = {
+            "current": {
+                "temp_f": indoor_temp_now,
+                "humidity_pct": indoor_humidity_now,
+            },
+            "history_2h_15min": indoor_history,
+        }
+
         return {
             "status": "success",
             "time": time_data,
             "weather": weather,
             "devices": devices,
+            "indoor_climate": indoor_climate,
             "plants": plants,
         }
 

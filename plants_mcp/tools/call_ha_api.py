@@ -10,10 +10,20 @@ from fastmcp import FastMCP
 from .common import ha_request
 
 _MUTATING = {"POST", "PUT", "PATCH", "DELETE"}
+_SKIP_LOG_PATHS = {
+    "/api/services/plants/update_agent_log",
+    "/api/services/notify/mobile_app_iphone_2",
+    "/api/services/persistent_notification/create",
+    "/api/services/persistent_notification/dismiss",
+}
 async def _append_action_log(method: str, path: str, body: dict[str, Any] | None, reason: str) -> None:
     """Append one action line to plant_check_actions sensor (best-effort)."""
     ts = datetime.now(timezone.utc).strftime("%Y-%m-%dT%H:%M:%SZ")
-    line = f"[{ts}] {method} {path} {body or ''} | reason: {reason}"
+    action = path.split("/api/services/")[-1] if "/api/services/" in path else path
+    entity = (body or {}).get("entity_id", "")
+    if isinstance(entity, list):
+        entity = ", ".join(entity)
+    line = f"[{ts}] {action}{' → ' + entity if entity else ''} | {reason}"
     _, existing, _ = await ha_request("GET", "/api/states/sensor.agent_log_plant_check_actions")
     items: list[str] = []
     if isinstance(existing, dict):
@@ -39,7 +49,7 @@ def register(mcp: FastMCP) -> None:
         if error:
             return {"status": "error", "error": error}
         # Log mutating calls, but skip the log-write itself to avoid recursion.
-        if m in _MUTATING and path != "/api/services/plants/update_agent_log":
+        if m in _MUTATING and path not in _SKIP_LOG_PATHS:
             try:
                 await _append_action_log(m, path, body, reason)
             except Exception:

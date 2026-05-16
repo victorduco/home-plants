@@ -41,6 +41,20 @@ sensor:
     state_characteristic: change
     max_age:
       minutes: 30
+  - platform: statistics
+    name: "Indoor Humidity 2h Change"
+    unique_id: "stat_indoor_humidity_2h_change"
+    entity_id: sensor.gw1200b_indoor_humidity
+    state_characteristic: change
+    max_age:
+      hours: 2
+  - platform: statistics
+    name: "Indoor Temperature 2h Change"
+    unique_id: "stat_indoor_temperature_2h_change"
+    entity_id: sensor.gw1200b_indoor_temperature
+    state_characteristic: change
+    max_age:
+      hours: 2
 
 template:
   - sensor:
