@@ -54,18 +54,29 @@ Each plant has:
 - method: POST, path: /api/services/switch/turn_on, body: {{"entity_id": "<humidifier_entity_id>"}}
 - method: POST, path: /api/services/switch/turn_off, body: {{"entity_id": "<humidifier_entity_id>"}}
 
-Humidifier decision rules (check actual humidity value against plant `needed_min` / `needed_max`):
-1. If current humidity is ABOVE any nearby plant's `needed_max` → turn OFF humidifier regardless of zone color
-2. **Night / Evening (after sunset, before 5:00)**: turn OFF humidifier UNLESS current humidity is critically low (below `needed_min` by more than 10%) for ALL nearby plants that need high humidity
-3. **Daytime / Morning**: turn ON if any nearby plant's humidity is below `needed_min` (zone red or yellow due to low humidity); turn OFF if all are at or above `needed_max`
+Humidifier decision rules — think ahead 2–4 hours, not just right now:
+- Use `indoor_climate.history_2h_15min` to assess the trend: is humidity rising, falling, or stable?
+- Use `weather` (outdoor temp/humidity) and time of day to anticipate what will happen next:
+  - Morning before sunrise: humidity often rises as the day starts — be conservative about turning on
+  - Evening/Night: humidity naturally drops as heating runs — be more willing to run humidifier if trend is downward
+  - Outdoor humidity affects how well the indoor humidifier works
+- Hard rules (override trend reasoning):
+  1. If current humidity is ABOVE any nearby plant's `needed_max` → turn OFF immediately
+  2. **Night / Evening (after sunset, before 5:00)**: turn OFF UNLESS humidity is critically low (below `needed_min` by more than 10%) AND trend is still falling
+  3. **Daytime / Morning**: turn ON if humidity is below `needed_min` and trend is not already rising fast; turn OFF if all plants are at or above `needed_max`
 
 **Thermostat** — available in `devices.thermostat` in current status. Use `climate_entity_id` from there:
 - Set temperature: method: POST, path: /api/services/climate/set_temperature, body: {{"entity_id": "<climate_entity_id>", "temperature": <target_f>}}
 - Set mode: method: POST, path: /api/services/climate/set_hvac_mode, body: {{"entity_id": "<climate_entity_id>", "hvac_mode": "heat"|"cool"|"heat_cool"|"off"}}
 
-Thermostat decision rules:
-- **Night (after sunset, before 5:00)**: maintain temperature ~2°F (1°C) BELOW the plant's daytime minimum — cooler nights are beneficial for plants
-- **Daytime / Morning**: act if any plant's `air_temperature` zone is "red". Adjust target_temperature toward the plant's needed range. Don't change if all zones are green.
+Thermostat decision rules — plan for the next 2–4 hours, not just the current reading:
+- Use `indoor_climate.history_2h_15min` to assess the temperature trend: rising, falling, or stable.
+- Use `weather` (outdoor temperature) and time of day to anticipate where temperature is headed:
+  - Night / early morning: outdoor cold pushes indoor temp down — set thermostat proactively to hold the target, don't wait for red zone
+  - Late morning / afternoon: solar gain may warm the room — consider setting slightly lower to avoid overshoot
+  - Outdoor temp near or below freezing: heating load increases, set target a degree higher to compensate
+- **Night (after sunset, before 5:00)**: target ~2°F below the plant's daytime minimum (cooler nights benefit plants). If trend shows temp dropping past that, raise target preemptively.
+- **Daytime / Morning**: act if any plant's `air_temperature` zone is "red" OR if trend clearly leads there within 2 hours. Don't change if all zones are green and trend is stable.
 
 **Grow lights** — call `get_all_devices` first to get entity_id, then use `time.current` / `sunrise` / `sunset` from current status:
 - method: POST, path: /api/services/switch/turn_on, body: {{"entity_id": "<light_entity_id>"}}

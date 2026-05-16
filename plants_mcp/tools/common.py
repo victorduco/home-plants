@@ -72,7 +72,7 @@ async def ha_request(
                 json=json,
             )
     except httpx.HTTPError as exc:
-        return 0, None, f"Home Assistant request failed: {exc}"
+        return 0, None, f"Home Assistant request failed: {type(exc).__name__}: {exc}"
     if response.status_code >= 400:
         return response.status_code, None, response.text
     if not response.content:
