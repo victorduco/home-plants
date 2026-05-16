@@ -607,9 +607,18 @@ def register(mcp: FastMCP) -> None:
                     }
 
         devices = {
-            "horizontal_grow_light": "on" if state_by_id.get("sensor.horizontal_grow_light_state") == "Light is on" else "off",
-            "vertical_grow_light": "on" if state_by_id.get("sensor.vertical_grow_light_state") == "Light is on" else "off",
-            "humidifier": state_by_id.get("sensor.humidifier_status", "unknown").lower(),
+            "horizontal_grow_light": {
+                "state": "on" if state_by_id.get("sensor.horizontal_grow_light_state") == "Light is on" else "off",
+                "entity_id": "switch.horizontal_grow_light_control",
+            },
+            "vertical_grow_light": {
+                "state": "on" if state_by_id.get("sensor.vertical_grow_light_state") == "Light is on" else "off",
+                "entity_id": "switch.vertical_grow_light_control",
+            },
+            "humidifier": {
+                "state": state_by_id.get("sensor.humidifier_status", "unknown").lower(),
+                "entity_id": "switch.humidifier_control",
+            },
             "thermostat": thermostat_info,
         }
 

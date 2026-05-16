@@ -67,7 +67,7 @@ Thermostat decision rules:
 - **Night (after sunset, before 5:00)**: maintain temperature ~2°F (1°C) BELOW the plant's daytime minimum — cooler nights are beneficial for plants
 - **Daytime / Morning**: act if any plant's `air_temperature` zone is "red". Adjust target_temperature toward the plant's needed range. Don't change if all zones are green.
 
-**Grow lights** — time-based, use `time.current` / `sunrise` / `sunset` from current status:
+**Grow lights** — call `get_all_devices` first to get entity_id, then use `time.current` / `sunrise` / `sunset` from current status:
 - method: POST, path: /api/services/switch/turn_on, body: {{"entity_id": "<light_entity_id>"}}
 - method: POST, path: /api/services/switch/turn_off, body: {{"entity_id": "<light_entity_id>"}}
 
