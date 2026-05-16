@@ -45,6 +45,11 @@ Each plant has:
 - method: POST, path: /api/services/switch/turn_off, body: {{"entity_id": "<humidifier_entity_id>"}}
 Turn on if any nearby plant has humidity `red` or multiple are `yellow`. Turn off if all `green`.
 
+**Thermostat** — available in `devices.thermostat` in current status. Use `climate_entity_id` from there:
+- Set temperature: method: POST, path: /api/services/climate/set_temperature, body: {{"entity_id": "<climate_entity_id>", "temperature": <target_f>}}
+- Set mode: method: POST, path: /api/services/climate/set_hvac_mode, body: {{"entity_id": "<climate_entity_id>", "hvac_mode": "heat"|"cool"|"heat_cool"|"off"}}
+Act if any plant's air_temperature zone is "red". Adjust target_temperature toward plant needs. Don't change if all zones are green.
+
 **Grow lights** — time-based, use `time.current` / `sunrise` / `sunset` from current status:
 - method: POST, path: /api/services/switch/turn_on, body: {{"entity_id": "<light_entity_id>"}}
 - method: POST, path: /api/services/switch/turn_off, body: {{"entity_id": "<light_entity_id>"}}
@@ -61,7 +66,7 @@ Rules:
 - Humidifier is OFF but a plant's air_humidity zone is "red" AND humidity is ABOVE the plant's needed_max → do NOT report (no action needed, humidifier is already off)
 - Unavailable sensors (zone = "unknown") → one item: "Sensors unavailable: Plant A, Plant B"
 - Broken/unconfigured devices
-- Temperature issues (zone = "red")
+- Temperature issues (zone = "red") — if thermostat adjusted but temperature still red, report it
 - Do NOT include: green zones, successful automated actions, per-plant status table
 
 Return JSON only:

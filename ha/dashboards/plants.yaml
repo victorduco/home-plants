@@ -281,6 +281,14 @@ views:
             name: Control
             icon: mdi:air-humidifier
 
+      - type: entities
+        title: Thermostat
+        entities:
+          - entity: sensor.thermostat_state
+            name: State
+          - entity: climate.tstat_4432cc_lyric_t6_pro_thermostat
+            name: Control
+
   - title: Journal
     path: journal
     cards:

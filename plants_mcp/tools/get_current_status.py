@@ -582,10 +582,33 @@ def register(mcp: FastMCP) -> None:
                 weather[key] = f"{value} {unit}".strip() if value is not None else None
 
         state_by_id: dict[str, str] = {s.get("entity_id", ""): s.get("state", "") for s in states}
+        attrs_by_id: dict[str, dict] = {s.get("entity_id", ""): (s.get("attributes") or {}) for s in states}
+
+        thermostat_sensor = next(
+            (s for s in states if s.get("entity_id", "").startswith("sensor.thermostat_") and s.get("entity_id", "").endswith("_state")),
+            None,
+        )
+        thermostat_info: dict = {"status": "unknown"}
+        if thermostat_sensor:
+            climate_eid = (thermostat_sensor.get("attributes") or {}).get("climate_entity_id")
+            if climate_eid and climate_eid in state_by_id:
+                climate_attrs = attrs_by_id.get(climate_eid, {})
+                thermostat_info = {
+                    "climate_entity_id": climate_eid,
+                    "hvac_mode": state_by_id[climate_eid],
+                    "hvac_action": climate_attrs.get("hvac_action"),
+                    "current_temperature_f": climate_attrs.get("current_temperature"),
+                    "target_temperature_f": climate_attrs.get("temperature"),
+                    "min_temp_f": climate_attrs.get("min_temp"),
+                    "max_temp_f": climate_attrs.get("max_temp"),
+                    "hvac_modes": climate_attrs.get("hvac_modes"),
+                }
+
         devices = {
             "horizontal_grow_light": "on" if state_by_id.get("sensor.horizontal_grow_light_state") == "Light is on" else "off",
             "vertical_grow_light": "on" if state_by_id.get("sensor.vertical_grow_light_state") == "Light is on" else "off",
             "humidifier": state_by_id.get("sensor.humidifier_status", "unknown").lower(),
+            "thermostat": thermostat_info,
         }
 
         return {

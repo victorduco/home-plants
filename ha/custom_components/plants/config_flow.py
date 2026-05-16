@@ -14,6 +14,7 @@ from .data import (
     HumidifiersData,
     MeterLocationsData,
     PlantsData,
+    ThermostatsData,
 )
 
 
@@ -32,6 +33,8 @@ class PlantsConfigFlow(config_entries.ConfigFlow, domain=DOMAIN):
             return GrowLightsOptionsFlow()
         if entry_type == "humidifiers":
             return HumidifiersOptionsFlow()
+        if entry_type == "thermostats":
+            return ThermostatsOptionsFlow()
         if entry_type == "auto_waterers":
             return AutoWaterersOptionsFlow()
         if entry_type == "agent_log":
@@ -49,6 +52,7 @@ class PlantsConfigFlow(config_entries.ConfigFlow, domain=DOMAIN):
                             "meter_locations": "Meter Locations",
                             "grow_lights": "Grow Lights",
                             "humidifiers": "Humidifiers",
+                            "thermostats": "Thermostats",
                             "auto_waterers": "Auto Waterers",
                             "agent_log": "Agent Log",
                         }
@@ -65,6 +69,7 @@ class PlantsConfigFlow(config_entries.ConfigFlow, domain=DOMAIN):
             "meter_locations": "Meter Locations",
             "grow_lights": "Grow Lights",
             "humidifiers": "Humidifiers",
+            "thermostats": "Thermostats",
             "auto_waterers": "Auto Waterers",
             "agent_log": "Agent Log",
         }
@@ -410,6 +415,63 @@ class HumidifiersOptionsFlow(config_entries.OptionsFlow):
         for humidifier_id, hd in data.humidifiers.items():
             labels.append(hd.name)
             label_to_id[hd.name] = humidifier_id
+        labels.sort()
+        return labels, label_to_id
+
+
+class ThermostatsOptionsFlow(config_entries.OptionsFlow):
+    """Handle Thermostats options."""
+
+    async def async_step_init(self, user_input=None):
+        return self.async_show_menu(
+            step_id="init",
+            menu_options=["add_thermostat", "remove_thermostat"],
+        )
+
+    async def async_step_add_thermostat(self, user_input=None):
+        if user_input is not None:
+            data: ThermostatsData = self.hass.data[DOMAIN][self.config_entry.entry_id]["data"]
+            data.add_thermostat(
+                name=user_input["name"],
+                climate_entity_id=user_input.get("climate_entity_id"),
+            )
+            await data.async_save()
+            await self.hass.config_entries.async_reload(self.config_entry.entry_id)
+            return self.async_create_entry(title="", data={})
+
+        schema = vol.Schema(
+            {
+                vol.Required("name"): str,
+                vol.Optional("climate_entity_id"): selector.EntitySelector(
+                    selector.EntitySelectorConfig(domain=["climate"])
+                ),
+            }
+        )
+        return self.async_show_form(step_id="add_thermostat", data_schema=schema)
+
+    async def async_step_remove_thermostat(self, user_input=None):
+        data: ThermostatsData = self.hass.data[DOMAIN][self.config_entry.entry_id]["data"]
+        labels, label_to_id = self._label_maps(data)
+
+        if user_input is not None:
+            label = user_input["thermostat_label"]
+            thermostat_id = label_to_id.get(label)
+            if thermostat_id:
+                data.remove_thermostat(thermostat_id)
+                await data.async_save()
+                await self.hass.config_entries.async_reload(self.config_entry.entry_id)
+            return self.async_create_entry(title="", data={})
+
+        schema = vol.Schema({vol.Required("thermostat_label"): vol.In(labels)})
+        return self.async_show_form(step_id="remove_thermostat", data_schema=schema)
+
+    @staticmethod
+    def _label_maps(data: ThermostatsData) -> tuple[list[str], dict[str, str]]:
+        labels: list[str] = []
+        label_to_id: dict[str, str] = {}
+        for thermostat_id, td in data.thermostats.items():
+            labels.append(td.name)
+            label_to_id[td.name] = thermostat_id
         labels.sort()
         return labels, label_to_id
 

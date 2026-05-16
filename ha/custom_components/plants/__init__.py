@@ -17,6 +17,7 @@ from .data import (
     HumidifiersData,
     MeterLocationsData,
     PlantsData,
+    ThermostatsData,
 )
 
 # Legacy unique_id suffixes that must be removed on upgrade.
@@ -156,6 +157,18 @@ async def async_setup_entry(hass: HomeAssistant, entry: ConfigEntry) -> bool:
                 name=hd.name,
                 manufacturer="Custom",
                 model="Humidifier",
+            )
+
+    elif entry_type == "thermostats":
+        data = await ThermostatsData.async_load(hass)
+        hass.data[DOMAIN][entry.entry_id] = {"type": entry_type, "data": data}
+        for td in data.thermostats.values():
+            device_registry.async_get_or_create(
+                config_entry_id=entry.entry_id,
+                identifiers={(DOMAIN, f"thermostat_{td.thermostat_id}")},
+                name=td.name,
+                manufacturer="Custom",
+                model="Thermostat",
             )
 
     elif entry_type == "auto_waterers":

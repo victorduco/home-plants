@@ -17,6 +17,7 @@ from .const import (
     STORAGE_AUTO_WATERERS,
     STORAGE_GROW_LIGHTS,
     STORAGE_HUMIDIFIERS,
+    STORAGE_THERMOSTATS,
     STORAGE_VERSION,
 )
 
@@ -532,6 +533,87 @@ class HumidifiersData:
         """Set nearby plant IDs for a humidifier."""
         if humidifier_id in self.humidifiers:
             self.humidifiers[humidifier_id].nearby_plant_ids = plant_ids
+
+
+# ---------------------------------------------------------------------------
+# Thermostat
+# ---------------------------------------------------------------------------
+
+
+@dataclass
+class ThermostatDevice:
+    """Persisted thermostat device data."""
+
+    thermostat_id: str
+    name: str
+    climate_entity_id: str | None
+
+
+@dataclass
+class ThermostatsData:
+    """Persisted thermostats data."""
+
+    store: Store
+    thermostats: dict[str, ThermostatDevice]
+
+    @classmethod
+    async def async_load(cls, hass: HomeAssistant) -> "ThermostatsData":
+        store = Store(hass, STORAGE_VERSION, STORAGE_THERMOSTATS)
+        raw = await store.async_load() or {}
+        thermostats = cls._parse_raw(raw)
+        return cls(store=store, thermostats=thermostats)
+
+    @staticmethod
+    def _parse_raw(raw: dict) -> dict[str, ThermostatDevice]:
+        thermostats: dict[str, ThermostatDevice] = {}
+        for item in raw.get("thermostats", []):
+            thermostat_id = str(item.get("id"))
+            if not thermostat_id:
+                continue
+            thermostats[thermostat_id] = ThermostatDevice(
+                thermostat_id=thermostat_id,
+                name=item.get("name") or thermostat_id,
+                climate_entity_id=item.get("climate_entity_id"),
+            )
+        return thermostats
+
+    async def async_save(self) -> None:
+        payload = {
+            "thermostats": [
+                {
+                    "id": td.thermostat_id,
+                    "name": td.name,
+                    "climate_entity_id": td.climate_entity_id,
+                }
+                for td in self.thermostats.values()
+            ],
+        }
+        await self.store.async_save(payload)
+
+    def add_thermostat(
+        self,
+        name: str,
+        climate_entity_id: str | None = None,
+    ) -> ThermostatDevice:
+        thermostat_id = str(uuid4())
+        td = ThermostatDevice(
+            thermostat_id=thermostat_id,
+            name=name,
+            climate_entity_id=climate_entity_id,
+        )
+        self.thermostats[thermostat_id] = td
+        return td
+
+    def remove_thermostat(self, thermostat_id: str) -> bool:
+        return self.thermostats.pop(thermostat_id, None) is not None
+
+    def set_thermostat_entity(
+        self,
+        thermostat_id: str,
+        entity_id: str | None,
+    ) -> None:
+        if thermostat_id in self.thermostats:
+            self.thermostats[thermostat_id].climate_entity_id = entity_id
 
 
 # ---------------------------------------------------------------------------

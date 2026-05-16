@@ -12,7 +12,7 @@ from homeassistant.helpers.event import async_call_later, async_track_state_chan
 from homeassistant.helpers.storage import Store
 
 from .const import DOMAIN
-from .data import AutoWaterersData, GrowLightsData, HumidifiersData, MeterLocationsData, PlantsData
+from .data import AutoWaterersData, GrowLightsData, HumidifiersData, MeterLocationsData, PlantsData, ThermostatsData
 
 STORAGE_AGENT_LOG = "plants_agent_log"
 
@@ -38,6 +38,9 @@ async def async_setup_entry(
     elif entry_type == "humidifiers":
         for humidifier_id in data.humidifiers:
             entities.append(HumidifierStateSensor(data, humidifier_id))
+    elif entry_type == "thermostats":
+        for thermostat_id in data.thermostats:
+            entities.append(ThermostatStateSensor(data, thermostat_id))
     elif entry_type == "auto_waterers":
         for waterer_id in data.auto_waterers:
             entities.append(AutoWatererStateSensor(hass, data, waterer_id))
@@ -562,6 +565,82 @@ class HumidifierStateSensor(SensorEntity):
             self.async_write_ha_state()
 
         async_track_state_change_event(self.hass, [entity_id], _handle_state_change)
+
+
+# ---------------------------------------------------------------------------
+# Thermostat sensors
+# ---------------------------------------------------------------------------
+
+
+class ThermostatStateSensor(SensorEntity):
+    """Sensor mirroring the thermostat climate entity state."""
+
+    def __init__(self, data: ThermostatsData, thermostat_id: str) -> None:
+        self._data = data
+        self._thermostat_id = thermostat_id
+        td = data.thermostats[thermostat_id]
+        self._attr_name = f"{td.name} State"
+        self._attr_unique_id = f"thermostat_{thermostat_id}_state"
+        self._attr_device_info = DeviceInfo(
+            identifiers={(DOMAIN, f"thermostat_{thermostat_id}")},
+            name=td.name,
+            manufacturer="Custom",
+            model="Thermostat",
+        )
+
+    @property
+    def native_value(self):
+        entity_id = self._data.thermostats[self._thermostat_id].climate_entity_id
+        if not entity_id or not self.hass:
+            return "No thermostat configured"
+        state = self.hass.states.get(entity_id)
+        if not state:
+            return "No thermostat configured"
+        if state.state == "unavailable":
+            return "Thermostat unavailable"
+        attrs = state.attributes
+        current = attrs.get("current_temperature")
+        action = attrs.get("hvac_action", state.state)
+        if current is not None:
+            return f"{current}°F | {action}"
+        return action
+
+    @property
+    def extra_state_attributes(self) -> dict:
+        entity_id = self._data.thermostats[self._thermostat_id].climate_entity_id
+        if not entity_id or not self.hass:
+            return {"climate_entity_id": entity_id}
+        state = self.hass.states.get(entity_id)
+        if not state:
+            return {"climate_entity_id": entity_id}
+        attrs = state.attributes
+        return {
+            "climate_entity_id": entity_id,
+            "hvac_mode": state.state,
+            "hvac_action": attrs.get("hvac_action"),
+            "current_temperature": attrs.get("current_temperature"),
+            "target_temperature": attrs.get("temperature"),
+            "min_temp": attrs.get("min_temp"),
+            "max_temp": attrs.get("max_temp"),
+            "hvac_modes": attrs.get("hvac_modes"),
+        }
+
+    async def async_added_to_hass(self) -> None:
+        entity_id = self._data.thermostats[self._thermostat_id].climate_entity_id
+        if not entity_id:
+            return
+
+        @callback
+        def _handle_state_change(event) -> None:
+            self.async_write_ha_state()
+
+        async_track_state_change_event(self.hass, [entity_id], _handle_state_change)
+
+        @callback
+        def _refresh(_now) -> None:
+            self.async_write_ha_state()
+
+        async_call_later(self.hass, 5, _refresh)
 
 
 # ---------------------------------------------------------------------------

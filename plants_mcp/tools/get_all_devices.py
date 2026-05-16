@@ -11,13 +11,14 @@ from .common import get_states_list
 _GROW_LIGHT_PREFIXES = ("horizontal_grow_light", "vertical_grow_light")
 _AUTO_WATERER_PREFIXES = ("auto_waterer",)
 _HUMIDIFIER_PREFIXES = ("humidifier",)
-_INTERESTING_DOMAINS = {"sensor", "switch", "valve", "button", "number", "select"}
+_THERMOSTAT_PREFIXES = ("thermostat",)
+_INTERESTING_DOMAINS = {"sensor", "switch", "valve", "button", "number", "select", "climate"}
 _PLANT_SLOT_SUFFIX = tuple(f"_plant_{i}" for i in range(1, 21))
 
 
 def _device_prefix(entity_id: str) -> str | None:
     name = entity_id.split(".", 1)[-1]
-    for prefix in (*_GROW_LIGHT_PREFIXES, *_AUTO_WATERER_PREFIXES, *_HUMIDIFIER_PREFIXES):
+    for prefix in (*_GROW_LIGHT_PREFIXES, *_AUTO_WATERER_PREFIXES, *_HUMIDIFIER_PREFIXES, *_THERMOSTAT_PREFIXES):
         if name == prefix or name.startswith(prefix + "_"):
             return prefix
     return None
@@ -83,5 +84,8 @@ def register(mcp: FastMCP) -> None:
         for prefix in _HUMIDIFIER_PREFIXES:
             if prefix in groups:
                 devices.append(_build_device(prefix, prefix.replace("_", " ").title(), "humidifier", groups[prefix]))
+        for prefix in _THERMOSTAT_PREFIXES:
+            if prefix in groups:
+                devices.append(_build_device(prefix, prefix.replace("_", " ").title(), "thermostat", groups[prefix]))
 
         return {"status": "success", "devices": devices}

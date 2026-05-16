@@ -23,3 +23,4 @@ LAMP_PLANT_SLOTS = 4
 STORAGE_GROW_LIGHTS = "plants_grow_lights"
 STORAGE_HUMIDIFIERS = "plants_humidifiers"
 STORAGE_AUTO_WATERERS = "plants_auto_waterers"
+STORAGE_THERMOSTATS = "plants_thermostats"
