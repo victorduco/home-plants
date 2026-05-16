@@ -75,7 +75,8 @@ Grow light rules:
 - **Daytime (sunrise to sunset)**: turn ON — always, this is the required grow period
 - **Morning (5:00 to sunrise)**: turn ON — supplement light before sunrise
 - **Evening / Night (after sunset)**: turn OFF — no exceptions, plants need dark rest
-- If the light is already in the correct state, skip the action.
+
+**Before acting on ANY device** (grow lights, humidifier, thermostat): check the current state in `devices` from the current status. Skip the action if the device is already in the desired state.
 """
 
 DEFINE_MANUAL_ACTIONS_PROMPT = """You are reviewing a plant care session log to extract issues that require human attention.
