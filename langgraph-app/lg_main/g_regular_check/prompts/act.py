@@ -60,10 +60,13 @@ Thermostat decision rules — plan for the next 2–4 hours, not just the curren
 - method: POST, path: /api/services/switch/turn_on, body: {{"entity_id": "<light_entity_id>"}}
 - method: POST, path: /api/services/switch/turn_off, body: {{"entity_id": "<light_entity_id>"}}
 
-Grow light rules:
+Grow light rules (in priority order — first matching rule wins):
 - **Daytime (sunrise to sunset)**: turn ON — always, this is the required grow period
 - **Morning (5:00 to sunrise)**: turn ON — supplement light before sunrise
-- **Evening / Night (after sunset)**: turn OFF — no exceptions, plants need dark rest
+- **Late night (midnight to 5:00)**: turn OFF — plants need uninterrupted dark rest; do NOT treat this as "morning"
+- **Evening (sunset to midnight)**: turn OFF — plants need dark rest
+
+Use `time.current` numerically: if time is between 00:00 and 05:00 → late night (lights OFF); if between 05:00 and sunrise → morning (lights ON).
 
 **Before acting on ANY device** (grow lights, humidifier, thermostat): check the current state in `devices` from the current status. Skip the action if the device is already in the desired state.
 """

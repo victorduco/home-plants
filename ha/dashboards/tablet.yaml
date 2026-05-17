@@ -65,8 +65,8 @@ views:
 
           {% set plants = [
             ('dracaena',              'Dracaena'),
-            ('ficus_elastica_robusta','Ficus Robusta'),
-            ('ficus_elastica_tineke', 'Ficus Tineke'),
+            ('ficus_robusta_darker','Ficus Robusta'),
+            ('ficus_tineke_lighter', 'Ficus Tineke'),
             ('liana',                 'Liana'),
             ('malcolm_ficus',         'Malcolm Ficus'),
             ('olive_tree',            'Olive Tree'),

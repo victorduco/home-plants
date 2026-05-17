@@ -65,9 +65,9 @@ views:
           - type: markdown
             title: 🌱 Plant Status
             content: |
-              {% set plants = ['dracaena','ficus_elastica_robusta','ficus_elastica_tineke','liana','malcolm_ficus','olive_tree','rubber_plant','triangularis_ficus','yucca'] %}
-              {% set names = {'dracaena':'Dracaena','ficus_elastica_robusta':'Ficus Elastica Robusta','ficus_elastica_tineke':'Ficus Elastica Tineke','liana':'Liana','malcolm_ficus':'Malcolm Ficus','olive_tree':'Olive Tree','rubber_plant':'Rubber Plant','triangularis_ficus':'Triangularis Ficus','yucca':'Yucca'} %}
-              {% set mv = {'dracaena':'sensor.dracaena_soil_moisture_state','ficus_elastica_robusta':'sensor.ficus_elastica_robusta_soil_moisture_state','ficus_elastica_tineke':'sensor.ficus_elastica_tineke_soil_moisture_state','liana':'sensor.liana_moisture','malcolm_ficus':'sensor.malcolm_ficus_moisture','olive_tree':'sensor.olive_tree_moisture','rubber_plant':'sensor.rubber_plant_moisture','triangularis_ficus':'sensor.triangularis_ficus_moisture','yucca':'sensor.yucca_moisture'} %}
+              {% set plants = ['dracaena','ficus_robusta_darker','ficus_tineke_lighter','liana','malcolm_ficus','olive_tree','rubber_plant','triangularis_ficus','yucca'] %}
+              {% set names = {'dracaena':'Dracaena','ficus_robusta_darker':'Ficus Robusta (darker)','ficus_tineke_lighter':'Ficus Tineke (lighter)','liana':'Liana','malcolm_ficus':'Malcolm Ficus','olive_tree':'Olive Tree','rubber_plant':'Rubber Plant','triangularis_ficus':'Triangularis Ficus','yucca':'Yucca'} %}
+              {% set mv = {'dracaena':'sensor.dracaena_soil_moisture_state','ficus_robusta_darker':'sensor.ficus_robusta_darker_soil_moisture_state','ficus_tineke_lighter':'sensor.ficus_tineke_lighter_soil_moisture_state','liana':'sensor.liana_moisture','malcolm_ficus':'sensor.malcolm_ficus_moisture','olive_tree':'sensor.olive_tree_moisture','rubber_plant':'sensor.rubber_plant_moisture','triangularis_ficus':'sensor.triangularis_ficus_moisture','yucca':'sensor.yucca_moisture'} %}
               {% macro zone_icon(z) %}{% if z=='red' %}🔴{% elif z=='yellow' %}🟡{% elif z=='green' %}🟢{% else %}⚪{% endif %}{% endmacro %}
               | Plant | 🌿 Soil | 💧 Humidity | 🌡️ Temp |
               |-------|---------|------------|---------|
@@ -111,14 +111,14 @@ views:
       - type: custom:auto-entities
         card:
           type: entities
-          title: 🌿 Ficus Elastica Robusta
+          title: 🌿 Ficus Robusta (darker)
         filter:
           include:
-            - entity_id: "*ficus_elastica_robusta*"
+            - entity_id: "*ficus_robusta_darker*"
               domain: sensor
-            - entity_id: "*ficus_elastica_robusta*"
+            - entity_id: "*ficus_robusta_darker*"
               domain: number
-            - entity_id: "*ficus_elastica_robusta*"
+            - entity_id: "*ficus_robusta_darker*"
               domain: text
         sort:
           method: entity_id
@@ -126,14 +126,14 @@ views:
       - type: custom:auto-entities
         card:
           type: entities
-          title: 🌿 Ficus Elastica Tineke
+          title: 🌿 Ficus Tineke (lighter)
         filter:
           include:
-            - entity_id: "*ficus_elastica_tineke*"
+            - entity_id: "*ficus_tineke_lighter*"
               domain: sensor
-            - entity_id: "*ficus_elastica_tineke*"
+            - entity_id: "*ficus_tineke_lighter*"
               domain: number
-            - entity_id: "*ficus_elastica_tineke*"
+            - entity_id: "*ficus_tineke_lighter*"
               domain: text
         sort:
           method: entity_id
@@ -319,12 +319,12 @@ views:
           - event.dracaena_manual_watering
           - event.dracaena_auto_watering
           - event.dracaena_manual_shower
-          - event.ficus_elastica_robusta_manual_watering
-          - event.ficus_elastica_robusta_auto_watering
-          - event.ficus_elastica_robusta_manual_shower
-          - event.ficus_elastica_tineke_manual_watering
-          - event.ficus_elastica_tineke_auto_watering
-          - event.ficus_elastica_tineke_manual_shower
+          - event.ficus_robusta_darker_manual_watering
+          - event.ficus_robusta_darker_auto_watering
+          - event.ficus_robusta_darker_manual_shower
+          - event.ficus_tineke_lighter_manual_watering
+          - event.ficus_tineke_lighter_auto_watering
+          - event.ficus_tineke_lighter_manual_shower
           - event.liana_manual_watering
           - event.liana_auto_watering
           - event.liana_manual_shower
@@ -377,19 +377,19 @@ views:
                 name: Dracaena max
                 stroke_width: 1
                 curve: stepline
-              - entity: number.ficus_elastica_robusta_air_temperature_min
+              - entity: number.ficus_robusta_darker_air_temperature_min
                 name: Robusta min
                 stroke_width: 1
                 curve: stepline
-              - entity: number.ficus_elastica_robusta_air_temperature_max
+              - entity: number.ficus_robusta_darker_air_temperature_max
                 name: Robusta max
                 stroke_width: 1
                 curve: stepline
-              - entity: number.ficus_elastica_tineke_air_temperature_min
+              - entity: number.ficus_tineke_lighter_air_temperature_min
                 name: Tineke min
                 stroke_width: 1
                 curve: stepline
-              - entity: number.ficus_elastica_tineke_air_temperature_max
+              - entity: number.ficus_tineke_lighter_air_temperature_max
                 name: Tineke max
                 stroke_width: 1
                 curve: stepline
@@ -458,19 +458,19 @@ views:
                 name: Dracaena max
                 stroke_width: 1
                 curve: stepline
-              - entity: number.ficus_elastica_robusta_air_humidity_min
+              - entity: number.ficus_robusta_darker_air_humidity_min
                 name: Robusta min
                 stroke_width: 1
                 curve: stepline
-              - entity: number.ficus_elastica_robusta_air_humidity_max
+              - entity: number.ficus_robusta_darker_air_humidity_max
                 name: Robusta max
                 stroke_width: 1
                 curve: stepline
-              - entity: number.ficus_elastica_tineke_air_humidity_min
+              - entity: number.ficus_tineke_lighter_air_humidity_min
                 name: Tineke min
                 stroke_width: 1
                 curve: stepline
-              - entity: number.ficus_elastica_tineke_air_humidity_max
+              - entity: number.ficus_tineke_lighter_air_humidity_max
                 name: Tineke max
                 stroke_width: 1
                 curve: stepline
@@ -578,18 +578,18 @@ views:
           - type: custom:apexcharts-card
             header:
               show: true
-              title: 🌱 Ficus Elastica Robusta Soil Moisture (%)
+              title: 🌱 Ficus Robusta (darker) Soil Moisture (%)
             graph_span: 72h
             series:
-              - entity: sensor.ficus_elastica_robusta_soil_moisture_state
+              - entity: sensor.ficus_robusta_darker_soil_moisture_state
                 name: Moisture
                 stroke_width: 2
-              - entity: number.ficus_elastica_robusta_soil_moisture_yellow_threshold
+              - entity: number.ficus_robusta_darker_soil_moisture_yellow_threshold
                 name: Yellow threshold
                 stroke_width: 1
                 curve: stepline
                 color: "#f4b942"
-              - entity: number.ficus_elastica_robusta_soil_moisture_red_threshold
+              - entity: number.ficus_robusta_darker_soil_moisture_red_threshold
                 name: Red threshold
                 stroke_width: 1
                 curve: stepline
