@@ -6,6 +6,7 @@ from typing import List, Optional, TypedDict
 
 from langchain_core.messages import AnyMessage, HumanMessage, SystemMessage
 from langchain_openai import ChatOpenAI
+from langsmith import get_current_run_tree
 from langgraph.graph import END, START, StateGraph
 from langgraph.prebuilt import ToolNode
 from pydantic import BaseModel, Field  # BaseModel/Field still used for ManualActions, Notifications
@@ -102,6 +103,12 @@ async def act_agent(state: RegularCheckState) -> dict:
         system = ACT_SYSTEM_PROMPT.format(current_status=state.get("current_status", ""))
         trigger = state.get("trigger_message") or "Please perform the regular plant check now."
         init_messages = [SystemMessage(content=system), HumanMessage(content=trigger)]
+
+        run = get_current_run_tree()
+        if run:
+            run.name = f"regular check: {trigger[:60]}"
+            run.tags = list(run.tags or []) + ["regular-check"]
+
         response = await model.ainvoke(init_messages)
         log.info("act_agent (init): messages=%d", len(init_messages))
         return {"messages": init_messages + [response]}
