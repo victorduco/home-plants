@@ -541,7 +541,8 @@ views:
           {% if not items %}
           _No issues recorded yet._
           {% else %}
-          {% for item in items %}- {{ item }}
+          {# Lines are stored as "<dedup key> | <text>"; show only the text. #}
+          {% for item in items %}- {{ item.split('|')[1:] | join('|') | trim or item }}
           {% endfor %}
           {% endif %}
 

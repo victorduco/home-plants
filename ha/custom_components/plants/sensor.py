@@ -56,13 +56,24 @@ async def async_setup_entry(
         raw = await store.async_load() or {}
         issues_sensor = AgentLogSensor(store, "plant_check_issues", "Plant Check Issues", "mdi:alert-circle-outline", raw)
         actions_sensor = AgentLogSensor(store, "plant_check_actions", "Plant Check Actions", "mdi:robot", raw)
-        entities.extend([issues_sensor, actions_sensor])
+        # Append-only ledger of what was actually pushed to the phone, one timestamped
+        # line per notification. Kept separate from plant_check_issues (which is the
+        # current snapshot and is overwritten every run) because deduplication needs
+        # history that survives an issue briefly disappearing.
+        notified_sensor = AgentLogSensor(store, "plant_check_notified", "Plant Check Notified", "mdi:bell-check-outline", raw)
+        entities.extend([issues_sensor, actions_sensor, notified_sensor])
+
+        sensors_by_field = {
+            "plant_check_issues": issues_sensor,
+            "plant_check_actions": actions_sensor,
+            "plant_check_notified": notified_sensor,
+        }
 
         async def async_handle_update_agent_log(call) -> None:
-            field = call.data["field"]
-            items = call.data["items"]
-            sensor = issues_sensor if field == "plant_check_issues" else actions_sensor
-            await sensor.async_update_items(items)
+            sensor = sensors_by_field.get(call.data["field"])
+            if sensor is None:
+                return
+            await sensor.async_update_items(call.data["items"])
 
         import voluptuous as vol
         import homeassistant.helpers.config_validation as cv
@@ -71,7 +82,7 @@ async def async_setup_entry(
             "update_agent_log",
             async_handle_update_agent_log,
             schema=vol.Schema({
-                vol.Required("field"): vol.In(["plant_check_issues", "plant_check_actions"]),
+                vol.Required("field"): vol.In(list(sensors_by_field)),
                 vol.Required("items"): [cv.string],
             }),
         )

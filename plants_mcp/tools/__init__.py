@@ -8,6 +8,9 @@ from .get_all_plants import register as register_get_all_plants
 from .get_current_status import register as register_get_current_status
 from .get_recent_actions import register as register_get_recent_actions
 from .get_recent_issues import register as register_get_recent_issues
+from .no_action import register as register_no_action
+
+
 def register_tools(mcp: FastMCP) -> None:
     """Register all tools."""
     register_call_ha_api(mcp)
@@ -16,3 +19,4 @@ def register_tools(mcp: FastMCP) -> None:
     register_get_current_status(mcp)
     register_get_recent_actions(mcp)
     register_get_recent_issues(mcp)
+    register_no_action(mcp)

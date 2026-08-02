@@ -16,6 +16,78 @@ from .common import (
 )
 
 
+NIGHT_ENDS_HOUR = 5
+
+
+def _parse_iso(value: str | None) -> datetime | None:
+    if not value:
+        return None
+    try:
+        parsed = datetime.fromisoformat(str(value).replace("Z", "+00:00"))
+    except ValueError:
+        return None
+    return parsed.replace(tzinfo=ZoneInfo("America/Los_Angeles")) if parsed.tzinfo is None else parsed
+
+
+def compute_time_context(
+    now_local: datetime,
+    next_rising_raw: str | None,
+    next_setting_raw: str | None,
+    sun_state: str | None,
+) -> dict[str, Any]:
+    """Resolve today's sunrise/sunset, the period of day, and the grow light target.
+
+    `sun.sun` reports next_rising/next_setting — the NEXT events, which during daylight
+    both point at tomorrow. Publishing those raw made sunrise later than sunset, so the
+    day/night interval could not be evaluated and the agent guessed, switching grow
+    lights on at 02:00 while calling it "daytime". Sunrise and sunset move by about a
+    minute a day, so re-dating the next occurrence onto today is accurate to minutes.
+    """
+    tz = now_local.tzinfo
+
+    def _on_today(raw: str | None) -> datetime | None:
+        parsed = _parse_iso(raw)
+        if parsed is None:
+            return None
+        return parsed.astimezone(tz).replace(
+            year=now_local.year, month=now_local.month, day=now_local.day
+        )
+
+    sunrise = _on_today(next_rising_raw)
+    sunset = _on_today(next_setting_raw)
+
+    if sunrise and sunset:
+        if sunrise <= now_local < sunset:
+            period = "day"
+        elif now_local >= sunset:
+            period = "evening"
+        elif now_local.hour < NIGHT_ENDS_HOUR:
+            period = "night"
+        else:
+            period = "morning"
+    elif sun_state == "above_horizon":
+        period = "day"
+    elif sun_state == "below_horizon":
+        period = "night" if now_local.hour < NIGHT_ENDS_HOUR else "evening"
+    else:
+        period = None
+
+    # The grow light schedule has no judgement in it, so the answer is settled here and
+    # applied by the graph rather than re-derived by the model on every run.
+    lights = None
+    if period in ("day", "morning"):
+        lights = "on"
+    elif period in ("night", "evening"):
+        lights = "off"
+
+    return {
+        "sunrise": sunrise.isoformat() if sunrise else None,
+        "sunset": sunset.isoformat() if sunset else None,
+        "period": period,
+        "grow_lights_should_be": lights,
+    }
+
+
 def register(mcp: FastMCP) -> None:
 
     def _parse_timestamp(value: str) -> datetime | None:
@@ -570,13 +642,22 @@ def register(mcp: FastMCP) -> None:
             })
         plants.sort(key=lambda plant: plant.get("name", ""))
 
-        # Collect time data
+        # Collect time data.
+        # NOTE: sun.sun exposes next_rising/next_setting — the NEXT events, which during
+        # daytime point at TOMORROW. Feeding those out raw made sunrise > sunset and the
+        # day/night interval uncomputable, so today's events are derived below instead.
         la_tz = ZoneInfo("America/Los_Angeles")
+        now_local = datetime.now(la_tz)
         time_data = {
-            "current": datetime.now(la_tz).isoformat(),
+            "current": now_local.isoformat(),
             "sunrise": None,
             "sunset": None,
+            "period": None,
+            "grow_lights_should_be": None,
         }
+        sun_state: str | None = None
+        next_rising_raw: str | None = None
+        next_setting_raw: str | None = None
 
         weather_whitelist = {
             "sensor.openweathermap_temperature",
@@ -590,20 +671,19 @@ def register(mcp: FastMCP) -> None:
                 continue
             attributes = state.get("attributes", {})
             if entity_id == "sun.sun":
-                if "next_rising" in attributes:
-                    sunrise_utc = _parse_timestamp(attributes.get("next_rising"))
-                    if sunrise_utc:
-                        time_data["sunrise"] = sunrise_utc.astimezone(la_tz).isoformat()
-                if "next_setting" in attributes:
-                    sunset_utc = _parse_timestamp(attributes.get("next_setting"))
-                    if sunset_utc:
-                        time_data["sunset"] = sunset_utc.astimezone(la_tz).isoformat()
+                sun_state = state.get("state")
+                next_rising_raw = attributes.get("next_rising")
+                next_setting_raw = attributes.get("next_setting")
                 continue
             if entity_id in weather_whitelist:
                 unit = attributes.get("unit_of_measurement") or ""
                 value = state.get("state")
                 key = entity_id.replace("sensor.openweathermap_", "")
                 weather[key] = f"{value} {unit}".strip() if value is not None else None
+
+        time_data.update(
+            compute_time_context(now_local, next_rising_raw, next_setting_raw, sun_state)
+        )
 
         state_by_id: dict[str, str] = {s.get("entity_id", ""): s.get("state", "") for s in states}
         attrs_by_id: dict[str, dict] = {s.get("entity_id", ""): (s.get("attributes") or {}) for s in states}

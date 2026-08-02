@@ -37,6 +37,52 @@ async def _append_action_log(method: str, path: str, body: dict[str, Any] | None
     )
 
 
+# Services that act on a device and are meaningless without a concrete target.
+_ENTITY_REQUIRED_PREFIXES = (
+    "/api/services/switch/",
+    "/api/services/valve/",
+    "/api/services/climate/",
+    "/api/services/light/",
+)
+_PLACEHOLDER_ENTITIES = {"", "none", "null", "unknown", "unavailable", "<light_entity_id>"}
+
+# Guard rails for the whole-home thermostat. Plant minimums are advisory; these are not.
+_MIN_TARGET_F = 60.0
+_MAX_TARGET_F = 85.0
+
+
+def _validate(path: str, body: dict[str, Any] | None) -> str | None:
+    """Return an error message if this call would be a no-op or unsafe, else None."""
+    if not path.startswith(_ENTITY_REQUIRED_PREFIXES):
+        return None
+
+    entity = (body or {}).get("entity_id")
+    if isinstance(entity, list):
+        entity = entity[0] if entity else None
+    if entity is None or str(entity).strip().lower() in _PLACEHOLDER_ENTITIES:
+        return (
+            f"Refused: {path} requires a real 'entity_id' in body, got {entity!r}. "
+            "Look up the entity_id in current_status.devices or the plant's entities "
+            "and call again. If no action is needed, call no_action instead."
+        )
+    if "." not in str(entity):
+        return f"Refused: {entity!r} is not a valid entity_id (expected 'domain.object_id')."
+
+    if path == "/api/services/climate/set_temperature":
+        raw = (body or {}).get("temperature")
+        try:
+            target = float(raw)
+        except (TypeError, ValueError):
+            return f"Refused: climate/set_temperature needs a numeric 'temperature', got {raw!r}."
+        if not _MIN_TARGET_F <= target <= _MAX_TARGET_F:
+            return (
+                f"Refused: target {target}°F is outside the safe range "
+                f"{_MIN_TARGET_F:.0f}–{_MAX_TARGET_F:.0f}°F for a whole-home thermostat. "
+                "Plant minimums apply to the plants, not to the house."
+            )
+    return None
+
+
 def register(mcp: FastMCP) -> None:
     @mcp.tool
     async def call_ha_api(method: str, path: str, reason: str, body: dict[str, Any] | None = None) -> dict[str, Any]:
@@ -45,6 +91,11 @@ def register(mcp: FastMCP) -> None:
         if isinstance(body, str):
             import json as _json
             body = _json.loads(body)
+
+        validation_error = _validate(path, body)
+        if validation_error:
+            return {"status": "error", "error": validation_error}
+
         _, data, error = await ha_request(m, path, json=body)
         if error:
             return {"status": "error", "error": error}

@@ -1,0 +1,24 @@
+update_agent_log:
+  name: Update agent log
+  description: >-
+    Replace the contents of one of the agent log sensors. The caller sends the full
+    desired list; the integration does not merge.
+  fields:
+    field:
+      name: Field
+      description: Which agent log to write.
+      required: true
+      example: plant_check_issues
+      selector:
+        select:
+          options:
+            - plant_check_issues
+            - plant_check_actions
+            - plant_check_notified
+    items:
+      name: Items
+      description: Full replacement list of log lines.
+      required: true
+      example: '["Humidifier reservoir is empty"]'
+      selector:
+        object:
