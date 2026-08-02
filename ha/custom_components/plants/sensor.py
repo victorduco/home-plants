@@ -128,6 +128,8 @@ class PlantMoistureSensor(SensorEntity):
 
     @property
     def native_unit_of_measurement(self):
+        if not isinstance(self.native_value, (int, float)):
+            return None
         moisture_entity_id = self._data.plants[self._plant_id].moisture_entity_id
         if not moisture_entity_id or not self.hass:
             return None
@@ -198,6 +200,8 @@ class PlantHumiditySensor(SensorEntity):
 
     @property
     def native_unit_of_measurement(self):
+        if not isinstance(self.native_value, (int, float)):
+            return None
         air_humidity_entity_id = self._data.plants[self._plant_id].air_humidity_entity_id
         if not air_humidity_entity_id or not self.hass:
             return None
@@ -268,6 +272,8 @@ class PlantAirTemperatureSensor(SensorEntity):
 
     @property
     def native_unit_of_measurement(self):
+        if not isinstance(self.native_value, (int, float)):
+            return None
         entity_id = self._data.plants[self._plant_id].air_temperature_entity_id
         if not entity_id or not self.hass:
             return None
@@ -863,6 +869,8 @@ class LocationAirHumiditySensor(SensorEntity):
 
     @property
     def native_unit_of_measurement(self):
+        if not isinstance(self.native_value, (int, float)):
+            return None
         entity_id = self._data.meter_locations[
             self._location_id
         ].air_humidity_entity_id
@@ -920,6 +928,8 @@ class LocationAirTemperatureSensor(SensorEntity):
 
     @property
     def native_unit_of_measurement(self):
+        if not isinstance(self.native_value, (int, float)):
+            return None
         entity_id = self._data.meter_locations[
             self._location_id
         ].air_temperature_entity_id
