@@ -75,13 +75,14 @@ views:
             ('triangularis_ficus',    'Triangularis'),
             ('yucca',                 'Yucca'),
           ] %}
+          {% set mv = {'dracaena':'sensor.dracaena_soil_moisture_state','ficus_robusta_darker':'sensor.ficus_robusta_darker_soil_moisture_state','ficus_tineke_lighter':'sensor.ficus_tineke_lighter_soil_moisture_state','liana':'sensor.liana_moisture','malcolm_ficus':'sensor.malcolm_ficus_moisture','olive_tree':'sensor.olive_tree_moisture','rubber_plant':'sensor.rubber_plant_moisture','triangularis_ficus':'sensor.triangularis_ficus_moisture','yucca':'sensor.yucca_moisture'} %}
 
           <div class="tablet-wrap">
 
             {# Row 1: soil moisture #}
             {% for (p, name) in plants %}
               {% set zone  = states('sensor.' ~ p ~ '_soil_moisture_zone') %}
-              {% set val   = states('sensor.' ~ p ~ '_soil_moisture_state') | float(-1) %}
+              {% set val   = states(mv[p]) | float(-1) %}
               {% set yth   = states('number.' ~ p ~ '_soil_moisture_yellow_threshold') | float(0) %}
               {% set rth   = states('number.' ~ p ~ '_soil_moisture_red_threshold') | float(0) %}
               {% set cls   = 'green' if zone == 'green' else ('yellow' if zone == 'yellow' else ('stale' if zone == 'stale' else 'red')) %}

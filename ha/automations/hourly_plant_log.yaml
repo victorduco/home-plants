@@ -10,7 +10,7 @@
         name: "🌿 Hourly Plant Status"
         message: >-
           {% set ns = namespace(lines=[]) %}
-          {% for s in states.sensor | selectattr('entity_id', 'search', '_soil_moisture_state$') | selectattr('state', 'is_number') | list %}
+          {% for s in states.sensor | selectattr('attributes.friendly_name', 'defined') | selectattr('attributes.friendly_name', 'search', ' Soil Moisture State$') | selectattr('state', 'is_number') | list %}
           {% set stale_tag = ' [STALE]' if (now() - s.last_updated).total_seconds() > 21600 else '' %}
           {% set ns.lines = ns.lines + [s.attributes.friendly_name | replace(' Soil Moisture State', '') ~ ': soil ' ~ (s.state | float | round(0) | int) ~ '%' ~ stale_tag] %}
           {% endfor %}
