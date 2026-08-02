@@ -38,26 +38,30 @@ def _base_url() -> str:
 
 
 async def _too_soon(http: httpx.AsyncClient, base: str) -> bool:
-    """True if a run already succeeded inside the minimum interval."""
+    """True if a run already completed inside the minimum interval.
+
+    There is no cross-thread run search in this API, but every run gets its own thread
+    and a finished one is left `idle`, so the newest idle thread dates the last run.
+    """
     if MIN_INTERVAL_MINUTES <= 0:
         return False
     try:
         r = await http.post(
-            f"{base}/runs/search",
-            json={"assistant_id": ASSISTANT_ID, "status": "success", "limit": 1},
+            f"{base}/threads/search",
+            json={"status": "idle", "limit": 1, "sort_by": "created_at", "sort_order": "desc"},
         )
         r.raise_for_status()
-        runs = r.json()
+        threads = r.json()
     except Exception as exc:  # never let the guard itself block a scheduled run
         log.warning("Could not check last run time (%s); proceeding.", exc)
         return False
 
-    if not runs:
+    if not threads:
         return False
 
     from datetime import datetime, timedelta, timezone
 
-    raw = (runs[0] or {}).get("created_at")
+    raw = (threads[0] or {}).get("created_at")
     if not raw:
         return False
     try:

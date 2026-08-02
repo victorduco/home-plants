@@ -12,6 +12,11 @@ dependencies = [
     "httpx>=0.28",
     "langchain>=1.2.9",
     "langchain-core>=1.2.9",
+    # mcp 2.0 dropped mcp.shared.context.RequestContext, which langchain-mcp-adapters
+    # 0.3.1 still imports — and the adapter only declares `mcp>=1.24.0`, so a rebuild
+    # silently resolves to the broken pair and the graph fails to load at startup.
+    # Lift this once the adapter supports mcp 2.x.
+    "mcp>=1.24,<2",
     "langchain-mcp-adapters>=0.1.0",
     "langchain-openai>=1.1.8",
     "langgraph>=1.0.8",
