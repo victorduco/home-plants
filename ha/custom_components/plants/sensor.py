@@ -11,10 +11,17 @@ from homeassistant.helpers.device_registry import DeviceInfo
 from homeassistant.helpers.event import async_call_later, async_track_state_change_event
 from homeassistant.helpers.storage import Store
 
-from .const import DOMAIN
+from .const import DOMAIN, STALE_AFTER
 from .data import AutoWaterersData, GrowLightsData, HumidifiersData, MeterLocationsData, PlantsData, ThermostatsData
 
 STORAGE_AGENT_LOG = "plants_agent_log"
+
+
+def _is_stale(state) -> bool:
+    """Return True if the state's last update is older than STALE_AFTER."""
+    if state is None or state.last_updated is None:
+        return False
+    return (datetime.now(timezone.utc) - state.last_updated) > STALE_AFTER
 
 
 async def async_setup_entry(
@@ -112,6 +119,8 @@ class PlantMoistureSensor(SensorEntity):
         state = self.hass.states.get(moisture_entity_id)
         if state is None or state.state in ("unknown", "unavailable"):
             return "No soil moisture meter near the plant."
+        if _is_stale(state):
+            return "Stale"
         try:
             return float(state.state)
         except ValueError:
@@ -130,7 +139,30 @@ class PlantMoistureSensor(SensorEntity):
     @property
     def extra_state_attributes(self) -> dict:
         plant = self._data.plants[self._plant_id]
-        return {"moisture_entity_id": plant.moisture_entity_id}
+        attrs: dict = {"moisture_entity_id": plant.moisture_entity_id}
+        if plant.moisture_entity_id and self.hass:
+            state = self.hass.states.get(plant.moisture_entity_id)
+            if state is not None:
+                attrs["is_stale"] = _is_stale(state)
+                attrs["source_last_updated"] = state.last_updated.isoformat()
+        return attrs
+
+    async def async_added_to_hass(self) -> None:
+        entity_id = self._data.plants[self._plant_id].moisture_entity_id
+        if not entity_id:
+            return
+
+        @callback
+        def _handle_state_change(event) -> None:
+            self.async_write_ha_state()
+
+        async_track_state_change_event(self.hass, [entity_id], _handle_state_change)
+
+        @callback
+        def _refresh(_now) -> None:
+            self.async_write_ha_state()
+
+        async_call_later(self.hass, 5, _refresh)
 
 
 class PlantHumiditySensor(SensorEntity):
@@ -157,6 +189,8 @@ class PlantHumiditySensor(SensorEntity):
         state = self.hass.states.get(air_humidity_entity_id)
         if state is None or state.state in ("unknown", "unavailable"):
             return "No air humidity meter near the plant."
+        if _is_stale(state):
+            return "Stale"
         try:
             return float(state.state)
         except ValueError:
@@ -175,7 +209,13 @@ class PlantHumiditySensor(SensorEntity):
     @property
     def extra_state_attributes(self) -> dict:
         plant = self._data.plants[self._plant_id]
-        return {"air_humidity_entity_id": plant.air_humidity_entity_id}
+        attrs: dict = {"air_humidity_entity_id": plant.air_humidity_entity_id}
+        if plant.air_humidity_entity_id and self.hass:
+            state = self.hass.states.get(plant.air_humidity_entity_id)
+            if state is not None:
+                attrs["is_stale"] = _is_stale(state)
+                attrs["source_last_updated"] = state.last_updated.isoformat()
+        return attrs
 
     async def async_added_to_hass(self) -> None:
         entity_id = self._data.plants[self._plant_id].air_humidity_entity_id
@@ -219,6 +259,8 @@ class PlantAirTemperatureSensor(SensorEntity):
         state = self.hass.states.get(entity_id)
         if state is None or state.state in ("unknown", "unavailable"):
             return "No air temperature meter near the plant."
+        if _is_stale(state):
+            return "Stale"
         try:
             return float(state.state)
         except ValueError:
@@ -237,7 +279,13 @@ class PlantAirTemperatureSensor(SensorEntity):
     @property
     def extra_state_attributes(self) -> dict:
         plant = self._data.plants[self._plant_id]
-        return {"air_temperature_entity_id": plant.air_temperature_entity_id}
+        attrs: dict = {"air_temperature_entity_id": plant.air_temperature_entity_id}
+        if plant.air_temperature_entity_id and self.hass:
+            state = self.hass.states.get(plant.air_temperature_entity_id)
+            if state is not None:
+                attrs["is_stale"] = _is_stale(state)
+                attrs["source_last_updated"] = state.last_updated.isoformat()
+        return attrs
 
     async def async_added_to_hass(self) -> None:
         entity_id = self._data.plants[self._plant_id].air_temperature_entity_id
@@ -281,6 +329,8 @@ class PlantMoistureZoneSensor(SensorEntity):
         state = self.hass.states.get(plant.moisture_entity_id)
         if state is None or state.state in ("unknown", "unavailable"):
             return "unknown"
+        if _is_stale(state):
+            return "stale"
         try:
             moisture = float(state.state)
         except ValueError:
@@ -292,6 +342,23 @@ class PlantMoistureZoneSensor(SensorEntity):
         if moisture < yellow:
             return "yellow"
         return "green"
+
+    async def async_added_to_hass(self) -> None:
+        entity_id = self._data.plants[self._plant_id].moisture_entity_id
+        if not entity_id:
+            return
+
+        @callback
+        def _handle_state_change(event) -> None:
+            self.async_write_ha_state()
+
+        async_track_state_change_event(self.hass, [entity_id], _handle_state_change)
+
+        @callback
+        def _refresh(_now) -> None:
+            self.async_write_ha_state()
+
+        async_call_later(self.hass, 5, _refresh)
 
 
 class PlantHumidityZoneSensor(SensorEntity):
@@ -318,6 +385,8 @@ class PlantHumidityZoneSensor(SensorEntity):
         state = self.hass.states.get(plant.air_humidity_entity_id)
         if state is None or state.state in ("unknown", "unavailable"):
             return "unknown"
+        if _is_stale(state):
+            return "stale"
         try:
             humidity = float(state.state)
         except ValueError:
@@ -370,6 +439,8 @@ class PlantTemperatureZoneSensor(SensorEntity):
         state = self.hass.states.get(plant.air_temperature_entity_id)
         if state is None or state.state in ("unknown", "unavailable"):
             return "unknown"
+        if _is_stale(state):
+            return "stale"
         try:
             temp = float(state.state)
         except ValueError:
@@ -783,6 +854,8 @@ class LocationAirHumiditySensor(SensorEntity):
         state = self.hass.states.get(entity_id)
         if state is None or state.state in ("unknown", "unavailable"):
             return "No air humidity meter for this location."
+        if _is_stale(state):
+            return "Stale"
         try:
             return float(state.state)
         except ValueError:
@@ -803,7 +876,13 @@ class LocationAirHumiditySensor(SensorEntity):
     @property
     def extra_state_attributes(self) -> dict:
         location = self._data.meter_locations[self._location_id]
-        return {"air_humidity_entity_id": location.air_humidity_entity_id}
+        attrs: dict = {"air_humidity_entity_id": location.air_humidity_entity_id}
+        if location.air_humidity_entity_id and self.hass:
+            state = self.hass.states.get(location.air_humidity_entity_id)
+            if state is not None:
+                attrs["is_stale"] = _is_stale(state)
+                attrs["source_last_updated"] = state.last_updated.isoformat()
+        return attrs
 
 
 class LocationAirTemperatureSensor(SensorEntity):
@@ -832,6 +911,8 @@ class LocationAirTemperatureSensor(SensorEntity):
         state = self.hass.states.get(entity_id)
         if state is None or state.state in ("unknown", "unavailable"):
             return "No air temperature meter for this location."
+        if _is_stale(state):
+            return "Stale"
         try:
             return float(state.state)
         except ValueError:
@@ -852,7 +933,13 @@ class LocationAirTemperatureSensor(SensorEntity):
     @property
     def extra_state_attributes(self) -> dict:
         location = self._data.meter_locations[self._location_id]
-        return {"air_temperature_entity_id": location.air_temperature_entity_id}
+        attrs: dict = {"air_temperature_entity_id": location.air_temperature_entity_id}
+        if location.air_temperature_entity_id and self.hass:
+            state = self.hass.states.get(location.air_temperature_entity_id)
+            if state is not None:
+                attrs["is_stale"] = _is_stale(state)
+                attrs["source_last_updated"] = state.last_updated.isoformat()
+        return attrs
 
 
 # ---------------------------------------------------------------------------

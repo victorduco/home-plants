@@ -1,8 +1,11 @@
 """Constants for the Plants integration."""
 
+from datetime import timedelta
+
 from homeassistant.const import Platform
 
 DOMAIN = "plants"
+STALE_AFTER = timedelta(hours=6)
 PLATFORMS: list[Platform] = [
     Platform.TEXT,
     Platform.EVENT,

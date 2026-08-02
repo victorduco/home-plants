@@ -61,6 +61,7 @@ views:
             .green  { background: #00a85e; }
             .yellow { background: #d4a800; color: rgba(0,0,0,0.7) !important; }
             .red    { background: #cb2535; }
+            .stale  { background: #555; color: #fff !important; }
           </style>
 
           {% set plants = [
@@ -83,7 +84,7 @@ views:
               {% set val   = states('sensor.' ~ p ~ '_soil_moisture_state') | float(-1) %}
               {% set yth   = states('number.' ~ p ~ '_soil_moisture_yellow_threshold') | float(0) %}
               {% set rth   = states('number.' ~ p ~ '_soil_moisture_red_threshold') | float(0) %}
-              {% set cls   = 'green' if zone == 'green' else ('yellow' if zone == 'yellow' else 'red') %}
+              {% set cls   = 'green' if zone == 'green' else ('yellow' if zone == 'yellow' else ('stale' if zone == 'stale' else 'red')) %}
               {% set diff  = (val - yth) | round(0) | int if val >= 0 else none %}
               <div class="cell {{ cls }}">
                 <span class="cell-label">{{ name }}</span>
@@ -95,6 +96,8 @@ views:
                   {% else %}
                     <span class="cell-hint">~ +{{ diff }}%</span>
                   {% endif %}
+                {% elif cls == 'stale' %}
+                  <span class="cell-hint">⚠ stale</span>
                 {% endif %}
               </div>
             {% endfor %}
@@ -106,7 +109,7 @@ views:
               {% set val = val_air if val_air >= 0 else states('sensor.' ~ p ~ '_humidity_meter') | float(-1) %}
               {% set hmin  = states('number.' ~ p ~ '_air_humidity_min') | float(0) %}
               {% set hmax  = states('number.' ~ p ~ '_air_humidity_max') | float(0) %}
-              {% set cls   = 'green' if zone == 'green' else ('yellow' if zone == 'yellow' else 'red') %}
+              {% set cls   = 'green' if zone == 'green' else ('yellow' if zone == 'yellow' else ('stale' if zone == 'stale' else 'red')) %}
               {% if val < hmin %}
                 {% set diff = (val - hmin) | round(0) | int %}
               {% elif val > hmax %}
@@ -123,6 +126,8 @@ views:
                   {% elif diff is not none %}
                     <span class="cell-hint">% +{{ diff }}%</span>
                   {% endif %}
+                {% elif cls == 'stale' %}
+                  <span class="cell-hint">⚠ stale</span>
                 {% endif %}
               </div>
             {% endfor %}
@@ -133,7 +138,7 @@ views:
               {% set val   = states('sensor.' ~ p ~ '_air_temperature_meter') | float(-1) %}
               {% set tmin  = states('number.' ~ p ~ '_air_temperature_min') | float(0) %}
               {% set tmax  = states('number.' ~ p ~ '_air_temperature_max') | float(0) %}
-              {% set cls   = 'green' if zone == 'green' else ('yellow' if zone == 'yellow' else 'red') %}
+              {% set cls   = 'green' if zone == 'green' else ('yellow' if zone == 'yellow' else ('stale' if zone == 'stale' else 'red')) %}
               {% if val < tmin %}
                 {% set diff = (val - tmin) | round(1) %}
               {% elif val > tmax %}
@@ -150,6 +155,8 @@ views:
                   {% elif diff is not none %}
                     <span class="cell-hint">° +{{ diff }}°F</span>
                   {% endif %}
+                {% elif cls == 'stale' %}
+                  <span class="cell-hint">⚠ stale</span>
                 {% endif %}
               </div>
             {% endfor %}

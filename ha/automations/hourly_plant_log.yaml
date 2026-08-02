@@ -10,13 +10,16 @@
         name: "🌿 Hourly Plant Status"
         message: >-
           {% set ns = namespace(lines=[]) %}
-          {% for s in states.sensor | selectattr('entity_id', 'search', '_soil_moisture_state$') | rejectattr('state', 'in', ['unknown', 'unavailable']) | list %}
-          {% set ns.lines = ns.lines + [s.attributes.friendly_name | replace(' Soil Moisture State', '') ~ ': soil ' ~ (s.state | float | round(0) | int) ~ '%'] %}
+          {% for s in states.sensor | selectattr('entity_id', 'search', '_soil_moisture_state$') | selectattr('state', 'is_number') | list %}
+          {% set stale_tag = ' [STALE]' if (now() - s.last_updated).total_seconds() > 21600 else '' %}
+          {% set ns.lines = ns.lines + [s.attributes.friendly_name | replace(' Soil Moisture State', '') ~ ': soil ' ~ (s.state | float | round(0) | int) ~ '%' ~ stale_tag] %}
           {% endfor %}
-          {% for s in states.sensor | selectattr('entity_id', 'search', '_air_humidity_meter$') | rejectattr('state', 'in', ['unknown', 'unavailable']) | list %}
-          {% set ns.lines = ns.lines + [s.attributes.friendly_name | replace(' Air Humidity Meter', '') ~ ': humidity ' ~ (s.state | float | round(0) | int) ~ '%'] %}
+          {% for s in states.sensor | selectattr('entity_id', 'search', '_air_humidity_meter$') | selectattr('state', 'is_number') | list %}
+          {% set stale_tag = ' [STALE]' if (now() - s.last_updated).total_seconds() > 21600 else '' %}
+          {% set ns.lines = ns.lines + [s.attributes.friendly_name | replace(' Air Humidity Meter', '') ~ ': humidity ' ~ (s.state | float | round(0) | int) ~ '%' ~ stale_tag] %}
           {% endfor %}
-          {% for s in states.sensor | selectattr('entity_id', 'search', '_air_temperature_meter$') | rejectattr('state', 'in', ['unknown', 'unavailable']) | list %}
-          {% set ns.lines = ns.lines + [s.attributes.friendly_name | replace(' Air Temperature Meter', '') ~ ': temp ' ~ (s.state | float | round(1)) ~ (s.attributes.unit_of_measurement | default('°F'))] %}
+          {% for s in states.sensor | selectattr('entity_id', 'search', '_air_temperature_meter$') | selectattr('state', 'is_number') | list %}
+          {% set stale_tag = ' [STALE]' if (now() - s.last_updated).total_seconds() > 21600 else '' %}
+          {% set ns.lines = ns.lines + [s.attributes.friendly_name | replace(' Air Temperature Meter', '') ~ ': temp ' ~ (s.state | float | round(1)) ~ (s.attributes.unit_of_measurement | default('°F')) ~ stale_tag] %}
           {% endfor %}
           {{ ns.lines | join(' | ') }}

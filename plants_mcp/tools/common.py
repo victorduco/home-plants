@@ -160,10 +160,13 @@ def parse_plants_from_states(
                 "entity_id": entity_id,
                 "state": state.get("state"),
                 "attributes": sanitize_attributes(attributes),
+                "last_changed": state.get("last_changed"),
+                "last_updated": state.get("last_updated"),
             }
         )
         plant_info[f"{matched_key}_entity_id"] = entity_id
         plant_info[matched_key] = state.get("state")
+        plant_info[f"{matched_key}_last_updated"] = state.get("last_updated")
     return {name: info for name, info in plants.items() if info.get("entities")}
 
 
