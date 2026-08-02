@@ -5,7 +5,9 @@ from __future__ import annotations
 import asyncio
 from datetime import datetime, timedelta, timezone
 import os
+import re
 from typing import Any, Iterable
+import unicodedata
 import uuid
 from zoneinfo import ZoneInfo
 
@@ -36,6 +38,14 @@ PLANT_SUFFIXES = {
     "other_recommendations": "Other Recommendations",
     "todo_list": "Todo List",
 }
+
+
+def entity_object_id(name: str) -> str:
+    """Convert a display name to the object-id form used by Home Assistant."""
+    normalized = unicodedata.normalize("NFKD", name)
+    ascii_name = normalized.encode("ascii", "ignore").decode("ascii")
+    underscored = re.sub(r"[^a-z0-9]+", "_", ascii_name.lower())
+    return re.sub(r"_+", "_", underscored).strip("_")
 
 
 def _get_ha_config() -> tuple[str, str] | None:

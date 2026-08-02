@@ -6,7 +6,7 @@ from typing import Any
 
 from fastmcp import FastMCP
 
-from .common import get_states_list, parse_plants_from_states
+from .common import entity_object_id, get_states_list, parse_plants_from_states
 
 
 def _classify(entity_id: str) -> str:
@@ -61,7 +61,7 @@ def register(mcp: FastMCP) -> None:
                     "state": f"{value} {unit}".strip() if value is not None else None,
                 })
 
-            pid = plant_name.lower().replace(" ", "_")
+            pid = entity_object_id(plant_name)
             for eid, s in number_states.items():
                 if f".{pid}_" in eid or eid == f"number.{pid}":
                     attrs = s.get("attributes", {})

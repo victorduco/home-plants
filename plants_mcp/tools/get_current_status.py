@@ -9,6 +9,7 @@ from zoneinfo import ZoneInfo
 from fastmcp import FastMCP
 
 from .common import (
+    entity_object_id,
     get_states_list,
     ha_request,
     history_window,
@@ -520,12 +521,9 @@ def register(mcp: FastMCP) -> None:
             except (ValueError, TypeError):
                 return None
 
-        def _plant_id(name: str) -> str:
-            return name.lower().replace(" ", "_")
-
         plants = []
         for plant_name, plant in raw_plants.items():
-            pid = _plant_id(plant_name)
+            pid = entity_object_id(plant_name)
 
             # Soil moisture
             mval_raw = plant.get("moisture")
@@ -794,4 +792,3 @@ def register(mcp: FastMCP) -> None:
             "indoor_climate": indoor_climate,
             "plants": plants,
         }
-
