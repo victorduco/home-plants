@@ -22,30 +22,27 @@ HEADERS = {"Authorization": f"Bearer {HA_TOKEN}", "Content-Type": "application/j
 AUTOMATIONS_DIR = REPO_ROOT / "ha" / "automations"
 
 
-def get_existing_ids(client: httpx.Client) -> set[str]:
-    resp = client.get(f"{HA_URL}/api/config/automation/config", headers=HEADERS)
-    if resp.status_code == 404:
-        return set()
-    resp.raise_for_status()
-    return {a["id"] for a in resp.json() if "id" in a}
+def upsert(client: httpx.Client, automation: dict) -> None:
+    """Write one automation.
 
-
-def upsert(client: httpx.Client, automation: dict, existing_ids: set[str]) -> None:
+    Home Assistant's config API is per-id only: there is no collection endpoint to list
+    or create against, and posting to one answers 404. The id-scoped POST both creates
+    and updates, so existence is only checked to label the output.
+    """
     aid = automation["id"]
-    if aid in existing_ids:
-        resp = client.put(
-            f"{HA_URL}/api/config/automation/config/{aid}",
-            headers=HEADERS,
-            json=automation,
-        )
-    else:
-        resp = client.post(
-            f"{HA_URL}/api/config/automation/config",
-            headers=HEADERS,
-            json=automation,
-        )
+    existed = (
+        client.get(
+            f"{HA_URL}/api/config/automation/config/{aid}", headers=HEADERS
+        ).status_code
+        == 200
+    )
+    resp = client.post(
+        f"{HA_URL}/api/config/automation/config/{aid}",
+        headers=HEADERS,
+        json=automation,
+    )
     resp.raise_for_status()
-    print(f"  {'updated' if aid in existing_ids else 'created'}: {aid}")
+    print(f"  {'updated' if existed else 'created'}: {aid}")
 
 
 def main() -> None:
@@ -54,8 +51,9 @@ def main() -> None:
         print("No automation files found.")
         return
 
-    with httpx.Client(timeout=15) as client:
-        existing_ids = get_existing_ids(client)
+    # Generous timeouts: deploy.sh runs this straight after an HA restart, and this
+    # instance takes minutes to settle — its API answers slowly long after it is up.
+    with httpx.Client(timeout=120) as client:
         for path in yaml_files:
             automations = yaml.safe_load(path.read_text())
             if not isinstance(automations, list):
@@ -64,13 +62,13 @@ def main() -> None:
                 if "id" not in automation:
                     print(f"  skipped (no id): {path.name}")
                     continue
-                upsert(client, automation, existing_ids)
+                upsert(client, automation)
 
     # Reload automations
     resp = httpx.post(
         f"{HA_URL}/api/services/automation/reload",
         headers=HEADERS,
-        timeout=10,
+        timeout=120,
     )
     resp.raise_for_status()
     print("→ Automations reloaded")
