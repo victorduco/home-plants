@@ -114,9 +114,8 @@ def _age_seconds(raw: str | None) -> float | None:
 
 def staleness(
     raw_value: str | None,
-    attrs: dict[str, Any] | None,
-    fallback_reported: str | None = None,
-    fallback_changed: str | None = None,
+    last_reported: str | None = None,
+    last_changed: str | None = None,
 ) -> dict[str, Any]:
     """Mirror the integration's rule (see custom_components/plants/sensor.py).
 
@@ -125,12 +124,11 @@ def staleness(
     reports that never change mean a frozen probe. `age_seconds` is the age that tripped
     the verdict, or time since the last report when nothing tripped.
 
-    Freshness must be judged on the meter behind the mirror entity, which is why the
-    source timestamps published as attributes win over the entity's own.
+    The timestamps must come from the meter itself, not from the integration's mirror
+    entity — the mirror's own timestamps only record when the integration last wrote it.
     """
-    attrs = attrs or {}
-    reported_age = _age_seconds(attrs.get("source_last_reported") or fallback_reported)
-    changed_age = _age_seconds(attrs.get("source_last_changed") or fallback_changed)
+    reported_age = _age_seconds(last_reported)
+    changed_age = _age_seconds(last_changed)
 
     if reported_age is not None and reported_age > STALE_AFTER_SECONDS:
         return {"is_stale": True, "age_seconds": int(reported_age), "reason": "no_report"}
@@ -550,6 +548,23 @@ def register(mcp: FastMCP) -> None:
             except (ValueError, TypeError):
                 return None
 
+        states_by_id = {s.get("entity_id"): s for s in states if s.get("entity_id")}
+
+        def _source_freshness(
+            plant: dict[str, Any], attrs_key: str, id_key: str
+        ) -> tuple[str | None, str | None]:
+            """Timestamps of the meter a mirror sensor points at.
+
+            The mirror publishes its source's entity id, so freshness is read off the
+            meter's own state rather than off the mirror, which is only written when the
+            integration re-renders it.
+            """
+            attrs = plant.get(attrs_key) or {}
+            source = states_by_id.get(attrs.get(id_key))
+            if not source:
+                return None, None
+            return source.get("last_reported"), source.get("last_changed")
+
         plants = []
         for plant_name, plant in raw_plants.items():
             pid = entity_object_id(plant_name)
@@ -558,9 +573,7 @@ def register(mcp: FastMCP) -> None:
             mval_raw = plant.get("moisture")
             m_stale = staleness(
                 mval_raw,
-                plant.get("moisture_attributes"),
-                plant.get("moisture_last_reported"),
-                plant.get("moisture_last_changed"),
+                *_source_freshness(plant, "moisture_attributes", "moisture_entity_id"),
             )
             try:
                 mval = float(mval_raw) if mval_raw not in (None, "unknown", "unavailable") and not m_stale["is_stale"] else None
@@ -582,9 +595,9 @@ def register(mcp: FastMCP) -> None:
             hval_raw = plant.get("humidity")
             h_stale = staleness(
                 hval_raw,
-                plant.get("humidity_attributes"),
-                plant.get("humidity_last_reported"),
-                plant.get("humidity_last_changed"),
+                *_source_freshness(
+                    plant, "humidity_attributes", "air_humidity_entity_id"
+                ),
             )
             try:
                 hval = float(hval_raw) if hval_raw not in (None, "unknown", "unavailable") and not h_stale["is_stale"] else None
@@ -605,9 +618,9 @@ def register(mcp: FastMCP) -> None:
             tval_raw = plant.get("air_temperature")
             t_stale = staleness(
                 tval_raw,
-                plant.get("air_temperature_attributes"),
-                plant.get("air_temperature_last_reported"),
-                plant.get("air_temperature_last_changed"),
+                *_source_freshness(
+                    plant, "air_temperature_attributes", "air_temperature_entity_id"
+                ),
             )
             try:
                 tval = float(tval_raw) if tval_raw not in (None, "unknown", "unavailable") and not t_stale["is_stale"] else None

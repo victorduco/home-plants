@@ -51,13 +51,15 @@ def _is_stale(state) -> bool:
 
 
 def _staleness_attributes(state) -> dict:
-    """Source freshness timestamps, so consumers can apply the same rule themselves."""
-    last_reported, last_changed = _source_timestamps(state)
-    return {
-        "is_stale": _is_stale(state),
-        "source_last_reported": last_reported.isoformat() if last_reported else None,
-        "source_last_changed": last_changed.isoformat() if last_changed else None,
-    }
+    """The freshness verdict, and deliberately not the timestamps behind it.
+
+    Publishing the source's `last_reported` here made every re-render change an
+    attribute, which turns each one into a state_changed event: templates watching
+    these entities re-rendered on a timer and flooded slow dashboard clients off the
+    websocket. Consumers that need the raw timestamps read them off the source entity,
+    whose id is already published alongside this.
+    """
+    return {"is_stale": _is_stale(state)}
 
 
 @callback
@@ -66,7 +68,9 @@ def _follow_source(entity: SensorEntity, entity_id: str | None) -> None:
 
     The timer is what makes staleness work: nothing fires at the moment a reading
     crosses STALE_AFTER, so without it a source that goes silent would keep its last
-    rendered value forever.
+    rendered value forever. A periodic write is cheap precisely because nothing here
+    changes between crossings — Home Assistant raises state_changed only when the
+    rendered state or attributes actually differ.
     """
     if not entity_id or not entity.hass:
         return
