@@ -89,33 +89,62 @@ def compute_time_context(
     }
 
 
+STALE_AFTER_SECONDS = 6 * 3600
+STALE_UNCHANGED_AFTER_SECONDS = 4 * 24 * 3600
+
+
+def _parse_timestamp(value: str) -> datetime | None:
+    if not value:
+        return None
+    try:
+        parsed = datetime.fromisoformat(value.replace("Z", "+00:00"))
+        if parsed.tzinfo is None:
+            return parsed.replace(tzinfo=ZoneInfo("America/Los_Angeles"))
+        return parsed
+    except ValueError:
+        return None
+
+
+def _age_seconds(raw: str | None) -> float | None:
+    ts = _parse_timestamp(raw or "")
+    if ts is None:
+        return None
+    return (datetime.now(ts.tzinfo) - ts).total_seconds()
+
+
+def staleness(
+    raw_value: str | None,
+    attrs: dict[str, Any] | None,
+    fallback_reported: str | None = None,
+    fallback_changed: str | None = None,
+) -> dict[str, Any]:
+    """Mirror the integration's rule (see custom_components/plants/sensor.py).
+
+    A reading is fresh only if the meter reported within STALE_AFTER_SECONDS *and* its
+    value moved within STALE_UNCHANGED_AFTER_SECONDS. Silence means a dead device;
+    reports that never change mean a frozen probe. `age_seconds` is the age that tripped
+    the verdict, or time since the last report when nothing tripped.
+
+    Freshness must be judged on the meter behind the mirror entity, which is why the
+    source timestamps published as attributes win over the entity's own.
+    """
+    attrs = attrs or {}
+    reported_age = _age_seconds(attrs.get("source_last_reported") or fallback_reported)
+    changed_age = _age_seconds(attrs.get("source_last_changed") or fallback_changed)
+
+    if reported_age is not None and reported_age > STALE_AFTER_SECONDS:
+        return {"is_stale": True, "age_seconds": int(reported_age), "reason": "no_report"}
+    if changed_age is not None and changed_age > STALE_UNCHANGED_AFTER_SECONDS:
+        return {"is_stale": True, "age_seconds": int(changed_age), "reason": "frozen"}
+    fresh_age = int(reported_age) if reported_age is not None else None
+    # The integration already rendered "Stale". Honour that even when the timestamps
+    # behind it are unreadable, instead of reporting a value we are about to drop.
+    if str(raw_value).strip().lower() == "stale":
+        return {"is_stale": True, "age_seconds": fresh_age, "reason": None}
+    return {"is_stale": False, "age_seconds": fresh_age, "reason": None}
+
+
 def register(mcp: FastMCP) -> None:
-
-    def _parse_timestamp(value: str) -> datetime | None:
-        if not value:
-            return None
-        try:
-            parsed = datetime.fromisoformat(value.replace("Z", "+00:00"))
-            if parsed.tzinfo is None:
-                return parsed.replace(tzinfo=ZoneInfo("America/Los_Angeles"))
-            return parsed
-        except ValueError:
-            return None
-
-    STALE_AFTER_SECONDS = 6 * 3600
-
-    def _staleness(raw_value: str | None, last_updated_raw: str | None) -> dict[str, Any]:
-        try:
-            float(raw_value) if raw_value is not None else None
-        except (ValueError, TypeError):
-            return {"is_stale": False, "age_seconds": None}
-        if raw_value is None:
-            return {"is_stale": False, "age_seconds": None}
-        ts = _parse_timestamp(last_updated_raw or "")
-        if ts is None:
-            return {"is_stale": False, "age_seconds": None}
-        age = (datetime.now(ts.tzinfo) - ts).total_seconds()
-        return {"is_stale": age > STALE_AFTER_SECONDS, "age_seconds": int(age)}
 
     def _normalize_history_payload(payload: Any) -> list[dict[str, Any]]:
         if not isinstance(payload, list):
@@ -527,7 +556,12 @@ def register(mcp: FastMCP) -> None:
 
             # Soil moisture
             mval_raw = plant.get("moisture")
-            m_stale = _staleness(mval_raw, plant.get("moisture_last_updated"))
+            m_stale = staleness(
+                mval_raw,
+                plant.get("moisture_attributes"),
+                plant.get("moisture_last_reported"),
+                plant.get("moisture_last_changed"),
+            )
             try:
                 mval = float(mval_raw) if mval_raw not in (None, "unknown", "unavailable") and not m_stale["is_stale"] else None
             except (ValueError, TypeError):
@@ -539,13 +573,19 @@ def register(mcp: FastMCP) -> None:
                 "zone": "stale" if m_stale["is_stale"] else mzone_state,
                 "is_stale": m_stale["is_stale"],
                 "stale_age_hours": round(m_stale["age_seconds"] / 3600, 1) if m_stale["age_seconds"] is not None else None,
+                "stale_reason": m_stale["reason"],
                 "green_above": _get_number(pid, "soil_moisture_yellow_threshold"),
                 "red_below": _get_number(pid, "soil_moisture_red_threshold"),
             }
 
             # Air humidity
             hval_raw = plant.get("humidity")
-            h_stale = _staleness(hval_raw, plant.get("humidity_last_updated"))
+            h_stale = staleness(
+                hval_raw,
+                plant.get("humidity_attributes"),
+                plant.get("humidity_last_reported"),
+                plant.get("humidity_last_changed"),
+            )
             try:
                 hval = float(hval_raw) if hval_raw not in (None, "unknown", "unavailable") and not h_stale["is_stale"] else None
             except (ValueError, TypeError):
@@ -556,13 +596,19 @@ def register(mcp: FastMCP) -> None:
                 "zone": "stale" if h_stale["is_stale"] else hzone_state,
                 "is_stale": h_stale["is_stale"],
                 "stale_age_hours": round(h_stale["age_seconds"] / 3600, 1) if h_stale["age_seconds"] is not None else None,
+                "stale_reason": h_stale["reason"],
                 "needed_min": _get_number(pid, "air_humidity_min"),
                 "needed_max": _get_number(pid, "air_humidity_max"),
             }
 
             # Air temperature
             tval_raw = plant.get("air_temperature")
-            t_stale = _staleness(tval_raw, plant.get("air_temperature_last_updated"))
+            t_stale = staleness(
+                tval_raw,
+                plant.get("air_temperature_attributes"),
+                plant.get("air_temperature_last_reported"),
+                plant.get("air_temperature_last_changed"),
+            )
             try:
                 tval = float(tval_raw) if tval_raw not in (None, "unknown", "unavailable") and not t_stale["is_stale"] else None
             except (ValueError, TypeError):
@@ -573,6 +619,7 @@ def register(mcp: FastMCP) -> None:
                 "zone": "stale" if t_stale["is_stale"] else tzone_state,
                 "is_stale": t_stale["is_stale"],
                 "stale_age_hours": round(t_stale["age_seconds"] / 3600, 1) if t_stale["age_seconds"] is not None else None,
+                "stale_reason": t_stale["reason"],
                 "needed_min_f": _get_number(pid, "air_temperature_min"),
                 "needed_max_f": _get_number(pid, "air_temperature_max"),
             }

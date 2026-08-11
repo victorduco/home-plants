@@ -15,7 +15,7 @@ Use it directly. Do not try to re-derive it from `time.current`, `sunrise` or `s
 ## How to read plant data
 
 Each plant has:
-- `soil_moisture.zone` — `green` (fine) / `yellow` (getting dry, water soon) / `red` (critically dry, water now) / `stale` (sensor frozen) / `unknown` (sensor unavailable)
+- `soil_moisture.zone` — `green` (fine) / `yellow` (getting dry, water soon) / `red` (critically dry, water now) / `stale` (sensor stopped reporting, or keeps reporting an unchanging value) / `unknown` (sensor unavailable)
 - `air_humidity.zone` — `green` (fine) / `yellow` (out of band) / `red` (well out of band)
 - `air_temperature.zone` — `green` (fine) / `yellow` or `red` (too cold or hot)
 - `care_history` — list of recent days with watering counts; if watered today or yesterday, treat moisture as less urgent

@@ -1,6 +1,10 @@
 - id: hourly_plant_log
   alias: "Hourly Plant Status Log"
-  description: "Every hour logs soil moisture for all plants + air humidity and temperature."
+  description: >-
+    Every hour logs soil moisture for all plants + air humidity and temperature.
+    These are the plants integration's mirror sensors, which already render "Stale"
+    when their meter stopped reporting or its value stopped moving — so the log reads
+    that verdict off the state rather than re-deriving it from timestamps.
   trigger:
     - platform: time_pattern
       hours: "/1"
@@ -10,16 +14,16 @@
         name: "🌿 Hourly Plant Status"
         message: >-
           {% set ns = namespace(lines=[]) %}
-          {% for s in states.sensor | selectattr('attributes.friendly_name', 'defined') | selectattr('attributes.friendly_name', 'search', ' Soil Moisture State$') | selectattr('state', 'is_number') | list %}
-          {% set stale_tag = ' [STALE]' if (now() - s.last_updated).total_seconds() > 21600 else '' %}
-          {% set ns.lines = ns.lines + [s.attributes.friendly_name | replace(' Soil Moisture State', '') ~ ': soil ' ~ (s.state | float | round(0) | int) ~ '%' ~ stale_tag] %}
+          {% for s in states.sensor | selectattr('attributes.friendly_name', 'defined') | selectattr('attributes.friendly_name', 'search', ' Soil Moisture State$') | list %}
+          {% set label = s.attributes.friendly_name | replace(' Soil Moisture State', '') %}
+          {% if s.state | is_number %}{% set ns.lines = ns.lines + [label ~ ': soil ' ~ (s.state | float | round(0) | int) ~ '%'] %}{% elif s.state == 'Stale' %}{% set ns.lines = ns.lines + [label ~ ': soil [STALE]'] %}{% endif %}
           {% endfor %}
-          {% for s in states.sensor | selectattr('entity_id', 'search', '_air_humidity_meter$') | selectattr('state', 'is_number') | list %}
-          {% set stale_tag = ' [STALE]' if (now() - s.last_updated).total_seconds() > 21600 else '' %}
-          {% set ns.lines = ns.lines + [s.attributes.friendly_name | replace(' Air Humidity Meter', '') ~ ': humidity ' ~ (s.state | float | round(0) | int) ~ '%' ~ stale_tag] %}
+          {% for s in states.sensor | selectattr('entity_id', 'search', '_air_humidity_meter$') | list %}
+          {% set label = s.attributes.friendly_name | replace(' Air Humidity Meter', '') %}
+          {% if s.state | is_number %}{% set ns.lines = ns.lines + [label ~ ': humidity ' ~ (s.state | float | round(0) | int) ~ '%'] %}{% elif s.state == 'Stale' %}{% set ns.lines = ns.lines + [label ~ ': humidity [STALE]'] %}{% endif %}
           {% endfor %}
-          {% for s in states.sensor | selectattr('entity_id', 'search', '_air_temperature_meter$') | selectattr('state', 'is_number') | list %}
-          {% set stale_tag = ' [STALE]' if (now() - s.last_updated).total_seconds() > 21600 else '' %}
-          {% set ns.lines = ns.lines + [s.attributes.friendly_name | replace(' Air Temperature Meter', '') ~ ': temp ' ~ (s.state | float | round(1)) ~ (s.attributes.unit_of_measurement | default('°F')) ~ stale_tag] %}
+          {% for s in states.sensor | selectattr('entity_id', 'search', '_air_temperature_meter$') | list %}
+          {% set label = s.attributes.friendly_name | replace(' Air Temperature Meter', '') %}
+          {% if s.state | is_number %}{% set ns.lines = ns.lines + [label ~ ': temp ' ~ (s.state | float | round(1)) ~ (s.attributes.unit_of_measurement | default('°F'))] %}{% elif s.state == 'Stale' %}{% set ns.lines = ns.lines + [label ~ ': temp [STALE]'] %}{% endif %}
           {% endfor %}
           {{ ns.lines | join(' | ') }}

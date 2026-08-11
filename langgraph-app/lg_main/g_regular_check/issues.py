@@ -55,6 +55,7 @@ class Metric:
     warn: float | None = None
     stale: bool = False
     stale_age_hours: float | None = None
+    stale_reason: str | None = None
     zone: str | None = None
 
     @property
@@ -105,6 +106,7 @@ def _metric(
         warn=block.get(warn_key) if warn_key else None,
         stale=bool(block.get("is_stale")),
         stale_age_hours=block.get("stale_age_hours"),
+        stale_reason=block.get("stale_reason"),
         zone=block.get("zone"),
     )
 
@@ -190,14 +192,22 @@ def evaluate(status: dict[str, Any]) -> list[Issue]:
         for label, m in metrics.items():
             if m.stale:
                 age = f" for {m.stale_age_hours:g}h" if m.stale_age_hours else ""
+                if m.stale_reason == "frozen":
+                    headline = f"{name}: {label} sensor has read the same value{age}"
+                    detail = "Readings still arrive but never move, so the sensor is being ignored."
+                    remedy = "Check that the probe still sits in the soil and its battery is not dying."
+                else:
+                    headline = f"{name}: {label} sensor has not reported{age}"
+                    detail = "No fresh readings are arriving, so the last value is frozen and is being ignored."
+                    remedy = "Check the sensor battery and its gateway."
                 issues.append(Issue(
                     key=f"sensor_stale:{name}:{label}",
                     kind="sensor",
                     subject=name,
                     severity=WARNING,
-                    headline=f"{name}: {label} sensor has not updated{age}",
-                    detail="The last value is frozen and is being ignored.",
-                    remedy="Check the sensor battery and its gateway.",
+                    headline=headline,
+                    detail=detail,
+                    remedy=remedy,
                 ))
                 continue
 

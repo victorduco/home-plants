@@ -165,18 +165,27 @@ def parse_plants_from_states(
             plant_name,
             {"name": plant_name, "entities": []},
         )
+        cleaned_attributes = sanitize_attributes(attributes)
         plant_info["entities"].append(
             {
                 "entity_id": entity_id,
                 "state": state.get("state"),
-                "attributes": sanitize_attributes(attributes),
+                "attributes": cleaned_attributes,
                 "last_changed": state.get("last_changed"),
                 "last_updated": state.get("last_updated"),
+                "last_reported": state.get("last_reported"),
             }
         )
         plant_info[f"{matched_key}_entity_id"] = entity_id
         plant_info[matched_key] = state.get("state")
         plant_info[f"{matched_key}_last_updated"] = state.get("last_updated")
+        plant_info[f"{matched_key}_last_changed"] = state.get("last_changed")
+        plant_info[f"{matched_key}_last_reported"] = state.get("last_reported")
+        # Freshness has to be judged on the meter behind the mirror, not the mirror
+        # itself: these entities only re-render when the integration writes them, so
+        # their own timestamps say nothing about whether the device is still reporting.
+        # The integration publishes the source timestamps as attributes for exactly this.
+        plant_info[f"{matched_key}_attributes"] = cleaned_attributes
     return {name: info for name, info in plants.items() if info.get("entities")}
 
 

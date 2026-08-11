@@ -62,10 +62,10 @@ views:
               {% set hd = states('sensor.indoor_humidity_2h_change') | float(0) | round(0) | int %}
               {% set t_sign = '+' if td > 0 else '' %}
               {% set h_sign = '+' if hd > 0 else '' %}
-              {% set t_stale = t_state is not none and (now() - t_state.last_updated).total_seconds() > 21600 %}
-              {% set h_stale = h_state is not none and (now() - h_state.last_updated).total_seconds() > 21600 %}
+              {% set t_stale = t_state is not none and ((now() - t_state.last_reported).total_seconds() > 21600 or (now() - t_state.last_changed).total_seconds() > 345600) %}
+              {% set h_stale = h_state is not none and ((now() - h_state.last_reported).total_seconds() > 21600 or (now() - h_state.last_changed).total_seconds() > 345600) %}
               {% if t_stale or h_stale %}
-              ⚠️ **Gateway data is stale** (no update in 6h+) — readings below may be frozen.
+              ⚠️ **Gateway data is stale** (no report in 6h+, or unchanged for 4d+) — readings below may be frozen.
 
               {% endif %}
               🌡️ **{{ t }}°F**{{ ' ⚠️' if t_stale else '' }} ({{ t_sign }}{{ td }}°F) &nbsp;&nbsp; 💧 **{{ h | int }}%**{{ ' ⚠️' if h_stale else '' }} ({{ h_sign }}{{ hd }}%)

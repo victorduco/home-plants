@@ -8,20 +8,80 @@ from homeassistant.components.sensor import SensorEntity
 from homeassistant.config_entries import ConfigEntry
 from homeassistant.core import HomeAssistant, callback
 from homeassistant.helpers.device_registry import DeviceInfo
-from homeassistant.helpers.event import async_call_later, async_track_state_change_event
+from homeassistant.helpers.event import (
+    async_call_later,
+    async_track_state_change_event,
+    async_track_time_interval,
+)
 from homeassistant.helpers.storage import Store
 
-from .const import DOMAIN, STALE_AFTER
+from .const import DOMAIN, STALE_AFTER, STALE_RECHECK_INTERVAL, STALE_UNCHANGED_AFTER
 from .data import AutoWaterersData, GrowLightsData, HumidifiersData, MeterLocationsData, PlantsData, ThermostatsData
 
 STORAGE_AGENT_LOG = "plants_agent_log"
 
 
+def _source_timestamps(state) -> tuple[datetime | None, datetime | None]:
+    """Return (last_reported, last_changed) for a source state.
+
+    `last_reported` advances on every push even when the value repeats, so it answers
+    "is the device still talking to us". `last_updated` only moves when the state or
+    its attributes actually differ, which is why it is a fallback and not the measure.
+    """
+    if state is None:
+        return None, None
+    last_reported = getattr(state, "last_reported", None) or state.last_updated
+    return last_reported, state.last_changed
+
+
 def _is_stale(state) -> bool:
-    """Return True if the state's last update is older than STALE_AFTER."""
-    if state is None or state.last_updated is None:
-        return False
-    return (datetime.now(timezone.utc) - state.last_updated) > STALE_AFTER
+    """Return True unless the source reported recently *and* its value moved recently.
+
+    Two independent failures wear the same label: a device that went quiet (no report
+    within STALE_AFTER) and a probe that keeps reporting a frozen number (no change
+    within STALE_UNCHANGED_AFTER). Either one makes the reading untrustworthy.
+    """
+    last_reported, last_changed = _source_timestamps(state)
+    now = datetime.now(timezone.utc)
+    if last_reported is not None and (now - last_reported) > STALE_AFTER:
+        return True
+    if last_changed is not None and (now - last_changed) > STALE_UNCHANGED_AFTER:
+        return True
+    return False
+
+
+def _staleness_attributes(state) -> dict:
+    """Source freshness timestamps, so consumers can apply the same rule themselves."""
+    last_reported, last_changed = _source_timestamps(state)
+    return {
+        "is_stale": _is_stale(state),
+        "source_last_reported": last_reported.isoformat() if last_reported else None,
+        "source_last_changed": last_changed.isoformat() if last_changed else None,
+    }
+
+
+@callback
+def _follow_source(entity: SensorEntity, entity_id: str | None) -> None:
+    """Re-render `entity` when its source changes, and periodically regardless.
+
+    The timer is what makes staleness work: nothing fires at the moment a reading
+    crosses STALE_AFTER, so without it a source that goes silent would keep its last
+    rendered value forever.
+    """
+    if not entity_id or not entity.hass:
+        return
+
+    @callback
+    def _write(_arg=None) -> None:
+        entity.async_write_ha_state()
+
+    entity.async_on_remove(
+        async_track_state_change_event(entity.hass, [entity_id], _write)
+    )
+    entity.async_on_remove(
+        async_track_time_interval(entity.hass, _write, STALE_RECHECK_INTERVAL)
+    )
+    async_call_later(entity.hass, 5, _write)
 
 
 async def async_setup_entry(
@@ -156,26 +216,11 @@ class PlantMoistureSensor(SensorEntity):
         if plant.moisture_entity_id and self.hass:
             state = self.hass.states.get(plant.moisture_entity_id)
             if state is not None:
-                attrs["is_stale"] = _is_stale(state)
-                attrs["source_last_updated"] = state.last_updated.isoformat()
+                attrs.update(_staleness_attributes(state))
         return attrs
 
     async def async_added_to_hass(self) -> None:
-        entity_id = self._data.plants[self._plant_id].moisture_entity_id
-        if not entity_id:
-            return
-
-        @callback
-        def _handle_state_change(event) -> None:
-            self.async_write_ha_state()
-
-        async_track_state_change_event(self.hass, [entity_id], _handle_state_change)
-
-        @callback
-        def _refresh(_now) -> None:
-            self.async_write_ha_state()
-
-        async_call_later(self.hass, 5, _refresh)
+        _follow_source(self, self._data.plants[self._plant_id].moisture_entity_id)
 
 
 class PlantHumiditySensor(SensorEntity):
@@ -228,26 +273,11 @@ class PlantHumiditySensor(SensorEntity):
         if plant.air_humidity_entity_id and self.hass:
             state = self.hass.states.get(plant.air_humidity_entity_id)
             if state is not None:
-                attrs["is_stale"] = _is_stale(state)
-                attrs["source_last_updated"] = state.last_updated.isoformat()
+                attrs.update(_staleness_attributes(state))
         return attrs
 
     async def async_added_to_hass(self) -> None:
-        entity_id = self._data.plants[self._plant_id].air_humidity_entity_id
-        if not entity_id:
-            return
-
-        @callback
-        def _handle_state_change(event) -> None:
-            self.async_write_ha_state()
-
-        async_track_state_change_event(self.hass, [entity_id], _handle_state_change)
-
-        @callback
-        def _refresh(_now) -> None:
-            self.async_write_ha_state()
-
-        async_call_later(self.hass, 5, _refresh)
+        _follow_source(self, self._data.plants[self._plant_id].air_humidity_entity_id)
 
 
 class PlantAirTemperatureSensor(SensorEntity):
@@ -300,26 +330,13 @@ class PlantAirTemperatureSensor(SensorEntity):
         if plant.air_temperature_entity_id and self.hass:
             state = self.hass.states.get(plant.air_temperature_entity_id)
             if state is not None:
-                attrs["is_stale"] = _is_stale(state)
-                attrs["source_last_updated"] = state.last_updated.isoformat()
+                attrs.update(_staleness_attributes(state))
         return attrs
 
     async def async_added_to_hass(self) -> None:
-        entity_id = self._data.plants[self._plant_id].air_temperature_entity_id
-        if not entity_id:
-            return
-
-        @callback
-        def _handle_state_change(event) -> None:
-            self.async_write_ha_state()
-
-        async_track_state_change_event(self.hass, [entity_id], _handle_state_change)
-
-        @callback
-        def _refresh(_now) -> None:
-            self.async_write_ha_state()
-
-        async_call_later(self.hass, 5, _refresh)
+        _follow_source(
+            self, self._data.plants[self._plant_id].air_temperature_entity_id
+        )
 
 
 class PlantMoistureZoneSensor(SensorEntity):
@@ -361,21 +378,7 @@ class PlantMoistureZoneSensor(SensorEntity):
         return "green"
 
     async def async_added_to_hass(self) -> None:
-        entity_id = self._data.plants[self._plant_id].moisture_entity_id
-        if not entity_id:
-            return
-
-        @callback
-        def _handle_state_change(event) -> None:
-            self.async_write_ha_state()
-
-        async_track_state_change_event(self.hass, [entity_id], _handle_state_change)
-
-        @callback
-        def _refresh(_now) -> None:
-            self.async_write_ha_state()
-
-        async_call_later(self.hass, 5, _refresh)
+        _follow_source(self, self._data.plants[self._plant_id].moisture_entity_id)
 
 
 class PlantHumidityZoneSensor(SensorEntity):
@@ -415,21 +418,7 @@ class PlantHumidityZoneSensor(SensorEntity):
         return "green"
 
     async def async_added_to_hass(self) -> None:
-        entity_id = self._data.plants[self._plant_id].air_humidity_entity_id
-        if not entity_id:
-            return
-
-        @callback
-        def _handle_state_change(event) -> None:
-            self.async_write_ha_state()
-
-        async_track_state_change_event(self.hass, [entity_id], _handle_state_change)
-
-        @callback
-        def _refresh(_now) -> None:
-            self.async_write_ha_state()
-
-        async_call_later(self.hass, 5, _refresh)
+        _follow_source(self, self._data.plants[self._plant_id].air_humidity_entity_id)
 
 
 class PlantTemperatureZoneSensor(SensorEntity):
@@ -469,21 +458,9 @@ class PlantTemperatureZoneSensor(SensorEntity):
         return "green"
 
     async def async_added_to_hass(self) -> None:
-        entity_id = self._data.plants[self._plant_id].air_temperature_entity_id
-        if not entity_id:
-            return
-
-        @callback
-        def _handle_state_change(event) -> None:
-            self.async_write_ha_state()
-
-        async_track_state_change_event(self.hass, [entity_id], _handle_state_change)
-
-        @callback
-        def _refresh(_now) -> None:
-            self.async_write_ha_state()
-
-        async_call_later(self.hass, 5, _refresh)
+        _follow_source(
+            self, self._data.plants[self._plant_id].air_temperature_entity_id
+        )
 
 
 class PlantAutoWateringStateSensor(SensorEntity):
@@ -899,9 +876,13 @@ class LocationAirHumiditySensor(SensorEntity):
         if location.air_humidity_entity_id and self.hass:
             state = self.hass.states.get(location.air_humidity_entity_id)
             if state is not None:
-                attrs["is_stale"] = _is_stale(state)
-                attrs["source_last_updated"] = state.last_updated.isoformat()
+                attrs.update(_staleness_attributes(state))
         return attrs
+
+    async def async_added_to_hass(self) -> None:
+        _follow_source(
+            self, self._data.meter_locations[self._location_id].air_humidity_entity_id
+        )
 
 
 class LocationAirTemperatureSensor(SensorEntity):
@@ -958,9 +939,14 @@ class LocationAirTemperatureSensor(SensorEntity):
         if location.air_temperature_entity_id and self.hass:
             state = self.hass.states.get(location.air_temperature_entity_id)
             if state is not None:
-                attrs["is_stale"] = _is_stale(state)
-                attrs["source_last_updated"] = state.last_updated.isoformat()
+                attrs.update(_staleness_attributes(state))
         return attrs
+
+    async def async_added_to_hass(self) -> None:
+        _follow_source(
+            self,
+            self._data.meter_locations[self._location_id].air_temperature_entity_id,
+        )
 
 
 # ---------------------------------------------------------------------------

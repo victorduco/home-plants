@@ -5,7 +5,14 @@ from datetime import timedelta
 from homeassistant.const import Platform
 
 DOMAIN = "plants"
+# A reading is trusted only while both hold: the source is still reporting, and its
+# value has moved at some point recently. Reports without movement mean a frozen probe;
+# movement without reports means the device went quiet.
 STALE_AFTER = timedelta(hours=6)
+STALE_UNCHANGED_AFTER = timedelta(days=4)
+# Staleness is time-based, so entities must re-render on their own — no source event
+# arrives at the moment a reading crosses either threshold.
+STALE_RECHECK_INTERVAL = timedelta(minutes=5)
 PLATFORMS: list[Platform] = [
     Platform.TEXT,
     Platform.EVENT,
