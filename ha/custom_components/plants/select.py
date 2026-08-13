@@ -85,8 +85,7 @@ async def async_setup_entry(
             entities.append(AutoWatererSourceSelect(data, waterer_id))
             for slot in range(20):
                 entities.append(AutoWatererPlantSlotSelect(data, waterer_id, slot))
-    else:
-        # plants
+    elif entry_type == "plants":
         for plant_id in data.plants:
             entities.append(PlantMoistureSelect(data, plant_id))
             entities.append(PlantHumiditySelect(data, plant_id))

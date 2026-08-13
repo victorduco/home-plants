@@ -29,6 +29,13 @@ views:
               style: |
                 ha-card { padding: 0 !important; }
             content: |
+              {#
+                Every entity this template touches is re-rendered server-side on each of
+                its state changes, and during startup hundreds of entities register in a
+                burst — so each lookup here costs thousands of full renders and pegs the
+                event loop for minutes. Keep the entity count down: the zone sensors
+                already carry the verdict, so thresholds are deliberately not read.
+              #}
               <style>
                 :host, html, body { margin: 0; padding: 0; height: 100%; width: 100%; overflow: hidden; }
                 hui-view, .ha-scrollbar, #view { padding: 0 !important; margin: 0 !important; }
@@ -68,6 +75,16 @@ views:
                   font-weight: 400;
                   text-align: center;
                 }
+                .cell-value {
+                  position: absolute;
+                  right: 6px;
+                  bottom: 10px;
+                  color: #fff;
+                  font-family: sans-serif;
+                  font-size: clamp(0.7rem, 1.3vw, 1.1rem);
+                  font-weight: 400;
+                  text-align: right;
+                }
                 .green  { background: #00a85e; }
                 .yellow { background: #d4a800; color: rgba(0,0,0,0.7) !important; }
                 .red    { background: #cb2535; }
@@ -86,88 +103,52 @@ views:
                 ('yucca',                 'Yucca'),
               ] %}
               {% set mv = {'dracaena':'sensor.dracaena_soil_moisture_state','ficus_robusta_darker':'sensor.ficus_robusta_darker_soil_moisture_state','ficus_tineke_lighter':'sensor.ficus_tineke_lighter_soil_moisture_state','liana':'sensor.liana_moisture','malcolm_ficus':'sensor.malcolm_ficus_moisture','olive_tree':'sensor.olive_tree_moisture','rubber_plant':'sensor.rubber_plant_moisture','triangularis_ficus':'sensor.triangularis_ficus_moisture','yucca':'sensor.yucca_moisture'} %}
+              {% macro zone_class(z) %}{% if z == 'green' %}green{% elif z == 'yellow' %}yellow{% elif z == 'stale' %}stale{% else %}red{% endif %}{% endmacro %}
 
               <div class="tablet-wrap">
 
-                {# Row 1: soil moisture #}
+                {# Row 1: soil moisture — the sparkline overlay sits at the bottom left #}
                 {% for (p, name) in plants %}
-                  {% set zone  = states('sensor.' ~ p ~ '_soil_moisture_zone') %}
-                  {% set val   = states(mv[p]) | float(-1) %}
-                  {% set yth   = states('number.' ~ p ~ '_soil_moisture_yellow_threshold') | float(0) %}
-                  {% set rth   = states('number.' ~ p ~ '_soil_moisture_red_threshold') | float(0) %}
-                  {% set cls   = 'green' if zone == 'green' else ('yellow' if zone == 'yellow' else ('stale' if zone == 'stale' else 'red')) %}
-                  {% set diff  = (val - yth) | round(0) | int if val >= 0 else none %}
+                  {% set cls = zone_class(states('sensor.' ~ p ~ '_soil_moisture_zone')) | trim %}
+                  {% set val = states(mv[p]) | float(-1) %}
                   <div class="cell {{ cls }}">
                     <span class="cell-label">{{ name }}</span>
-                    {% if cls == 'red' %}
-                      {% if val < 0 %}
-                        <span class="cell-hint">~ no data</span>
-                      {% elif diff < 0 %}
-                        <span class="cell-hint">~ {{ diff }}%</span>
-                      {% else %}
-                        <span class="cell-hint">~ +{{ diff }}%</span>
-                      {% endif %}
-                    {% elif cls == 'stale' %}
+                    {% if cls == 'stale' %}
                       <span class="cell-hint">⚠ stale</span>
+                    {% elif val < 0 %}
+                      <span class="cell-hint">~ no data</span>
+                    {% else %}
+                      <span class="cell-value">{{ val | round(0) | int }}%</span>
                     {% endif %}
                   </div>
                 {% endfor %}
 
                 {# Row 2: air humidity #}
                 {% for (p, name) in plants %}
-                  {% set zone  = states('sensor.' ~ p ~ '_air_humidity_zone') %}
-                  {% set val_air = states('sensor.' ~ p ~ '_air_humidity_meter') | float(-1) %}
-                  {% set val = val_air if val_air >= 0 else states('sensor.' ~ p ~ '_humidity_meter') | float(-1) %}
-                  {% set hmin  = states('number.' ~ p ~ '_air_humidity_min') | float(0) %}
-                  {% set hmax  = states('number.' ~ p ~ '_air_humidity_max') | float(0) %}
-                  {% set cls   = 'green' if zone == 'green' else ('yellow' if zone == 'yellow' else ('stale' if zone == 'stale' else 'red')) %}
-                  {% if val < hmin %}
-                    {% set diff = (val - hmin) | round(0) | int %}
-                  {% elif val > hmax %}
-                    {% set diff = (val - hmax) | round(0) | int %}
-                  {% else %}
-                    {% set diff = none %}
-                  {% endif %}
+                  {% set cls = zone_class(states('sensor.' ~ p ~ '_air_humidity_zone')) | trim %}
+                  {% set val = states('sensor.' ~ p ~ '_air_humidity_meter') | float(-1) %}
                   <div class="cell {{ cls }}">
-                    {% if cls == 'red' %}
-                      {% if val < 0 %}
-                        <span class="cell-hint">% no data</span>
-                      {% elif diff is not none and diff < 0 %}
-                        <span class="cell-hint">% {{ diff }}%</span>
-                      {% elif diff is not none %}
-                        <span class="cell-hint">% +{{ diff }}%</span>
-                      {% endif %}
-                    {% elif cls == 'stale' %}
+                    {% if cls == 'stale' %}
                       <span class="cell-hint">⚠ stale</span>
+                    {% elif val < 0 %}
+                      <span class="cell-hint">% no data</span>
+                    {% else %}
+                      <span class="cell-value">{{ val | round(0) | int }}%</span>
                     {% endif %}
                   </div>
                 {% endfor %}
 
                 {# Row 3: temperature #}
                 {% for (p, name) in plants %}
-                  {% set zone  = states('sensor.' ~ p ~ '_air_temperature_zone') %}
-                  {% set val   = states('sensor.' ~ p ~ '_air_temperature_meter') | float(-1) %}
-                  {% set tmin  = states('number.' ~ p ~ '_air_temperature_min') | float(0) %}
-                  {% set tmax  = states('number.' ~ p ~ '_air_temperature_max') | float(0) %}
-                  {% set cls   = 'green' if zone == 'green' else ('yellow' if zone == 'yellow' else ('stale' if zone == 'stale' else 'red')) %}
-                  {% if val < tmin %}
-                    {% set diff = (val - tmin) | round(1) %}
-                  {% elif val > tmax %}
-                    {% set diff = (val - tmax) | round(1) %}
-                  {% else %}
-                    {% set diff = none %}
-                  {% endif %}
+                  {% set cls = zone_class(states('sensor.' ~ p ~ '_air_temperature_zone')) | trim %}
+                  {% set val = states('sensor.' ~ p ~ '_air_temperature_meter') | float(-1) %}
                   <div class="cell {{ cls }}">
-                    {% if cls == 'red' %}
-                      {% if val < 0 %}
-                        <span class="cell-hint">° no data</span>
-                      {% elif diff is not none and diff < 0 %}
-                        <span class="cell-hint">° {{ diff }}°F</span>
-                      {% elif diff is not none %}
-                        <span class="cell-hint">° +{{ diff }}°F</span>
-                      {% endif %}
-                    {% elif cls == 'stale' %}
+                    {% if cls == 'stale' %}
                       <span class="cell-hint">⚠ stale</span>
+                    {% elif val < 0 %}
+                      <span class="cell-hint">° no data</span>
+                    {% else %}
+                      <span class="cell-value">{{ val | round(0) | int }}°</span>
                     {% endif %}
                   </div>
                 {% endfor %}
@@ -189,9 +170,9 @@ views:
                 style: |
                   :host {
                     position: absolute;
-                    left: 3.333vw;
-                    top: calc(33.333vh - 6.667vh - 10px);
-                    width: 57px;
+                    left: calc(0.0000vw + 6px);
+                    top: calc(33.3333vh - 53px - 10px);
+                    width: 85px;
                     height: 53px;
                     z-index: 3;
                     pointer-events: none;
@@ -211,17 +192,17 @@ views:
                 chart:
                   sparkline:
                     enabled: true
-                  height: 53
-                  width: 57
                   animations:
                     enabled: false
                   background: transparent
+                  height: 53
+                  width: 85
                   parentHeightOffset: 0
                 grid:
                   show: false
                   padding:
-                    left: 1
-                    right: 1
+                    left: 2
+                    right: 2
                     top: 2
                     bottom: 2
                 yaxis:
@@ -242,22 +223,25 @@ views:
                 dataLabels:
                   enabled: false
                 markers:
-                  size: 0
+                  size: 2.2
+                  strokeWidth: 0
+                  colors:
+                  - '#ffffff'
                 annotations:
                   yaxis:
                   - y: 25.0
                     borderColor: '#ffffff'
-                    borderWidth: 1.5
+                    borderWidth: 1
                     strokeDashArray: 0
-                    opacity: 1
+                    opacity: 0.45
               series:
               - entity: sensor.gw1200b_soil_moisture_1
                 color: '#ffffff'
-                stroke_width: 1.6
-                curve: smooth
+                stroke_width: 2.4
+                curve: straight
                 statistics:
                   type: mean
-                  period: hour
+                  period: day
                 show:
                   legend_value: false
                   in_header: false
@@ -278,9 +262,9 @@ views:
                 style: |
                   :host {
                     position: absolute;
-                    left: 3.333vw;
-                    top: calc(33.333vh - 6.667vh - 10px);
-                    width: 57px;
+                    left: calc(0.0000vw + 6px);
+                    top: calc(33.3333vh - 53px - 10px);
+                    width: 85px;
                     height: 53px;
                     z-index: 3;
                     pointer-events: none;
@@ -300,17 +284,17 @@ views:
                 chart:
                   sparkline:
                     enabled: true
-                  height: 53
-                  width: 57
                   animations:
                     enabled: false
                   background: transparent
+                  height: 53
+                  width: 85
                   parentHeightOffset: 0
                 grid:
                   show: false
                   padding:
-                    left: 1
-                    right: 1
+                    left: 2
+                    right: 2
                     top: 2
                     bottom: 2
                 yaxis:
@@ -331,27 +315,30 @@ views:
                 dataLabels:
                   enabled: false
                 markers:
-                  size: 0
+                  size: 2.2
+                  strokeWidth: 0
+                  colors:
+                  - '#ffffff'
                 annotations:
                   yaxis:
                   - y: 25.0
                     borderColor: '#ffffff'
-                    borderWidth: 1.5
+                    borderWidth: 1
                     strokeDashArray: 0
-                    opacity: 1
+                    opacity: 0.45
                   - y: 15.0
                     borderColor: '#ffffff'
-                    borderWidth: 1.5
+                    borderWidth: 1
                     strokeDashArray: 0
-                    opacity: 1
+                    opacity: 0.45
               series:
               - entity: sensor.gw1200b_soil_moisture_1
                 color: '#ffffff'
-                stroke_width: 1.6
-                curve: smooth
+                stroke_width: 2.4
+                curve: straight
                 statistics:
                   type: mean
-                  period: hour
+                  period: day
                 show:
                   legend_value: false
                   in_header: false
@@ -372,9 +359,9 @@ views:
                 style: |
                   :host {
                     position: absolute;
-                    left: 3.333vw;
-                    top: calc(33.333vh - 6.667vh - 10px);
-                    width: 57px;
+                    left: calc(0.0000vw + 6px);
+                    top: calc(33.3333vh - 53px - 10px);
+                    width: 85px;
                     height: 53px;
                     z-index: 3;
                     pointer-events: none;
@@ -394,17 +381,17 @@ views:
                 chart:
                   sparkline:
                     enabled: true
-                  height: 53
-                  width: 57
                   animations:
                     enabled: false
                   background: transparent
+                  height: 53
+                  width: 85
                   parentHeightOffset: 0
                 grid:
                   show: false
                   padding:
-                    left: 1
-                    right: 1
+                    left: 2
+                    right: 2
                     top: 2
                     bottom: 2
                 yaxis:
@@ -425,22 +412,25 @@ views:
                 dataLabels:
                   enabled: false
                 markers:
-                  size: 0
+                  size: 2.2
+                  strokeWidth: 0
+                  colors:
+                  - '#ffffff'
                 annotations:
                   yaxis:
                   - y: 15.0
                     borderColor: '#ffffff'
-                    borderWidth: 1.5
+                    borderWidth: 1
                     strokeDashArray: 0
-                    opacity: 1
+                    opacity: 0.45
               series:
               - entity: sensor.gw1200b_soil_moisture_1
                 color: '#ffffff'
-                stroke_width: 1.6
-                curve: smooth
+                stroke_width: 2.4
+                curve: straight
                 statistics:
                   type: mean
-                  period: hour
+                  period: day
                 show:
                   legend_value: false
                   in_header: false
@@ -461,9 +451,9 @@ views:
                 style: |
                   :host {
                     position: absolute;
-                    left: 14.444vw;
-                    top: calc(33.333vh - 6.667vh - 10px);
-                    width: 57px;
+                    left: calc(11.1111vw + 6px);
+                    top: calc(33.3333vh - 53px - 10px);
+                    width: 85px;
                     height: 53px;
                     z-index: 3;
                     pointer-events: none;
@@ -483,17 +473,17 @@ views:
                 chart:
                   sparkline:
                     enabled: true
-                  height: 53
-                  width: 57
                   animations:
                     enabled: false
                   background: transparent
+                  height: 53
+                  width: 85
                   parentHeightOffset: 0
                 grid:
                   show: false
                   padding:
-                    left: 1
-                    right: 1
+                    left: 2
+                    right: 2
                     top: 2
                     bottom: 2
                 yaxis:
@@ -514,22 +504,25 @@ views:
                 dataLabels:
                   enabled: false
                 markers:
-                  size: 0
+                  size: 2.2
+                  strokeWidth: 0
+                  colors:
+                  - '#ffffff'
                 annotations:
                   yaxis:
                   - y: 35.0
                     borderColor: '#ffffff'
-                    borderWidth: 1.5
+                    borderWidth: 1
                     strokeDashArray: 0
-                    opacity: 1
+                    opacity: 0.45
               series:
               - entity: sensor.gw1200b_soil_moisture_3
                 color: '#ffffff'
-                stroke_width: 1.6
-                curve: smooth
+                stroke_width: 2.4
+                curve: straight
                 statistics:
                   type: mean
-                  period: hour
+                  period: day
                 show:
                   legend_value: false
                   in_header: false
@@ -550,9 +543,9 @@ views:
                 style: |
                   :host {
                     position: absolute;
-                    left: 14.444vw;
-                    top: calc(33.333vh - 6.667vh - 10px);
-                    width: 57px;
+                    left: calc(11.1111vw + 6px);
+                    top: calc(33.3333vh - 53px - 10px);
+                    width: 85px;
                     height: 53px;
                     z-index: 3;
                     pointer-events: none;
@@ -572,17 +565,17 @@ views:
                 chart:
                   sparkline:
                     enabled: true
-                  height: 53
-                  width: 57
                   animations:
                     enabled: false
                   background: transparent
+                  height: 53
+                  width: 85
                   parentHeightOffset: 0
                 grid:
                   show: false
                   padding:
-                    left: 1
-                    right: 1
+                    left: 2
+                    right: 2
                     top: 2
                     bottom: 2
                 yaxis:
@@ -603,27 +596,30 @@ views:
                 dataLabels:
                   enabled: false
                 markers:
-                  size: 0
+                  size: 2.2
+                  strokeWidth: 0
+                  colors:
+                  - '#ffffff'
                 annotations:
                   yaxis:
                   - y: 35.0
                     borderColor: '#ffffff'
-                    borderWidth: 1.5
+                    borderWidth: 1
                     strokeDashArray: 0
-                    opacity: 1
+                    opacity: 0.45
                   - y: 18.0
                     borderColor: '#ffffff'
-                    borderWidth: 1.5
+                    borderWidth: 1
                     strokeDashArray: 0
-                    opacity: 1
+                    opacity: 0.45
               series:
               - entity: sensor.gw1200b_soil_moisture_3
                 color: '#ffffff'
-                stroke_width: 1.6
-                curve: smooth
+                stroke_width: 2.4
+                curve: straight
                 statistics:
                   type: mean
-                  period: hour
+                  period: day
                 show:
                   legend_value: false
                   in_header: false
@@ -644,9 +640,9 @@ views:
                 style: |
                   :host {
                     position: absolute;
-                    left: 14.444vw;
-                    top: calc(33.333vh - 6.667vh - 10px);
-                    width: 57px;
+                    left: calc(11.1111vw + 6px);
+                    top: calc(33.3333vh - 53px - 10px);
+                    width: 85px;
                     height: 53px;
                     z-index: 3;
                     pointer-events: none;
@@ -666,17 +662,17 @@ views:
                 chart:
                   sparkline:
                     enabled: true
-                  height: 53
-                  width: 57
                   animations:
                     enabled: false
                   background: transparent
+                  height: 53
+                  width: 85
                   parentHeightOffset: 0
                 grid:
                   show: false
                   padding:
-                    left: 1
-                    right: 1
+                    left: 2
+                    right: 2
                     top: 2
                     bottom: 2
                 yaxis:
@@ -697,22 +693,25 @@ views:
                 dataLabels:
                   enabled: false
                 markers:
-                  size: 0
+                  size: 2.2
+                  strokeWidth: 0
+                  colors:
+                  - '#ffffff'
                 annotations:
                   yaxis:
                   - y: 18.0
                     borderColor: '#ffffff'
-                    borderWidth: 1.5
+                    borderWidth: 1
                     strokeDashArray: 0
-                    opacity: 1
+                    opacity: 0.45
               series:
               - entity: sensor.gw1200b_soil_moisture_3
                 color: '#ffffff'
-                stroke_width: 1.6
-                curve: smooth
+                stroke_width: 2.4
+                curve: straight
                 statistics:
                   type: mean
-                  period: hour
+                  period: day
                 show:
                   legend_value: false
                   in_header: false
@@ -733,9 +732,9 @@ views:
                 style: |
                   :host {
                     position: absolute;
-                    left: 25.556vw;
-                    top: calc(33.333vh - 6.667vh - 10px);
-                    width: 57px;
+                    left: calc(22.2222vw + 6px);
+                    top: calc(33.3333vh - 53px - 10px);
+                    width: 85px;
                     height: 53px;
                     z-index: 3;
                     pointer-events: none;
@@ -755,22 +754,22 @@ views:
                 chart:
                   sparkline:
                     enabled: true
-                  height: 53
-                  width: 57
                   animations:
                     enabled: false
                   background: transparent
+                  height: 53
+                  width: 85
                   parentHeightOffset: 0
                 grid:
                   show: false
                   padding:
-                    left: 1
-                    right: 1
+                    left: 2
+                    right: 2
                     top: 2
                     bottom: 2
                 yaxis:
                 - show: false
-                  min: 28.0
+                  min: 28.5
                   max: 80.0
                   forceNiceScale: false
                   labels:
@@ -786,22 +785,25 @@ views:
                 dataLabels:
                   enabled: false
                 markers:
-                  size: 0
+                  size: 2.2
+                  strokeWidth: 0
+                  colors:
+                  - '#ffffff'
                 annotations:
                   yaxis:
                   - y: 35.0
                     borderColor: '#ffffff'
-                    borderWidth: 1.5
+                    borderWidth: 1
                     strokeDashArray: 0
-                    opacity: 1
+                    opacity: 0.45
               series:
               - entity: sensor.gw1200b_soil_moisture_8
                 color: '#ffffff'
-                stroke_width: 1.6
-                curve: smooth
+                stroke_width: 2.4
+                curve: straight
                 statistics:
                   type: mean
-                  period: hour
+                  period: day
                 show:
                   legend_value: false
                   in_header: false
@@ -822,9 +824,9 @@ views:
                 style: |
                   :host {
                     position: absolute;
-                    left: 25.556vw;
-                    top: calc(33.333vh - 6.667vh - 10px);
-                    width: 57px;
+                    left: calc(22.2222vw + 6px);
+                    top: calc(33.3333vh - 53px - 10px);
+                    width: 85px;
                     height: 53px;
                     z-index: 3;
                     pointer-events: none;
@@ -844,17 +846,17 @@ views:
                 chart:
                   sparkline:
                     enabled: true
-                  height: 53
-                  width: 57
                   animations:
                     enabled: false
                   background: transparent
+                  height: 53
+                  width: 85
                   parentHeightOffset: 0
                 grid:
                   show: false
                   padding:
-                    left: 1
-                    right: 1
+                    left: 2
+                    right: 2
                     top: 2
                     bottom: 2
                 yaxis:
@@ -875,27 +877,30 @@ views:
                 dataLabels:
                   enabled: false
                 markers:
-                  size: 0
+                  size: 2.2
+                  strokeWidth: 0
+                  colors:
+                  - '#ffffff'
                 annotations:
                   yaxis:
                   - y: 35.0
                     borderColor: '#ffffff'
-                    borderWidth: 1.5
+                    borderWidth: 1
                     strokeDashArray: 0
-                    opacity: 1
+                    opacity: 0.45
                   - y: 18.0
                     borderColor: '#ffffff'
-                    borderWidth: 1.5
+                    borderWidth: 1
                     strokeDashArray: 0
-                    opacity: 1
+                    opacity: 0.45
               series:
               - entity: sensor.gw1200b_soil_moisture_8
                 color: '#ffffff'
-                stroke_width: 1.6
-                curve: smooth
+                stroke_width: 2.4
+                curve: straight
                 statistics:
                   type: mean
-                  period: hour
+                  period: day
                 show:
                   legend_value: false
                   in_header: false
@@ -916,9 +921,9 @@ views:
                 style: |
                   :host {
                     position: absolute;
-                    left: 25.556vw;
-                    top: calc(33.333vh - 6.667vh - 10px);
-                    width: 57px;
+                    left: calc(22.2222vw + 6px);
+                    top: calc(33.3333vh - 53px - 10px);
+                    width: 85px;
                     height: 53px;
                     z-index: 3;
                     pointer-events: none;
@@ -938,17 +943,17 @@ views:
                 chart:
                   sparkline:
                     enabled: true
-                  height: 53
-                  width: 57
                   animations:
                     enabled: false
                   background: transparent
+                  height: 53
+                  width: 85
                   parentHeightOffset: 0
                 grid:
                   show: false
                   padding:
-                    left: 1
-                    right: 1
+                    left: 2
+                    right: 2
                     top: 2
                     bottom: 2
                 yaxis:
@@ -969,22 +974,25 @@ views:
                 dataLabels:
                   enabled: false
                 markers:
-                  size: 0
+                  size: 2.2
+                  strokeWidth: 0
+                  colors:
+                  - '#ffffff'
                 annotations:
                   yaxis:
                   - y: 18.0
                     borderColor: '#ffffff'
-                    borderWidth: 1.5
+                    borderWidth: 1
                     strokeDashArray: 0
-                    opacity: 1
+                    opacity: 0.45
               series:
               - entity: sensor.gw1200b_soil_moisture_8
                 color: '#ffffff'
-                stroke_width: 1.6
-                curve: smooth
+                stroke_width: 2.4
+                curve: straight
                 statistics:
                   type: mean
-                  period: hour
+                  period: day
                 show:
                   legend_value: false
                   in_header: false
@@ -1005,9 +1013,9 @@ views:
                 style: |
                   :host {
                     position: absolute;
-                    left: 36.667vw;
-                    top: calc(33.333vh - 6.667vh - 10px);
-                    width: 57px;
+                    left: calc(33.3333vw + 6px);
+                    top: calc(33.3333vh - 53px - 10px);
+                    width: 85px;
                     height: 53px;
                     z-index: 3;
                     pointer-events: none;
@@ -1027,22 +1035,22 @@ views:
                 chart:
                   sparkline:
                     enabled: true
-                  height: 53
-                  width: 57
                   animations:
                     enabled: false
                   background: transparent
+                  height: 53
+                  width: 85
                   parentHeightOffset: 0
                 grid:
                   show: false
                   padding:
-                    left: 1
-                    right: 1
+                    left: 2
+                    right: 2
                     top: 2
                     bottom: 2
                 yaxis:
                 - show: false
-                  min: 26.0
+                  min: 26.2
                   max: 50.0
                   forceNiceScale: false
                   labels:
@@ -1058,22 +1066,25 @@ views:
                 dataLabels:
                   enabled: false
                 markers:
-                  size: 0
+                  size: 2.2
+                  strokeWidth: 0
+                  colors:
+                  - '#ffffff'
                 annotations:
                   yaxis:
                   - y: 45.0
                     borderColor: '#ffffff'
-                    borderWidth: 1.5
+                    borderWidth: 1
                     strokeDashArray: 0
-                    opacity: 1
+                    opacity: 0.45
               series:
               - entity: sensor.gw1200b_soil_moisture_7
                 color: '#ffffff'
-                stroke_width: 1.6
-                curve: smooth
+                stroke_width: 2.4
+                curve: straight
                 statistics:
                   type: mean
-                  period: hour
+                  period: day
                 show:
                   legend_value: false
                   in_header: false
@@ -1094,9 +1105,9 @@ views:
                 style: |
                   :host {
                     position: absolute;
-                    left: 36.667vw;
-                    top: calc(33.333vh - 6.667vh - 10px);
-                    width: 57px;
+                    left: calc(33.3333vw + 6px);
+                    top: calc(33.3333vh - 53px - 10px);
+                    width: 85px;
                     height: 53px;
                     z-index: 3;
                     pointer-events: none;
@@ -1116,17 +1127,17 @@ views:
                 chart:
                   sparkline:
                     enabled: true
-                  height: 53
-                  width: 57
                   animations:
                     enabled: false
                   background: transparent
+                  height: 53
+                  width: 85
                   parentHeightOffset: 0
                 grid:
                   show: false
                   padding:
-                    left: 1
-                    right: 1
+                    left: 2
+                    right: 2
                     top: 2
                     bottom: 2
                 yaxis:
@@ -1147,27 +1158,30 @@ views:
                 dataLabels:
                   enabled: false
                 markers:
-                  size: 0
+                  size: 2.2
+                  strokeWidth: 0
+                  colors:
+                  - '#ffffff'
                 annotations:
                   yaxis:
                   - y: 45.0
                     borderColor: '#ffffff'
-                    borderWidth: 1.5
+                    borderWidth: 1
                     strokeDashArray: 0
-                    opacity: 1
+                    opacity: 0.45
                   - y: 22.0
                     borderColor: '#ffffff'
-                    borderWidth: 1.5
+                    borderWidth: 1
                     strokeDashArray: 0
-                    opacity: 1
+                    opacity: 0.45
               series:
               - entity: sensor.gw1200b_soil_moisture_7
                 color: '#ffffff'
-                stroke_width: 1.6
-                curve: smooth
+                stroke_width: 2.4
+                curve: straight
                 statistics:
                   type: mean
-                  period: hour
+                  period: day
                 show:
                   legend_value: false
                   in_header: false
@@ -1188,9 +1202,9 @@ views:
                 style: |
                   :host {
                     position: absolute;
-                    left: 36.667vw;
-                    top: calc(33.333vh - 6.667vh - 10px);
-                    width: 57px;
+                    left: calc(33.3333vw + 6px);
+                    top: calc(33.3333vh - 53px - 10px);
+                    width: 85px;
                     height: 53px;
                     z-index: 3;
                     pointer-events: none;
@@ -1210,17 +1224,17 @@ views:
                 chart:
                   sparkline:
                     enabled: true
-                  height: 53
-                  width: 57
                   animations:
                     enabled: false
                   background: transparent
+                  height: 53
+                  width: 85
                   parentHeightOffset: 0
                 grid:
                   show: false
                   padding:
-                    left: 1
-                    right: 1
+                    left: 2
+                    right: 2
                     top: 2
                     bottom: 2
                 yaxis:
@@ -1241,22 +1255,25 @@ views:
                 dataLabels:
                   enabled: false
                 markers:
-                  size: 0
+                  size: 2.2
+                  strokeWidth: 0
+                  colors:
+                  - '#ffffff'
                 annotations:
                   yaxis:
                   - y: 22.0
                     borderColor: '#ffffff'
-                    borderWidth: 1.5
+                    borderWidth: 1
                     strokeDashArray: 0
-                    opacity: 1
+                    opacity: 0.45
               series:
               - entity: sensor.gw1200b_soil_moisture_7
                 color: '#ffffff'
-                stroke_width: 1.6
-                curve: smooth
+                stroke_width: 2.4
+                curve: straight
                 statistics:
                   type: mean
-                  period: hour
+                  period: day
                 show:
                   legend_value: false
                   in_header: false
@@ -1277,9 +1294,9 @@ views:
                 style: |
                   :host {
                     position: absolute;
-                    left: 47.778vw;
-                    top: calc(33.333vh - 6.667vh - 10px);
-                    width: 57px;
+                    left: calc(44.4444vw + 6px);
+                    top: calc(33.3333vh - 53px - 10px);
+                    width: 85px;
                     height: 53px;
                     z-index: 3;
                     pointer-events: none;
@@ -1299,22 +1316,22 @@ views:
                 chart:
                   sparkline:
                     enabled: true
-                  height: 53
-                  width: 57
                   animations:
                     enabled: false
                   background: transparent
+                  height: 53
+                  width: 85
                   parentHeightOffset: 0
                 grid:
                   show: false
                   padding:
-                    left: 1
-                    right: 1
+                    left: 2
+                    right: 2
                     top: 2
                     bottom: 2
                 yaxis:
                 - show: false
-                  min: 18.0
+                  min: 18.3
                   max: 43.0
                   forceNiceScale: false
                   labels:
@@ -1330,22 +1347,25 @@ views:
                 dataLabels:
                   enabled: false
                 markers:
-                  size: 0
+                  size: 2.2
+                  strokeWidth: 0
+                  colors:
+                  - '#ffffff'
                 annotations:
                   yaxis:
                   - y: 35.0
                     borderColor: '#ffffff'
-                    borderWidth: 1.5
+                    borderWidth: 1
                     strokeDashArray: 0
-                    opacity: 1
+                    opacity: 0.45
               series:
               - entity: sensor.gw1200b_soil_moisture_6
                 color: '#ffffff'
-                stroke_width: 1.6
-                curve: smooth
+                stroke_width: 2.4
+                curve: straight
                 statistics:
                   type: mean
-                  period: hour
+                  period: day
                 show:
                   legend_value: false
                   in_header: false
@@ -1366,9 +1386,9 @@ views:
                 style: |
                   :host {
                     position: absolute;
-                    left: 47.778vw;
-                    top: calc(33.333vh - 6.667vh - 10px);
-                    width: 57px;
+                    left: calc(44.4444vw + 6px);
+                    top: calc(33.3333vh - 53px - 10px);
+                    width: 85px;
                     height: 53px;
                     z-index: 3;
                     pointer-events: none;
@@ -1388,17 +1408,17 @@ views:
                 chart:
                   sparkline:
                     enabled: true
-                  height: 53
-                  width: 57
                   animations:
                     enabled: false
                   background: transparent
+                  height: 53
+                  width: 85
                   parentHeightOffset: 0
                 grid:
                   show: false
                   padding:
-                    left: 1
-                    right: 1
+                    left: 2
+                    right: 2
                     top: 2
                     bottom: 2
                 yaxis:
@@ -1419,27 +1439,30 @@ views:
                 dataLabels:
                   enabled: false
                 markers:
-                  size: 0
+                  size: 2.2
+                  strokeWidth: 0
+                  colors:
+                  - '#ffffff'
                 annotations:
                   yaxis:
                   - y: 35.0
                     borderColor: '#ffffff'
-                    borderWidth: 1.5
+                    borderWidth: 1
                     strokeDashArray: 0
-                    opacity: 1
+                    opacity: 0.45
                   - y: 18.0
                     borderColor: '#ffffff'
-                    borderWidth: 1.5
+                    borderWidth: 1
                     strokeDashArray: 0
-                    opacity: 1
+                    opacity: 0.45
               series:
               - entity: sensor.gw1200b_soil_moisture_6
                 color: '#ffffff'
-                stroke_width: 1.6
-                curve: smooth
+                stroke_width: 2.4
+                curve: straight
                 statistics:
                   type: mean
-                  period: hour
+                  period: day
                 show:
                   legend_value: false
                   in_header: false
@@ -1460,9 +1483,9 @@ views:
                 style: |
                   :host {
                     position: absolute;
-                    left: 47.778vw;
-                    top: calc(33.333vh - 6.667vh - 10px);
-                    width: 57px;
+                    left: calc(44.4444vw + 6px);
+                    top: calc(33.3333vh - 53px - 10px);
+                    width: 85px;
                     height: 53px;
                     z-index: 3;
                     pointer-events: none;
@@ -1482,17 +1505,17 @@ views:
                 chart:
                   sparkline:
                     enabled: true
-                  height: 53
-                  width: 57
                   animations:
                     enabled: false
                   background: transparent
+                  height: 53
+                  width: 85
                   parentHeightOffset: 0
                 grid:
                   show: false
                   padding:
-                    left: 1
-                    right: 1
+                    left: 2
+                    right: 2
                     top: 2
                     bottom: 2
                 yaxis:
@@ -1513,22 +1536,25 @@ views:
                 dataLabels:
                   enabled: false
                 markers:
-                  size: 0
+                  size: 2.2
+                  strokeWidth: 0
+                  colors:
+                  - '#ffffff'
                 annotations:
                   yaxis:
                   - y: 18.0
                     borderColor: '#ffffff'
-                    borderWidth: 1.5
+                    borderWidth: 1
                     strokeDashArray: 0
-                    opacity: 1
+                    opacity: 0.45
               series:
               - entity: sensor.gw1200b_soil_moisture_6
                 color: '#ffffff'
-                stroke_width: 1.6
-                curve: smooth
+                stroke_width: 2.4
+                curve: straight
                 statistics:
                   type: mean
-                  period: hour
+                  period: day
                 show:
                   legend_value: false
                   in_header: false
@@ -1549,9 +1575,9 @@ views:
                 style: |
                   :host {
                     position: absolute;
-                    left: 58.889vw;
-                    top: calc(33.333vh - 6.667vh - 10px);
-                    width: 57px;
+                    left: calc(55.5556vw + 6px);
+                    top: calc(33.3333vh - 53px - 10px);
+                    width: 85px;
                     height: 53px;
                     z-index: 3;
                     pointer-events: none;
@@ -1571,17 +1597,17 @@ views:
                 chart:
                   sparkline:
                     enabled: true
-                  height: 53
-                  width: 57
                   animations:
                     enabled: false
                   background: transparent
+                  height: 53
+                  width: 85
                   parentHeightOffset: 0
                 grid:
                   show: false
                   padding:
-                    left: 1
-                    right: 1
+                    left: 2
+                    right: 2
                     top: 2
                     bottom: 2
                 yaxis:
@@ -1602,22 +1628,25 @@ views:
                 dataLabels:
                   enabled: false
                 markers:
-                  size: 0
+                  size: 2.2
+                  strokeWidth: 0
+                  colors:
+                  - '#ffffff'
                 annotations:
                   yaxis:
                   - y: 25.0
                     borderColor: '#ffffff'
-                    borderWidth: 1.5
+                    borderWidth: 1
                     strokeDashArray: 0
-                    opacity: 1
+                    opacity: 0.45
               series:
               - entity: sensor.gw1200b_soil_moisture_4
                 color: '#ffffff'
-                stroke_width: 1.6
-                curve: smooth
+                stroke_width: 2.4
+                curve: straight
                 statistics:
                   type: mean
-                  period: hour
+                  period: day
                 show:
                   legend_value: false
                   in_header: false
@@ -1638,9 +1667,9 @@ views:
                 style: |
                   :host {
                     position: absolute;
-                    left: 58.889vw;
-                    top: calc(33.333vh - 6.667vh - 10px);
-                    width: 57px;
+                    left: calc(55.5556vw + 6px);
+                    top: calc(33.3333vh - 53px - 10px);
+                    width: 85px;
                     height: 53px;
                     z-index: 3;
                     pointer-events: none;
@@ -1660,17 +1689,17 @@ views:
                 chart:
                   sparkline:
                     enabled: true
-                  height: 53
-                  width: 57
                   animations:
                     enabled: false
                   background: transparent
+                  height: 53
+                  width: 85
                   parentHeightOffset: 0
                 grid:
                   show: false
                   padding:
-                    left: 1
-                    right: 1
+                    left: 2
+                    right: 2
                     top: 2
                     bottom: 2
                 yaxis:
@@ -1691,27 +1720,30 @@ views:
                 dataLabels:
                   enabled: false
                 markers:
-                  size: 0
+                  size: 2.2
+                  strokeWidth: 0
+                  colors:
+                  - '#ffffff'
                 annotations:
                   yaxis:
                   - y: 25.0
                     borderColor: '#ffffff'
-                    borderWidth: 1.5
+                    borderWidth: 1
                     strokeDashArray: 0
-                    opacity: 1
+                    opacity: 0.45
                   - y: 12.0
                     borderColor: '#ffffff'
-                    borderWidth: 1.5
+                    borderWidth: 1
                     strokeDashArray: 0
-                    opacity: 1
+                    opacity: 0.45
               series:
               - entity: sensor.gw1200b_soil_moisture_4
                 color: '#ffffff'
-                stroke_width: 1.6
-                curve: smooth
+                stroke_width: 2.4
+                curve: straight
                 statistics:
                   type: mean
-                  period: hour
+                  period: day
                 show:
                   legend_value: false
                   in_header: false
@@ -1732,9 +1764,9 @@ views:
                 style: |
                   :host {
                     position: absolute;
-                    left: 58.889vw;
-                    top: calc(33.333vh - 6.667vh - 10px);
-                    width: 57px;
+                    left: calc(55.5556vw + 6px);
+                    top: calc(33.3333vh - 53px - 10px);
+                    width: 85px;
                     height: 53px;
                     z-index: 3;
                     pointer-events: none;
@@ -1754,17 +1786,17 @@ views:
                 chart:
                   sparkline:
                     enabled: true
-                  height: 53
-                  width: 57
                   animations:
                     enabled: false
                   background: transparent
+                  height: 53
+                  width: 85
                   parentHeightOffset: 0
                 grid:
                   show: false
                   padding:
-                    left: 1
-                    right: 1
+                    left: 2
+                    right: 2
                     top: 2
                     bottom: 2
                 yaxis:
@@ -1785,22 +1817,25 @@ views:
                 dataLabels:
                   enabled: false
                 markers:
-                  size: 0
+                  size: 2.2
+                  strokeWidth: 0
+                  colors:
+                  - '#ffffff'
                 annotations:
                   yaxis:
                   - y: 12.0
                     borderColor: '#ffffff'
-                    borderWidth: 1.5
+                    borderWidth: 1
                     strokeDashArray: 0
-                    opacity: 1
+                    opacity: 0.45
               series:
               - entity: sensor.gw1200b_soil_moisture_4
                 color: '#ffffff'
-                stroke_width: 1.6
-                curve: smooth
+                stroke_width: 2.4
+                curve: straight
                 statistics:
                   type: mean
-                  period: hour
+                  period: day
                 show:
                   legend_value: false
                   in_header: false
@@ -1821,9 +1856,9 @@ views:
                 style: |
                   :host {
                     position: absolute;
-                    left: 70.000vw;
-                    top: calc(33.333vh - 6.667vh - 10px);
-                    width: 57px;
+                    left: calc(66.6667vw + 6px);
+                    top: calc(33.3333vh - 53px - 10px);
+                    width: 85px;
                     height: 53px;
                     z-index: 3;
                     pointer-events: none;
@@ -1843,17 +1878,17 @@ views:
                 chart:
                   sparkline:
                     enabled: true
-                  height: 53
-                  width: 57
                   animations:
                     enabled: false
                   background: transparent
+                  height: 53
+                  width: 85
                   parentHeightOffset: 0
                 grid:
                   show: false
                   padding:
-                    left: 1
-                    right: 1
+                    left: 2
+                    right: 2
                     top: 2
                     bottom: 2
                 yaxis:
@@ -1874,22 +1909,25 @@ views:
                 dataLabels:
                   enabled: false
                 markers:
-                  size: 0
+                  size: 2.2
+                  strokeWidth: 0
+                  colors:
+                  - '#ffffff'
                 annotations:
                   yaxis:
                   - y: 35.0
                     borderColor: '#ffffff'
-                    borderWidth: 1.5
+                    borderWidth: 1
                     strokeDashArray: 0
-                    opacity: 1
+                    opacity: 0.45
               series:
               - entity: sensor.gw1200b_soil_moisture_2
                 color: '#ffffff'
-                stroke_width: 1.6
-                curve: smooth
+                stroke_width: 2.4
+                curve: straight
                 statistics:
                   type: mean
-                  period: hour
+                  period: day
                 show:
                   legend_value: false
                   in_header: false
@@ -1910,9 +1948,9 @@ views:
                 style: |
                   :host {
                     position: absolute;
-                    left: 70.000vw;
-                    top: calc(33.333vh - 6.667vh - 10px);
-                    width: 57px;
+                    left: calc(66.6667vw + 6px);
+                    top: calc(33.3333vh - 53px - 10px);
+                    width: 85px;
                     height: 53px;
                     z-index: 3;
                     pointer-events: none;
@@ -1932,17 +1970,17 @@ views:
                 chart:
                   sparkline:
                     enabled: true
-                  height: 53
-                  width: 57
                   animations:
                     enabled: false
                   background: transparent
+                  height: 53
+                  width: 85
                   parentHeightOffset: 0
                 grid:
                   show: false
                   padding:
-                    left: 1
-                    right: 1
+                    left: 2
+                    right: 2
                     top: 2
                     bottom: 2
                 yaxis:
@@ -1963,27 +2001,30 @@ views:
                 dataLabels:
                   enabled: false
                 markers:
-                  size: 0
+                  size: 2.2
+                  strokeWidth: 0
+                  colors:
+                  - '#ffffff'
                 annotations:
                   yaxis:
                   - y: 35.0
                     borderColor: '#ffffff'
-                    borderWidth: 1.5
+                    borderWidth: 1
                     strokeDashArray: 0
-                    opacity: 1
+                    opacity: 0.45
                   - y: 18.0
                     borderColor: '#ffffff'
-                    borderWidth: 1.5
+                    borderWidth: 1
                     strokeDashArray: 0
-                    opacity: 1
+                    opacity: 0.45
               series:
               - entity: sensor.gw1200b_soil_moisture_2
                 color: '#ffffff'
-                stroke_width: 1.6
-                curve: smooth
+                stroke_width: 2.4
+                curve: straight
                 statistics:
                   type: mean
-                  period: hour
+                  period: day
                 show:
                   legend_value: false
                   in_header: false
@@ -2004,9 +2045,9 @@ views:
                 style: |
                   :host {
                     position: absolute;
-                    left: 70.000vw;
-                    top: calc(33.333vh - 6.667vh - 10px);
-                    width: 57px;
+                    left: calc(66.6667vw + 6px);
+                    top: calc(33.3333vh - 53px - 10px);
+                    width: 85px;
                     height: 53px;
                     z-index: 3;
                     pointer-events: none;
@@ -2026,17 +2067,17 @@ views:
                 chart:
                   sparkline:
                     enabled: true
-                  height: 53
-                  width: 57
                   animations:
                     enabled: false
                   background: transparent
+                  height: 53
+                  width: 85
                   parentHeightOffset: 0
                 grid:
                   show: false
                   padding:
-                    left: 1
-                    right: 1
+                    left: 2
+                    right: 2
                     top: 2
                     bottom: 2
                 yaxis:
@@ -2057,22 +2098,25 @@ views:
                 dataLabels:
                   enabled: false
                 markers:
-                  size: 0
+                  size: 2.2
+                  strokeWidth: 0
+                  colors:
+                  - '#ffffff'
                 annotations:
                   yaxis:
                   - y: 18.0
                     borderColor: '#ffffff'
-                    borderWidth: 1.5
+                    borderWidth: 1
                     strokeDashArray: 0
-                    opacity: 1
+                    opacity: 0.45
               series:
               - entity: sensor.gw1200b_soil_moisture_2
                 color: '#ffffff'
-                stroke_width: 1.6
-                curve: smooth
+                stroke_width: 2.4
+                curve: straight
                 statistics:
                   type: mean
-                  period: hour
+                  period: day
                 show:
                   legend_value: false
                   in_header: false
@@ -2093,9 +2137,9 @@ views:
                 style: |
                   :host {
                     position: absolute;
-                    left: 81.111vw;
-                    top: calc(33.333vh - 6.667vh - 10px);
-                    width: 57px;
+                    left: calc(77.7778vw + 6px);
+                    top: calc(33.3333vh - 53px - 10px);
+                    width: 85px;
                     height: 53px;
                     z-index: 3;
                     pointer-events: none;
@@ -2115,17 +2159,17 @@ views:
                 chart:
                   sparkline:
                     enabled: true
-                  height: 53
-                  width: 57
                   animations:
                     enabled: false
                   background: transparent
+                  height: 53
+                  width: 85
                   parentHeightOffset: 0
                 grid:
                   show: false
                   padding:
-                    left: 1
-                    right: 1
+                    left: 2
+                    right: 2
                     top: 2
                     bottom: 2
                 yaxis:
@@ -2146,22 +2190,25 @@ views:
                 dataLabels:
                   enabled: false
                 markers:
-                  size: 0
+                  size: 2.2
+                  strokeWidth: 0
+                  colors:
+                  - '#ffffff'
                 annotations:
                   yaxis:
                   - y: 35.0
                     borderColor: '#ffffff'
-                    borderWidth: 1.5
+                    borderWidth: 1
                     strokeDashArray: 0
-                    opacity: 1
+                    opacity: 0.45
               series:
               - entity: sensor.gw1200b_soil_moisture_5
                 color: '#ffffff'
-                stroke_width: 1.6
-                curve: smooth
+                stroke_width: 2.4
+                curve: straight
                 statistics:
                   type: mean
-                  period: hour
+                  period: day
                 show:
                   legend_value: false
                   in_header: false
@@ -2182,9 +2229,9 @@ views:
                 style: |
                   :host {
                     position: absolute;
-                    left: 81.111vw;
-                    top: calc(33.333vh - 6.667vh - 10px);
-                    width: 57px;
+                    left: calc(77.7778vw + 6px);
+                    top: calc(33.3333vh - 53px - 10px);
+                    width: 85px;
                     height: 53px;
                     z-index: 3;
                     pointer-events: none;
@@ -2204,17 +2251,17 @@ views:
                 chart:
                   sparkline:
                     enabled: true
-                  height: 53
-                  width: 57
                   animations:
                     enabled: false
                   background: transparent
+                  height: 53
+                  width: 85
                   parentHeightOffset: 0
                 grid:
                   show: false
                   padding:
-                    left: 1
-                    right: 1
+                    left: 2
+                    right: 2
                     top: 2
                     bottom: 2
                 yaxis:
@@ -2235,27 +2282,30 @@ views:
                 dataLabels:
                   enabled: false
                 markers:
-                  size: 0
+                  size: 2.2
+                  strokeWidth: 0
+                  colors:
+                  - '#ffffff'
                 annotations:
                   yaxis:
                   - y: 35.0
                     borderColor: '#ffffff'
-                    borderWidth: 1.5
+                    borderWidth: 1
                     strokeDashArray: 0
-                    opacity: 1
+                    opacity: 0.45
                   - y: 18.0
                     borderColor: '#ffffff'
-                    borderWidth: 1.5
+                    borderWidth: 1
                     strokeDashArray: 0
-                    opacity: 1
+                    opacity: 0.45
               series:
               - entity: sensor.gw1200b_soil_moisture_5
                 color: '#ffffff'
-                stroke_width: 1.6
-                curve: smooth
+                stroke_width: 2.4
+                curve: straight
                 statistics:
                   type: mean
-                  period: hour
+                  period: day
                 show:
                   legend_value: false
                   in_header: false
@@ -2276,9 +2326,9 @@ views:
                 style: |
                   :host {
                     position: absolute;
-                    left: 81.111vw;
-                    top: calc(33.333vh - 6.667vh - 10px);
-                    width: 57px;
+                    left: calc(77.7778vw + 6px);
+                    top: calc(33.3333vh - 53px - 10px);
+                    width: 85px;
                     height: 53px;
                     z-index: 3;
                     pointer-events: none;
@@ -2298,17 +2348,17 @@ views:
                 chart:
                   sparkline:
                     enabled: true
-                  height: 53
-                  width: 57
                   animations:
                     enabled: false
                   background: transparent
+                  height: 53
+                  width: 85
                   parentHeightOffset: 0
                 grid:
                   show: false
                   padding:
-                    left: 1
-                    right: 1
+                    left: 2
+                    right: 2
                     top: 2
                     bottom: 2
                 yaxis:
@@ -2329,22 +2379,25 @@ views:
                 dataLabels:
                   enabled: false
                 markers:
-                  size: 0
+                  size: 2.2
+                  strokeWidth: 0
+                  colors:
+                  - '#ffffff'
                 annotations:
                   yaxis:
                   - y: 18.0
                     borderColor: '#ffffff'
-                    borderWidth: 1.5
+                    borderWidth: 1
                     strokeDashArray: 0
-                    opacity: 1
+                    opacity: 0.45
               series:
               - entity: sensor.gw1200b_soil_moisture_5
                 color: '#ffffff'
-                stroke_width: 1.6
-                curve: smooth
+                stroke_width: 2.4
+                curve: straight
                 statistics:
                   type: mean
-                  period: hour
+                  period: day
                 show:
                   legend_value: false
                   in_header: false
@@ -2365,9 +2418,9 @@ views:
                 style: |
                   :host {
                     position: absolute;
-                    left: 92.222vw;
-                    top: calc(33.333vh - 6.667vh - 10px);
-                    width: 57px;
+                    left: calc(88.8889vw + 6px);
+                    top: calc(33.3333vh - 53px - 10px);
+                    width: 85px;
                     height: 53px;
                     z-index: 3;
                     pointer-events: none;
@@ -2387,17 +2440,17 @@ views:
                 chart:
                   sparkline:
                     enabled: true
-                  height: 53
-                  width: 57
                   animations:
                     enabled: false
                   background: transparent
+                  height: 53
+                  width: 85
                   parentHeightOffset: 0
                 grid:
                   show: false
                   padding:
-                    left: 1
-                    right: 1
+                    left: 2
+                    right: 2
                     top: 2
                     bottom: 2
                 yaxis:
@@ -2418,22 +2471,25 @@ views:
                 dataLabels:
                   enabled: false
                 markers:
-                  size: 0
+                  size: 2.2
+                  strokeWidth: 0
+                  colors:
+                  - '#ffffff'
                 annotations:
                   yaxis:
                   - y: 20.0
                     borderColor: '#ffffff'
-                    borderWidth: 1.5
+                    borderWidth: 1
                     strokeDashArray: 0
-                    opacity: 1
+                    opacity: 0.45
               series:
               - entity: sensor.gw1200b_soil_moisture_9
                 color: '#ffffff'
-                stroke_width: 1.6
-                curve: smooth
+                stroke_width: 2.4
+                curve: straight
                 statistics:
                   type: mean
-                  period: hour
+                  period: day
                 show:
                   legend_value: false
                   in_header: false
@@ -2454,9 +2510,9 @@ views:
                 style: |
                   :host {
                     position: absolute;
-                    left: 92.222vw;
-                    top: calc(33.333vh - 6.667vh - 10px);
-                    width: 57px;
+                    left: calc(88.8889vw + 6px);
+                    top: calc(33.3333vh - 53px - 10px);
+                    width: 85px;
                     height: 53px;
                     z-index: 3;
                     pointer-events: none;
@@ -2476,17 +2532,17 @@ views:
                 chart:
                   sparkline:
                     enabled: true
-                  height: 53
-                  width: 57
                   animations:
                     enabled: false
                   background: transparent
+                  height: 53
+                  width: 85
                   parentHeightOffset: 0
                 grid:
                   show: false
                   padding:
-                    left: 1
-                    right: 1
+                    left: 2
+                    right: 2
                     top: 2
                     bottom: 2
                 yaxis:
@@ -2507,27 +2563,30 @@ views:
                 dataLabels:
                   enabled: false
                 markers:
-                  size: 0
+                  size: 2.2
+                  strokeWidth: 0
+                  colors:
+                  - '#ffffff'
                 annotations:
                   yaxis:
                   - y: 20.0
                     borderColor: '#ffffff'
-                    borderWidth: 1.5
+                    borderWidth: 1
                     strokeDashArray: 0
-                    opacity: 1
+                    opacity: 0.45
                   - y: 10.0
                     borderColor: '#ffffff'
-                    borderWidth: 1.5
+                    borderWidth: 1
                     strokeDashArray: 0
-                    opacity: 1
+                    opacity: 0.45
               series:
               - entity: sensor.gw1200b_soil_moisture_9
                 color: '#ffffff'
-                stroke_width: 1.6
-                curve: smooth
+                stroke_width: 2.4
+                curve: straight
                 statistics:
                   type: mean
-                  period: hour
+                  period: day
                 show:
                   legend_value: false
                   in_header: false
@@ -2548,9 +2607,9 @@ views:
                 style: |
                   :host {
                     position: absolute;
-                    left: 92.222vw;
-                    top: calc(33.333vh - 6.667vh - 10px);
-                    width: 57px;
+                    left: calc(88.8889vw + 6px);
+                    top: calc(33.3333vh - 53px - 10px);
+                    width: 85px;
                     height: 53px;
                     z-index: 3;
                     pointer-events: none;
@@ -2570,17 +2629,17 @@ views:
                 chart:
                   sparkline:
                     enabled: true
-                  height: 53
-                  width: 57
                   animations:
                     enabled: false
                   background: transparent
+                  height: 53
+                  width: 85
                   parentHeightOffset: 0
                 grid:
                   show: false
                   padding:
-                    left: 1
-                    right: 1
+                    left: 2
+                    right: 2
                     top: 2
                     bottom: 2
                 yaxis:
@@ -2601,22 +2660,25 @@ views:
                 dataLabels:
                   enabled: false
                 markers:
-                  size: 0
+                  size: 2.2
+                  strokeWidth: 0
+                  colors:
+                  - '#ffffff'
                 annotations:
                   yaxis:
                   - y: 10.0
                     borderColor: '#ffffff'
-                    borderWidth: 1.5
+                    borderWidth: 1
                     strokeDashArray: 0
-                    opacity: 1
+                    opacity: 0.45
               series:
               - entity: sensor.gw1200b_soil_moisture_9
                 color: '#ffffff'
-                stroke_width: 1.6
-                curve: smooth
+                stroke_width: 2.4
+                curve: straight
                 statistics:
                   type: mean
-                  period: hour
+                  period: day
                 show:
                   legend_value: false
                   in_header: false

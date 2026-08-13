@@ -1,0 +1,146 @@
+title: 🌿 Tablet
+theme: Backend-selected
+views:
+  - title: Plants
+    path: home
+    panel: true
+    card_mod:
+      style: |
+        hui-view,
+        hui-view > *,
+        hui-panel-view,
+        hui-panel-view > *,
+        .ha-scrollbar,
+        #view { padding: 0 !important; margin: 0 !important; }
+    cards:
+      - type: custom:html-template-card
+        ignore_line_breaks: true
+        card_mod:
+          style: |
+            ha-card { padding: 0 !important; }
+        content: |
+          {#
+            Every entity this template touches is re-rendered server-side on each of
+            its state changes, and during startup hundreds of entities register in a
+            burst — so each lookup here costs thousands of full renders and pegs the
+            event loop for minutes. Keep the entity count down: the zone sensors
+            already carry the verdict, so thresholds are deliberately not read.
+          #}
+          <style>
+            :host, html, body { margin: 0; padding: 0; height: 100%; width: 100%; overflow: hidden; }
+            hui-view, .ha-scrollbar, #view { padding: 0 !important; margin: 0 !important; }
+            .tablet-wrap {
+              width: 100vw;
+              height: 100vh;
+              background: #111;
+              display: grid;
+              grid-template-columns: repeat(9, 1fr);
+              grid-template-rows: repeat(3, 1fr);
+              gap: 0;
+              box-sizing: border-box;
+            }
+            .cell {
+              display: flex;
+              flex-direction: column;
+              align-items: center;
+              justify-content: flex-start;
+              padding: 8px 4px;
+              position: relative;
+              border: 1px solid rgba(255,255,255,0.2);
+            }
+            .cell-label {
+              color: #fff;
+              font-family: sans-serif;
+              font-weight: 400;
+              font-size: clamp(0.7rem, 1.3vw, 1.1rem);
+              text-align: center;
+              padding: 0 4px;
+            }
+            .cell-hint {
+              position: absolute;
+              bottom: 8px;
+              color: #fff;
+              font-family: sans-serif;
+              font-size: clamp(0.7rem, 1.3vw, 1.1rem);
+              font-weight: 400;
+              text-align: center;
+            }
+            .cell-value {
+              position: absolute;
+              right: 6px;
+              bottom: 10px;
+              color: #fff;
+              font-family: sans-serif;
+              font-size: clamp(0.7rem, 1.3vw, 1.1rem);
+              font-weight: 400;
+              text-align: right;
+            }
+            .green  { background: #00a85e; }
+            .yellow { background: #d4a800; color: rgba(0,0,0,0.7) !important; }
+            .red    { background: #cb2535; }
+            .stale  { background: #555; color: #fff !important; }
+          </style>
+
+          {% set plants = [
+            ('dracaena',              'Dracaena'),
+            ('ficus_robusta_darker','Ficus Robusta'),
+            ('ficus_tineke_lighter', 'Ficus Tineke'),
+            ('liana',                 'Liana'),
+            ('malcolm_ficus',         'Malcolm Ficus'),
+            ('olive_tree',            'Olive Tree'),
+            ('rubber_plant',          'Rubber Plant'),
+            ('triangularis_ficus',    'Triangularis'),
+            ('yucca',                 'Yucca'),
+          ] %}
+          {% set mv = {'dracaena':'sensor.dracaena_soil_moisture_state','ficus_robusta_darker':'sensor.ficus_robusta_darker_soil_moisture_state','ficus_tineke_lighter':'sensor.ficus_tineke_lighter_soil_moisture_state','liana':'sensor.liana_moisture','malcolm_ficus':'sensor.malcolm_ficus_moisture','olive_tree':'sensor.olive_tree_moisture','rubber_plant':'sensor.rubber_plant_moisture','triangularis_ficus':'sensor.triangularis_ficus_moisture','yucca':'sensor.yucca_moisture'} %}
+          {% macro zone_class(z) %}{% if z == 'green' %}green{% elif z == 'yellow' %}yellow{% elif z == 'stale' %}stale{% else %}red{% endif %}{% endmacro %}
+
+          <div class="tablet-wrap">
+
+            {# Row 1: soil moisture — the sparkline overlay sits at the bottom left #}
+            {% for (p, name) in plants %}
+              {% set cls = zone_class(states('sensor.' ~ p ~ '_soil_moisture_zone')) | trim %}
+              {% set val = states(mv[p]) | float(-1) %}
+              <div class="cell {{ cls }}">
+                <span class="cell-label">{{ name }}</span>
+                {% if cls == 'stale' %}
+                  <span class="cell-hint">⚠ stale</span>
+                {% elif val < 0 %}
+                  <span class="cell-hint">~ no data</span>
+                {% else %}
+                  <span class="cell-value">{{ val | round(0) | int }}%</span>
+                {% endif %}
+              </div>
+            {% endfor %}
+
+            {# Row 2: air humidity #}
+            {% for (p, name) in plants %}
+              {% set cls = zone_class(states('sensor.' ~ p ~ '_air_humidity_zone')) | trim %}
+              {% set val = states('sensor.' ~ p ~ '_air_humidity_meter') | float(-1) %}
+              <div class="cell {{ cls }}">
+                {% if cls == 'stale' %}
+                  <span class="cell-hint">⚠ stale</span>
+                {% elif val < 0 %}
+                  <span class="cell-hint">% no data</span>
+                {% else %}
+                  <span class="cell-value">{{ val | round(0) | int }}%</span>
+                {% endif %}
+              </div>
+            {% endfor %}
+
+            {# Row 3: temperature #}
+            {% for (p, name) in plants %}
+              {% set cls = zone_class(states('sensor.' ~ p ~ '_air_temperature_zone')) | trim %}
+              {% set val = states('sensor.' ~ p ~ '_air_temperature_meter') | float(-1) %}
+              <div class="cell {{ cls }}">
+                {% if cls == 'stale' %}
+                  <span class="cell-hint">⚠ stale</span>
+                {% elif val < 0 %}
+                  <span class="cell-hint">° no data</span>
+                {% else %}
+                  <span class="cell-value">{{ val | round(0) | int }}°</span>
+                {% endif %}
+              </div>
+            {% endfor %}
+
+          </div>

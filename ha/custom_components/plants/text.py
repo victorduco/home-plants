@@ -52,10 +52,7 @@ async def async_setup_entry(
                 entities.append(
                     LocationNoteText(data, location_id, field_key, label, max_length)
                 )
-    elif entry_type in ("grow_lights", "humidifiers", "auto_waterers", "agent_log"):
-        pass
-    else:
-        # plants
+    elif entry_type == "plants":
         for plant_id in data.plants:
             for field_key, entity_name, friendly_name, max_length in FIELDS:
                 entities.append(

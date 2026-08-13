@@ -88,21 +88,17 @@ def _cleanup_legacy_entities(
         "_todo_list_e_g_",
         "_other_recommendations_e_g_",
     ]
+    # Match on the entity_id patterns only. A unique_id saying "recommendation" or
+    # "todo_list" describes every current text entity too, so keying off that deleted
+    # the live ones on each startup: the platform registered them, this removed them,
+    # and the registry churned through all of its entries again and again — minutes of
+    # a pegged event loop with almost nothing in the log to show for it.
     for entry in list(entity_registry.entities.values()):
         if entry.platform != DOMAIN:
             continue
         if not entry.entity_id.startswith("text."):
             continue
-        should_remove = any(
-            pattern in entry.entity_id for pattern in old_recommendation_patterns
-        )
-        if entry.unique_id and entry.unique_id.startswith("plant_") and (
-            "_recommendation" in entry.unique_id
-            or "todo_list" in entry.unique_id
-            or "other_recommendations" in entry.unique_id
-        ):
-            should_remove = True
-        if should_remove:
+        if any(pattern in entry.entity_id for pattern in old_recommendation_patterns):
             entity_registry.async_remove(entry.entity_id)
 
     # Remove old manual watering switch entities (migrated to event platform).
