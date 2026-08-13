@@ -21,6 +21,16 @@ deploy_integration() {
     "$HA_HOST:/config/custom_components/plants/"
   echo "✓ Integration deployed"
 
+  if [ -d "$REPO_ROOT/ha/custom_components/render_template_guard" ]; then
+    echo "→ Deploying render-template safety guard..."
+    rsync -av --delete --exclude='__pycache__' \
+      -e "ssh $SSH_OPTS" \
+      --rsync-path="sudo rsync" \
+      "$REPO_ROOT/ha/custom_components/render_template_guard/" \
+      "$HA_HOST:/config/custom_components/render_template_guard/"
+    echo "✓ Render-template safety guard deployed"
+  fi
+
   if [ -f "$REPO_ROOT/ha/configuration.yaml" ]; then
     echo "→ Deploying configuration.yaml..."
     rsync -av \
@@ -73,6 +83,16 @@ deploy_dashboard() {
     "$REPO_ROOT/ha/dashboards/" \
     "$HA_HOST:/config/dashboards/"
   echo "✓ Dashboards deployed (refresh the browser to see changes)"
+
+  if [ -d "$REPO_ROOT/ha/www" ]; then
+    echo "→ Deploying dashboard resources (ha/www/ → /config/www/)..."
+    rsync -av \
+      -e "ssh $SSH_OPTS" \
+      --rsync-path="sudo rsync" \
+      "$REPO_ROOT/ha/www/" \
+      "$HA_HOST:/config/www/"
+    echo "✓ Dashboard resources deployed"
+  fi
 }
 
 deploy_automations() {
@@ -89,8 +109,10 @@ case "${1:-all}" in
   dashboard)   deploy_dashboard ;;
   automations) deploy_automations ;;
   all)
-    deploy_integration
+    # Dashboard resources must exist before the restart performed by the
+    # integration deploy, otherwise the first page load can cache a missing card.
     deploy_dashboard
+    deploy_integration
     deploy_automations
     ;;
   *)

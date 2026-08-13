@@ -75,6 +75,7 @@ class PlantRecommendationText(TextEntity):
     """Text entity for plant recommendations."""
 
     _attr_has_entity_name = True
+    _attr_should_poll = False
 
     def __init__(
         self,
@@ -129,6 +130,7 @@ class PlantCustomEventNoteText(TextEntity):
     """
 
     _attr_has_entity_name = True
+    _attr_should_poll = False
 
     def __init__(self, data: PlantsData, plant_id: str) -> None:
         self._data = data
@@ -174,6 +176,8 @@ class PlantCustomEventNoteText(TextEntity):
 
 class LocationNoteText(TextEntity):
     """Text entity for meter location notes."""
+
+    _attr_should_poll = False
 
     def __init__(
         self,

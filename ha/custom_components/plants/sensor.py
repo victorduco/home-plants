@@ -85,7 +85,7 @@ def _follow_source(entity: SensorEntity, entity_id: str | None) -> None:
     entity.async_on_remove(
         async_track_time_interval(entity.hass, _write, STALE_RECHECK_INTERVAL)
     )
-    async_call_later(entity.hass, 5, _write)
+    entity.async_on_remove(async_call_later(entity.hass, 5, _write))
 
 
 async def async_setup_entry(
@@ -531,8 +531,10 @@ class PlantAutoWateringStateSensor(SensorEntity):
         def _handle_state_change(event) -> None:
             self.async_write_ha_state()
 
-        async_track_state_change_event(
-            self.hass, [water_entity_id], _handle_state_change
+        self.async_on_remove(
+            async_track_state_change_event(
+                self.hass, [water_entity_id], _handle_state_change
+            )
         )
 
 
@@ -583,7 +585,11 @@ class GrowLightStateSensor(SensorEntity):
         def _handle_state_change(event) -> None:
             self.async_write_ha_state()
 
-        async_track_state_change_event(self.hass, [entity_id], _handle_state_change)
+        self.async_on_remove(
+            async_track_state_change_event(
+                self.hass, [entity_id], _handle_state_change
+            )
+        )
 
 
 # ---------------------------------------------------------------------------
@@ -633,7 +639,11 @@ class HumidifierStateSensor(SensorEntity):
         def _handle_state_change(event) -> None:
             self.async_write_ha_state()
 
-        async_track_state_change_event(self.hass, [entity_id], _handle_state_change)
+        self.async_on_remove(
+            async_track_state_change_event(
+                self.hass, [entity_id], _handle_state_change
+            )
+        )
 
 
 # ---------------------------------------------------------------------------
@@ -703,13 +713,17 @@ class ThermostatStateSensor(SensorEntity):
         def _handle_state_change(event) -> None:
             self.async_write_ha_state()
 
-        async_track_state_change_event(self.hass, [entity_id], _handle_state_change)
+        self.async_on_remove(
+            async_track_state_change_event(
+                self.hass, [entity_id], _handle_state_change
+            )
+        )
 
         @callback
         def _refresh(_now) -> None:
             self.async_write_ha_state()
 
-        async_call_later(self.hass, 5, _refresh)
+        self.async_on_remove(async_call_later(self.hass, 5, _refresh))
 
 
 # ---------------------------------------------------------------------------
@@ -818,7 +832,11 @@ class AutoWatererStateSensor(SensorEntity):
             self._previous_on = currently_on
             self.async_write_ha_state()
 
-        async_track_state_change_event(self.hass, [entity_id], _handle_state_change)
+        self.async_on_remove(
+            async_track_state_change_event(
+                self.hass, [entity_id], _handle_state_change
+            )
+        )
 
 
 # ---------------------------------------------------------------------------
@@ -963,6 +981,7 @@ class AgentLogSensor(SensorEntity):
 
     _attr_has_entity_name = True
     _attr_entity_category = None
+    _attr_should_poll = False
 
     def __init__(
         self,
@@ -975,6 +994,8 @@ class AgentLogSensor(SensorEntity):
         self._store = store
         self._field_key = field_key
         self._items: list[str] = self._parse(initial_data.get(field_key, ""))
+        self._updated_at = datetime.now(timezone.utc).strftime("%Y-%m-%dT%H:%M:%SZ")
+        self._raw_items = self._serialize(self._items)
         self._attr_name = entity_name
         self._attr_unique_id = f"agent_log_{field_key}_sensor"
         self._attr_icon = icon
@@ -995,20 +1016,25 @@ class AgentLogSensor(SensorEntity):
         except Exception:
             return [line for line in raw.splitlines() if line.strip()]
 
+    @staticmethod
+    def _serialize(items: list[str]) -> str:
+        import json
+
+        return json.dumps(items)
+
     @property
     def native_value(self) -> str:
-        ts = datetime.now(timezone.utc).strftime("%Y-%m-%dT%H:%M:%SZ")
-        return f"{len(self._items)} items • {ts}"
+        return f"{len(self._items)} items • {self._updated_at}"
 
     @property
     def extra_state_attributes(self) -> dict:
-        import json
-        return {"items": self._items, "raw": json.dumps(self._items)}
+        return {"items": self._items, "raw": self._raw_items}
 
     async def async_update_items(self, items: list[str]) -> None:
-        import json
-        self._items = items
+        self._items = list(items)
+        self._updated_at = datetime.now(timezone.utc).strftime("%Y-%m-%dT%H:%M:%SZ")
+        self._raw_items = self._serialize(self._items)
         raw = await self._store.async_load() or {}
-        raw[self._field_key] = json.dumps(items)
+        raw[self._field_key] = self._raw_items
         await self._store.async_save(raw)
         self.async_write_ha_state()

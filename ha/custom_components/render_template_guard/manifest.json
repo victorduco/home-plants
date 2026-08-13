@@ -1,0 +1,9 @@
+{
+  "domain": "render_template_guard",
+  "name": "Render Template Guard",
+  "codeowners": [],
+  "dependencies": ["websocket_api"],
+  "documentation": "https://github.com/PiotrMachowski/Home-Assistant-Lovelace-HTML-Jinja2-Template-card/issues/7",
+  "integration_type": "system",
+  "version": "1.0.0"
+}

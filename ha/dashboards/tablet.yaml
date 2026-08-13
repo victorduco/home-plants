@@ -23,7 +23,65 @@ views:
             }
             #root > * { margin: 0 !important; }
         cards:
-          - type: custom:html-template-card
+          - type: custom:debounced-html-template-card-v3-20260813
+            # The one-shot renderer watches this complete, explicit dependency set in
+            # the browser and collapses bursts into one REST render.  It creates no
+            # persistent server-side RenderInfo tracker.
+            entities:
+              - sensor.dracaena_soil_moisture_zone
+              - sensor.dracaena_soil_moisture_state
+              - sensor.dracaena_air_humidity_zone
+              - sensor.dracaena_air_humidity_meter
+              - sensor.dracaena_air_temperature_zone
+              - sensor.dracaena_air_temperature_meter
+              - sensor.ficus_robusta_darker_soil_moisture_zone
+              - sensor.ficus_robusta_darker_soil_moisture_state
+              - sensor.ficus_robusta_darker_air_humidity_zone
+              - sensor.ficus_robusta_darker_air_humidity_meter
+              - sensor.ficus_robusta_darker_air_temperature_zone
+              - sensor.ficus_robusta_darker_air_temperature_meter
+              - sensor.ficus_tineke_lighter_soil_moisture_zone
+              - sensor.ficus_tineke_lighter_soil_moisture_state
+              - sensor.ficus_tineke_lighter_air_humidity_zone
+              - sensor.ficus_tineke_lighter_air_humidity_meter
+              - sensor.ficus_tineke_lighter_air_temperature_zone
+              - sensor.ficus_tineke_lighter_air_temperature_meter
+              - sensor.liana_soil_moisture_zone
+              - sensor.liana_moisture
+              - sensor.liana_air_humidity_zone
+              - sensor.liana_air_humidity_meter
+              - sensor.liana_air_temperature_zone
+              - sensor.liana_air_temperature_meter
+              - sensor.malcolm_ficus_soil_moisture_zone
+              - sensor.malcolm_ficus_moisture
+              - sensor.malcolm_ficus_air_humidity_zone
+              - sensor.malcolm_ficus_air_humidity_meter
+              - sensor.malcolm_ficus_air_temperature_zone
+              - sensor.malcolm_ficus_air_temperature_meter
+              - sensor.olive_tree_soil_moisture_zone
+              - sensor.olive_tree_moisture
+              - sensor.olive_tree_air_humidity_zone
+              - sensor.olive_tree_air_humidity_meter
+              - sensor.olive_tree_air_temperature_zone
+              - sensor.olive_tree_air_temperature_meter
+              - sensor.rubber_plant_soil_moisture_zone
+              - sensor.rubber_plant_moisture
+              - sensor.rubber_plant_air_humidity_zone
+              - sensor.rubber_plant_air_humidity_meter
+              - sensor.rubber_plant_air_temperature_zone
+              - sensor.rubber_plant_air_temperature_meter
+              - sensor.triangularis_ficus_soil_moisture_zone
+              - sensor.triangularis_ficus_moisture
+              - sensor.triangularis_ficus_air_humidity_zone
+              - sensor.triangularis_ficus_air_humidity_meter
+              - sensor.triangularis_ficus_air_temperature_zone
+              - sensor.triangularis_ficus_air_temperature_meter
+              - sensor.yucca_soil_moisture_zone
+              - sensor.yucca_moisture
+              - sensor.yucca_air_humidity_zone
+              - sensor.yucca_air_humidity_meter
+              - sensor.yucca_air_temperature_zone
+              - sensor.yucca_air_temperature_meter
             ignore_line_breaks: true
             card_mod:
               style: |

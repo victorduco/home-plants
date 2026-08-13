@@ -107,7 +107,11 @@ class GrowLightSwitch(SwitchEntity):
         def _handle_state_change(event) -> None:
             self.async_write_ha_state()
 
-        async_track_state_change_event(self.hass, [outlet], _handle_state_change)
+        self.async_on_remove(
+            async_track_state_change_event(
+                self.hass, [outlet], _handle_state_change
+            )
+        )
 
 
 # ---------------------------------------------------------------------------
@@ -179,7 +183,11 @@ class HumidifierSwitch(SwitchEntity):
         def _handle_state_change(event) -> None:
             self.async_write_ha_state()
 
-        async_track_state_change_event(self.hass, [entity_id], _handle_state_change)
+        self.async_on_remove(
+            async_track_state_change_event(
+                self.hass, [entity_id], _handle_state_change
+            )
+        )
 
 
 # ---------------------------------------------------------------------------
@@ -256,4 +264,8 @@ class AutoWatererSwitch(SwitchEntity):
         def _handle_state_change(event) -> None:
             self.async_write_ha_state()
 
-        async_track_state_change_event(self.hass, [outlet], _handle_state_change)
+        self.async_on_remove(
+            async_track_state_change_event(
+                self.hass, [outlet], _handle_state_change
+            )
+        )

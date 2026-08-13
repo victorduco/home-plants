@@ -26,13 +26,10 @@ AIR_TEMPERATURE_DEVICE_DOMAINS = ("sensor", "number", "input_number")
 WATER_SOURCE_DOMAINS = ("valve", "switch")
 
 
-def _excluded_plants_entities(hass: HomeAssistant) -> set[str]:
-    registry = er.async_get(hass)
-    return {
-        entry.entity_id
-        for entry in registry.entities.values()
-        if entry.platform == DOMAIN
-    }
+def _is_plants_entity(hass: HomeAssistant, entity_id: str) -> bool:
+    """Return whether one source candidate belongs to Plants in O(1)."""
+    entry = er.async_get(hass).async_get(entity_id)
+    return entry is not None and entry.platform == DOMAIN
 
 
 def _has_plug_label(state) -> bool:
@@ -121,13 +118,12 @@ class PlantMoistureSelect(SelectEntity):
     def options(self) -> list[str]:
         if not self.hass:
             return [OPTION_NONE]
-        excluded = _excluded_plants_entities(self.hass)
         options = [
             state.entity_id
             for state in self.hass.states.async_all()
             if state.domain in MOISTURE_DEVICE_DOMAINS
-            and state.entity_id not in excluded
             and _has_moisture_label(state)
+            and not _is_plants_entity(self.hass, state.entity_id)
         ]
         options.sort()
         return [OPTION_NONE, *options]
@@ -165,13 +161,12 @@ class PlantHumiditySelect(SelectEntity):
     def options(self) -> list[str]:
         if not self.hass:
             return [OPTION_NONE]
-        excluded = _excluded_plants_entities(self.hass)
         options = [
             state.entity_id
             for state in self.hass.states.async_all()
             if state.domain in HUMIDITY_DEVICE_DOMAINS
-            and state.entity_id not in excluded
             and _has_humidity_label(state)
+            and not _is_plants_entity(self.hass, state.entity_id)
         ]
         options.sort()
         return [OPTION_NONE, *options]
@@ -209,13 +204,12 @@ class PlantAirTemperatureSelect(SelectEntity):
     def options(self) -> list[str]:
         if not self.hass:
             return [OPTION_NONE]
-        excluded = _excluded_plants_entities(self.hass)
         options = [
             state.entity_id
             for state in self.hass.states.async_all()
             if state.domain in AIR_TEMPERATURE_DEVICE_DOMAINS
-            and state.entity_id not in excluded
             and _has_temperature_label(state)
+            and not _is_plants_entity(self.hass, state.entity_id)
         ]
         options.sort()
         return [OPTION_NONE, *options]
@@ -258,13 +252,12 @@ class GrowLightSourceSelect(SelectEntity):
     def options(self) -> list[str]:
         if not self.hass:
             return [OPTION_NONE]
-        excluded = _excluded_plants_entities(self.hass)
         options = [
             state.entity_id
             for state in self.hass.states.async_all()
             if state.domain in DEVICE_SOURCE_DOMAINS
-            and state.entity_id not in excluded
             and _has_plug_label(state)
+            and not _is_plants_entity(self.hass, state.entity_id)
         ]
         options.sort()
         return [OPTION_NONE, *options]
@@ -307,13 +300,12 @@ class HumidifierSourceSelect(SelectEntity):
     def options(self) -> list[str]:
         if not self.hass:
             return [OPTION_NONE]
-        excluded = _excluded_plants_entities(self.hass)
         options = [
             state.entity_id
             for state in self.hass.states.async_all()
             if state.domain in DEVICE_SOURCE_DOMAINS
-            and state.entity_id not in excluded
             and _has_plug_label(state)
+            and not _is_plants_entity(self.hass, state.entity_id)
         ]
         options.sort()
         return [OPTION_NONE, *options]
@@ -356,12 +348,11 @@ class AutoWatererSourceSelect(SelectEntity):
     def options(self) -> list[str]:
         if not self.hass:
             return [OPTION_NONE]
-        excluded = _excluded_plants_entities(self.hass)
         options = [
             state.entity_id
             for state in self.hass.states.async_all()
             if state.domain in WATER_SOURCE_DOMAINS
-            and state.entity_id not in excluded
+            and not _is_plants_entity(self.hass, state.entity_id)
         ]
         options.sort()
         return [OPTION_NONE, *options]
@@ -385,10 +376,6 @@ class AutoWatererSourceSelect(SelectEntity):
 
 def _plant_options(hass: HomeAssistant) -> list[str]:
     """Return [OPTION_NONE, plant_name, ...] sorted by name."""
-    options = []
-    for state in hass.states.async_all():
-        if state.domain == "sensor" and state.entity_id.startswith("sensor.") and "plants" in state.entity_id:
-            pass  # skip internal sensors
     # Read from hass.data plants entry
     from .const import DOMAIN as _DOMAIN
     plants_data = None

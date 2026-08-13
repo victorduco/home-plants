@@ -1,0 +1,8 @@
+--- coordinator.py
++++ coordinator.py
+@@ -3656,4 +3656,5 @@
+             await self._lan_client.async_stop()
+             self._lan_client = None
+
++        await self._scene_cache.async_shutdown()
+         await self._api_client.close()

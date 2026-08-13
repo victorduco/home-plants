@@ -42,6 +42,7 @@ class PlantMoistureYellowThreshold(NumberEntity):
     _attr_native_unit_of_measurement = "%"
     _attr_mode = NumberMode.BOX
     _attr_entity_category = EntityCategory.DIAGNOSTIC
+    _attr_should_poll = False
 
     def __init__(self, data: PlantsData, plant_id: str) -> None:
         self._data = data
@@ -75,6 +76,7 @@ class PlantMoistureRedThreshold(NumberEntity):
     _attr_native_unit_of_measurement = "%"
     _attr_mode = NumberMode.BOX
     _attr_entity_category = EntityCategory.DIAGNOSTIC
+    _attr_should_poll = False
 
     def __init__(self, data: PlantsData, plant_id: str) -> None:
         self._data = data
@@ -108,6 +110,7 @@ class PlantHumidityMin(NumberEntity):
     _attr_native_unit_of_measurement = "%"
     _attr_mode = NumberMode.BOX
     _attr_entity_category = EntityCategory.DIAGNOSTIC
+    _attr_should_poll = False
 
     def __init__(self, data: PlantsData, plant_id: str) -> None:
         self._data = data
@@ -141,6 +144,7 @@ class PlantHumidityMax(NumberEntity):
     _attr_native_unit_of_measurement = "%"
     _attr_mode = NumberMode.BOX
     _attr_entity_category = EntityCategory.DIAGNOSTIC
+    _attr_should_poll = False
 
     def __init__(self, data: PlantsData, plant_id: str) -> None:
         self._data = data
@@ -174,6 +178,7 @@ class PlantTemperatureMin(NumberEntity):
     _attr_native_unit_of_measurement = "°F"
     _attr_mode = NumberMode.BOX
     _attr_entity_category = EntityCategory.DIAGNOSTIC
+    _attr_should_poll = False
 
     def __init__(self, data: PlantsData, plant_id: str) -> None:
         self._data = data
@@ -207,6 +212,7 @@ class PlantTemperatureMax(NumberEntity):
     _attr_native_unit_of_measurement = "°F"
     _attr_mode = NumberMode.BOX
     _attr_entity_category = EntityCategory.DIAGNOSTIC
+    _attr_should_poll = False
 
     def __init__(self, data: PlantsData, plant_id: str) -> None:
         self._data = data

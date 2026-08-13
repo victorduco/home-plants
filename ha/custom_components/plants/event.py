@@ -44,6 +44,7 @@ class PlantManualWateringEvent(EventEntity):
     _attr_has_entity_name = True
     _attr_device_class = EventDeviceClass.BUTTON
     _attr_event_types = ["watered"]
+    _attr_should_poll = False
 
     def __init__(self, data: PlantsData, plant_id: str) -> None:
         """Initialize the event entity."""
@@ -89,6 +90,7 @@ class PlantManualShowerEvent(EventEntity):
     _attr_has_entity_name = True
     _attr_device_class = EventDeviceClass.BUTTON
     _attr_event_types = ["showered"]
+    _attr_should_poll = False
 
     def __init__(self, data: PlantsData, plant_id: str) -> None:
         """Initialize the event entity."""
@@ -131,6 +133,7 @@ class PlantCustomEvent(EventEntity):
     _attr_has_entity_name = True
     _attr_device_class = EventDeviceClass.BUTTON
     _attr_event_types = ["custom"]
+    _attr_should_poll = False
 
     def __init__(self, data: PlantsData, plant_id: str) -> None:
         """Initialize the event entity."""
@@ -180,6 +183,7 @@ class PlantAutoWateringEvent(EventEntity):
     _attr_has_entity_name = True
     _attr_device_class = EventDeviceClass.BUTTON
     _attr_event_types = ["auto_watered"]
+    _attr_should_poll = False
 
     def __init__(self, data: PlantsData, plant_id: str) -> None:
         """Initialize the event entity."""

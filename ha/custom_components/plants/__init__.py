@@ -82,6 +82,19 @@ def _cleanup_legacy_entities(
         if valve_entity_id:
             entity_registry.async_remove(valve_entity_id)
 
+    # Remove old manual watering switch entities (migrated to event platform).
+    manual_watering_switch_id = f"plant_{plant_id}_manual_watering"
+    old_manual_switch = entity_registry.async_get_entity_id(
+        "switch",
+        DOMAIN,
+        manual_watering_switch_id,
+    )
+    if old_manual_switch:
+        entity_registry.async_remove(old_manual_switch)
+
+
+def _cleanup_global_legacy_entities(entity_registry: er.EntityRegistry) -> None:
+    """Remove legacy entries that are not scoped to one plant."""
     # Remove old text entities whose entity_id was generated with example text.
     old_recommendation_patterns = [
         "_recommendation_e_g_",
@@ -101,15 +114,14 @@ def _cleanup_legacy_entities(
         if any(pattern in entry.entity_id for pattern in old_recommendation_patterns):
             entity_registry.async_remove(entry.entity_id)
 
-    # Remove old manual watering switch entities (migrated to event platform).
-    manual_watering_switch_id = f"plant_{plant_id}_manual_watering"
-    old_manual_switch = entity_registry.async_get_entity_id(
-        "switch",
-        DOMAIN,
-        manual_watering_switch_id,
-    )
-    if old_manual_switch:
-        entity_registry.async_remove(old_manual_switch)
+    # These two text entities preceded the three read-only Agent Log sensors.
+    for unique_id in (
+        "agent_log_plant_check_issues",
+        "agent_log_plant_check_actions",
+    ):
+        entity_id = entity_registry.async_get_entity_id("text", DOMAIN, unique_id)
+        if entity_id:
+            entity_registry.async_remove(entity_id)
 
 
 async def async_setup_entry(hass: HomeAssistant, entry: ConfigEntry) -> bool:
@@ -194,6 +206,9 @@ async def async_setup_entry(hass: HomeAssistant, entry: ConfigEntry) -> bool:
         # plants (default)
         data = await PlantsData.async_load(hass)
         hass.data[DOMAIN][entry.entry_id] = {"type": "plants", "data": data}
+        # This scan used to run once per plant. It is global work and must run once
+        # per config-entry setup so startup cost stays linear as plants are added.
+        _cleanup_global_legacy_entities(entity_registry)
         known_identifiers = {
             (DOMAIN, f"plant_{plant.plant_id}") for plant in data.plants.values()
         }
