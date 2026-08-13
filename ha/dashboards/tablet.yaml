@@ -187,12 +187,18 @@ views:
                 loading: false
               card_mod:
                 style: |
-                  ha-card {
+                  :host {
                     position: absolute;
                     left: 3.333vw;
                     top: calc(33.333vh - 6.667vh - 10px);
                     width: 4.444vw;
                     height: 6.667vh;
+                    z-index: 3;
+                    pointer-events: none;
+                  }
+                  ha-card {
+                    width: 100%;
+                    height: 100%;
                     min-height: 0;
                     background: none !important;
                     border: none !important;
@@ -200,12 +206,13 @@ views:
                     padding: 0 !important;
                     margin: 0 !important;
                     overflow: hidden;
-                    pointer-events: none;
                   }
               apex_config:
                 chart:
                   sparkline:
                     enabled: true
+                  height: 100%
+                  width: 100%
                   animations:
                     enabled: false
                   background: transparent
@@ -213,10 +220,13 @@ views:
                 grid:
                   show: false
                   padding:
-                    left: 0
-                    right: 0
-                    top: 0
-                    bottom: 0
+                    left: 1
+                    right: 1
+                    top: 4
+                    bottom: 4
+                yaxis:
+                  show: false
+                  forceNiceScale: true
                 tooltip:
                   enabled: false
                 legend:
@@ -239,7 +249,7 @@ views:
                   extremas: false
               - entity: number.dracaena_soil_moisture_yellow_threshold
                 color: '#ffffff'
-                stroke_width: 1
+                stroke_width: 1.5
                 curve: stepline
                 group_by:
                   func: last
@@ -262,12 +272,18 @@ views:
                 loading: false
               card_mod:
                 style: |
-                  ha-card {
+                  :host {
                     position: absolute;
                     left: 3.333vw;
                     top: calc(33.333vh - 6.667vh - 10px);
                     width: 4.444vw;
                     height: 6.667vh;
+                    z-index: 3;
+                    pointer-events: none;
+                  }
+                  ha-card {
+                    width: 100%;
+                    height: 100%;
                     min-height: 0;
                     background: none !important;
                     border: none !important;
@@ -275,12 +291,13 @@ views:
                     padding: 0 !important;
                     margin: 0 !important;
                     overflow: hidden;
-                    pointer-events: none;
                   }
               apex_config:
                 chart:
                   sparkline:
                     enabled: true
+                  height: 100%
+                  width: 100%
                   animations:
                     enabled: false
                   background: transparent
@@ -288,10 +305,13 @@ views:
                 grid:
                   show: false
                   padding:
-                    left: 0
-                    right: 0
-                    top: 0
-                    bottom: 0
+                    left: 1
+                    right: 1
+                    top: 4
+                    bottom: 4
+                yaxis:
+                  show: false
+                  forceNiceScale: true
                 tooltip:
                   enabled: false
                 legend:
@@ -314,7 +334,7 @@ views:
                   extremas: false
               - entity: number.dracaena_soil_moisture_yellow_threshold
                 color: '#ffffff'
-                stroke_width: 1
+                stroke_width: 1.5
                 curve: stepline
                 group_by:
                   func: last
@@ -325,7 +345,7 @@ views:
                   extremas: false
               - entity: number.dracaena_soil_moisture_red_threshold
                 color: '#ffffff'
-                stroke_width: 1
+                stroke_width: 1.5
                 curve: stepline
                 group_by:
                   func: last
@@ -348,12 +368,18 @@ views:
                 loading: false
               card_mod:
                 style: |
-                  ha-card {
+                  :host {
                     position: absolute;
                     left: 3.333vw;
                     top: calc(33.333vh - 6.667vh - 10px);
                     width: 4.444vw;
                     height: 6.667vh;
+                    z-index: 3;
+                    pointer-events: none;
+                  }
+                  ha-card {
+                    width: 100%;
+                    height: 100%;
                     min-height: 0;
                     background: none !important;
                     border: none !important;
@@ -361,12 +387,13 @@ views:
                     padding: 0 !important;
                     margin: 0 !important;
                     overflow: hidden;
-                    pointer-events: none;
                   }
               apex_config:
                 chart:
                   sparkline:
                     enabled: true
+                  height: 100%
+                  width: 100%
                   animations:
                     enabled: false
                   background: transparent
@@ -374,10 +401,13 @@ views:
                 grid:
                   show: false
                   padding:
-                    left: 0
-                    right: 0
-                    top: 0
-                    bottom: 0
+                    left: 1
+                    right: 1
+                    top: 4
+                    bottom: 4
+                yaxis:
+                  show: false
+                  forceNiceScale: true
                 tooltip:
                   enabled: false
                 legend:
@@ -400,7 +430,7 @@ views:
                   extremas: false
               - entity: number.dracaena_soil_moisture_red_threshold
                 color: '#ffffff'
-                stroke_width: 1
+                stroke_width: 1.5
                 curve: stepline
                 group_by:
                   func: last
@@ -423,12 +453,18 @@ views:
                 loading: false
               card_mod:
                 style: |
-                  ha-card {
+                  :host {
                     position: absolute;
                     left: 14.444vw;
                     top: calc(33.333vh - 6.667vh - 10px);
                     width: 4.444vw;
                     height: 6.667vh;
+                    z-index: 3;
+                    pointer-events: none;
+                  }
+                  ha-card {
+                    width: 100%;
+                    height: 100%;
                     min-height: 0;
                     background: none !important;
                     border: none !important;
@@ -436,12 +472,13 @@ views:
                     padding: 0 !important;
                     margin: 0 !important;
                     overflow: hidden;
-                    pointer-events: none;
                   }
               apex_config:
                 chart:
                   sparkline:
                     enabled: true
+                  height: 100%
+                  width: 100%
                   animations:
                     enabled: false
                   background: transparent
@@ -449,10 +486,13 @@ views:
                 grid:
                   show: false
                   padding:
-                    left: 0
-                    right: 0
-                    top: 0
-                    bottom: 0
+                    left: 1
+                    right: 1
+                    top: 4
+                    bottom: 4
+                yaxis:
+                  show: false
+                  forceNiceScale: true
                 tooltip:
                   enabled: false
                 legend:
@@ -475,7 +515,7 @@ views:
                   extremas: false
               - entity: number.ficus_robusta_darker_soil_moisture_yellow_threshold
                 color: '#ffffff'
-                stroke_width: 1
+                stroke_width: 1.5
                 curve: stepline
                 group_by:
                   func: last
@@ -498,12 +538,18 @@ views:
                 loading: false
               card_mod:
                 style: |
-                  ha-card {
+                  :host {
                     position: absolute;
                     left: 14.444vw;
                     top: calc(33.333vh - 6.667vh - 10px);
                     width: 4.444vw;
                     height: 6.667vh;
+                    z-index: 3;
+                    pointer-events: none;
+                  }
+                  ha-card {
+                    width: 100%;
+                    height: 100%;
                     min-height: 0;
                     background: none !important;
                     border: none !important;
@@ -511,12 +557,13 @@ views:
                     padding: 0 !important;
                     margin: 0 !important;
                     overflow: hidden;
-                    pointer-events: none;
                   }
               apex_config:
                 chart:
                   sparkline:
                     enabled: true
+                  height: 100%
+                  width: 100%
                   animations:
                     enabled: false
                   background: transparent
@@ -524,10 +571,13 @@ views:
                 grid:
                   show: false
                   padding:
-                    left: 0
-                    right: 0
-                    top: 0
-                    bottom: 0
+                    left: 1
+                    right: 1
+                    top: 4
+                    bottom: 4
+                yaxis:
+                  show: false
+                  forceNiceScale: true
                 tooltip:
                   enabled: false
                 legend:
@@ -550,7 +600,7 @@ views:
                   extremas: false
               - entity: number.ficus_robusta_darker_soil_moisture_yellow_threshold
                 color: '#ffffff'
-                stroke_width: 1
+                stroke_width: 1.5
                 curve: stepline
                 group_by:
                   func: last
@@ -561,7 +611,7 @@ views:
                   extremas: false
               - entity: number.ficus_robusta_darker_soil_moisture_red_threshold
                 color: '#ffffff'
-                stroke_width: 1
+                stroke_width: 1.5
                 curve: stepline
                 group_by:
                   func: last
@@ -584,12 +634,18 @@ views:
                 loading: false
               card_mod:
                 style: |
-                  ha-card {
+                  :host {
                     position: absolute;
                     left: 14.444vw;
                     top: calc(33.333vh - 6.667vh - 10px);
                     width: 4.444vw;
                     height: 6.667vh;
+                    z-index: 3;
+                    pointer-events: none;
+                  }
+                  ha-card {
+                    width: 100%;
+                    height: 100%;
                     min-height: 0;
                     background: none !important;
                     border: none !important;
@@ -597,12 +653,13 @@ views:
                     padding: 0 !important;
                     margin: 0 !important;
                     overflow: hidden;
-                    pointer-events: none;
                   }
               apex_config:
                 chart:
                   sparkline:
                     enabled: true
+                  height: 100%
+                  width: 100%
                   animations:
                     enabled: false
                   background: transparent
@@ -610,10 +667,13 @@ views:
                 grid:
                   show: false
                   padding:
-                    left: 0
-                    right: 0
-                    top: 0
-                    bottom: 0
+                    left: 1
+                    right: 1
+                    top: 4
+                    bottom: 4
+                yaxis:
+                  show: false
+                  forceNiceScale: true
                 tooltip:
                   enabled: false
                 legend:
@@ -636,7 +696,7 @@ views:
                   extremas: false
               - entity: number.ficus_robusta_darker_soil_moisture_red_threshold
                 color: '#ffffff'
-                stroke_width: 1
+                stroke_width: 1.5
                 curve: stepline
                 group_by:
                   func: last
@@ -659,12 +719,18 @@ views:
                 loading: false
               card_mod:
                 style: |
-                  ha-card {
+                  :host {
                     position: absolute;
                     left: 25.556vw;
                     top: calc(33.333vh - 6.667vh - 10px);
                     width: 4.444vw;
                     height: 6.667vh;
+                    z-index: 3;
+                    pointer-events: none;
+                  }
+                  ha-card {
+                    width: 100%;
+                    height: 100%;
                     min-height: 0;
                     background: none !important;
                     border: none !important;
@@ -672,12 +738,13 @@ views:
                     padding: 0 !important;
                     margin: 0 !important;
                     overflow: hidden;
-                    pointer-events: none;
                   }
               apex_config:
                 chart:
                   sparkline:
                     enabled: true
+                  height: 100%
+                  width: 100%
                   animations:
                     enabled: false
                   background: transparent
@@ -685,10 +752,13 @@ views:
                 grid:
                   show: false
                   padding:
-                    left: 0
-                    right: 0
-                    top: 0
-                    bottom: 0
+                    left: 1
+                    right: 1
+                    top: 4
+                    bottom: 4
+                yaxis:
+                  show: false
+                  forceNiceScale: true
                 tooltip:
                   enabled: false
                 legend:
@@ -711,7 +781,7 @@ views:
                   extremas: false
               - entity: number.ficus_tineke_lighter_soil_moisture_yellow_threshold
                 color: '#ffffff'
-                stroke_width: 1
+                stroke_width: 1.5
                 curve: stepline
                 group_by:
                   func: last
@@ -734,12 +804,18 @@ views:
                 loading: false
               card_mod:
                 style: |
-                  ha-card {
+                  :host {
                     position: absolute;
                     left: 25.556vw;
                     top: calc(33.333vh - 6.667vh - 10px);
                     width: 4.444vw;
                     height: 6.667vh;
+                    z-index: 3;
+                    pointer-events: none;
+                  }
+                  ha-card {
+                    width: 100%;
+                    height: 100%;
                     min-height: 0;
                     background: none !important;
                     border: none !important;
@@ -747,12 +823,13 @@ views:
                     padding: 0 !important;
                     margin: 0 !important;
                     overflow: hidden;
-                    pointer-events: none;
                   }
               apex_config:
                 chart:
                   sparkline:
                     enabled: true
+                  height: 100%
+                  width: 100%
                   animations:
                     enabled: false
                   background: transparent
@@ -760,10 +837,13 @@ views:
                 grid:
                   show: false
                   padding:
-                    left: 0
-                    right: 0
-                    top: 0
-                    bottom: 0
+                    left: 1
+                    right: 1
+                    top: 4
+                    bottom: 4
+                yaxis:
+                  show: false
+                  forceNiceScale: true
                 tooltip:
                   enabled: false
                 legend:
@@ -786,7 +866,7 @@ views:
                   extremas: false
               - entity: number.ficus_tineke_lighter_soil_moisture_yellow_threshold
                 color: '#ffffff'
-                stroke_width: 1
+                stroke_width: 1.5
                 curve: stepline
                 group_by:
                   func: last
@@ -797,7 +877,7 @@ views:
                   extremas: false
               - entity: number.ficus_tineke_lighter_soil_moisture_red_threshold
                 color: '#ffffff'
-                stroke_width: 1
+                stroke_width: 1.5
                 curve: stepline
                 group_by:
                   func: last
@@ -820,12 +900,18 @@ views:
                 loading: false
               card_mod:
                 style: |
-                  ha-card {
+                  :host {
                     position: absolute;
                     left: 25.556vw;
                     top: calc(33.333vh - 6.667vh - 10px);
                     width: 4.444vw;
                     height: 6.667vh;
+                    z-index: 3;
+                    pointer-events: none;
+                  }
+                  ha-card {
+                    width: 100%;
+                    height: 100%;
                     min-height: 0;
                     background: none !important;
                     border: none !important;
@@ -833,12 +919,13 @@ views:
                     padding: 0 !important;
                     margin: 0 !important;
                     overflow: hidden;
-                    pointer-events: none;
                   }
               apex_config:
                 chart:
                   sparkline:
                     enabled: true
+                  height: 100%
+                  width: 100%
                   animations:
                     enabled: false
                   background: transparent
@@ -846,10 +933,13 @@ views:
                 grid:
                   show: false
                   padding:
-                    left: 0
-                    right: 0
-                    top: 0
-                    bottom: 0
+                    left: 1
+                    right: 1
+                    top: 4
+                    bottom: 4
+                yaxis:
+                  show: false
+                  forceNiceScale: true
                 tooltip:
                   enabled: false
                 legend:
@@ -872,7 +962,7 @@ views:
                   extremas: false
               - entity: number.ficus_tineke_lighter_soil_moisture_red_threshold
                 color: '#ffffff'
-                stroke_width: 1
+                stroke_width: 1.5
                 curve: stepline
                 group_by:
                   func: last
@@ -895,12 +985,18 @@ views:
                 loading: false
               card_mod:
                 style: |
-                  ha-card {
+                  :host {
                     position: absolute;
                     left: 36.667vw;
                     top: calc(33.333vh - 6.667vh - 10px);
                     width: 4.444vw;
                     height: 6.667vh;
+                    z-index: 3;
+                    pointer-events: none;
+                  }
+                  ha-card {
+                    width: 100%;
+                    height: 100%;
                     min-height: 0;
                     background: none !important;
                     border: none !important;
@@ -908,12 +1004,13 @@ views:
                     padding: 0 !important;
                     margin: 0 !important;
                     overflow: hidden;
-                    pointer-events: none;
                   }
               apex_config:
                 chart:
                   sparkline:
                     enabled: true
+                  height: 100%
+                  width: 100%
                   animations:
                     enabled: false
                   background: transparent
@@ -921,10 +1018,13 @@ views:
                 grid:
                   show: false
                   padding:
-                    left: 0
-                    right: 0
-                    top: 0
-                    bottom: 0
+                    left: 1
+                    right: 1
+                    top: 4
+                    bottom: 4
+                yaxis:
+                  show: false
+                  forceNiceScale: true
                 tooltip:
                   enabled: false
                 legend:
@@ -947,7 +1047,7 @@ views:
                   extremas: false
               - entity: number.liana_soil_moisture_yellow_threshold
                 color: '#ffffff'
-                stroke_width: 1
+                stroke_width: 1.5
                 curve: stepline
                 group_by:
                   func: last
@@ -970,12 +1070,18 @@ views:
                 loading: false
               card_mod:
                 style: |
-                  ha-card {
+                  :host {
                     position: absolute;
                     left: 36.667vw;
                     top: calc(33.333vh - 6.667vh - 10px);
                     width: 4.444vw;
                     height: 6.667vh;
+                    z-index: 3;
+                    pointer-events: none;
+                  }
+                  ha-card {
+                    width: 100%;
+                    height: 100%;
                     min-height: 0;
                     background: none !important;
                     border: none !important;
@@ -983,12 +1089,13 @@ views:
                     padding: 0 !important;
                     margin: 0 !important;
                     overflow: hidden;
-                    pointer-events: none;
                   }
               apex_config:
                 chart:
                   sparkline:
                     enabled: true
+                  height: 100%
+                  width: 100%
                   animations:
                     enabled: false
                   background: transparent
@@ -996,10 +1103,13 @@ views:
                 grid:
                   show: false
                   padding:
-                    left: 0
-                    right: 0
-                    top: 0
-                    bottom: 0
+                    left: 1
+                    right: 1
+                    top: 4
+                    bottom: 4
+                yaxis:
+                  show: false
+                  forceNiceScale: true
                 tooltip:
                   enabled: false
                 legend:
@@ -1022,7 +1132,7 @@ views:
                   extremas: false
               - entity: number.liana_soil_moisture_yellow_threshold
                 color: '#ffffff'
-                stroke_width: 1
+                stroke_width: 1.5
                 curve: stepline
                 group_by:
                   func: last
@@ -1033,7 +1143,7 @@ views:
                   extremas: false
               - entity: number.liana_soil_moisture_red_threshold
                 color: '#ffffff'
-                stroke_width: 1
+                stroke_width: 1.5
                 curve: stepline
                 group_by:
                   func: last
@@ -1056,12 +1166,18 @@ views:
                 loading: false
               card_mod:
                 style: |
-                  ha-card {
+                  :host {
                     position: absolute;
                     left: 36.667vw;
                     top: calc(33.333vh - 6.667vh - 10px);
                     width: 4.444vw;
                     height: 6.667vh;
+                    z-index: 3;
+                    pointer-events: none;
+                  }
+                  ha-card {
+                    width: 100%;
+                    height: 100%;
                     min-height: 0;
                     background: none !important;
                     border: none !important;
@@ -1069,12 +1185,13 @@ views:
                     padding: 0 !important;
                     margin: 0 !important;
                     overflow: hidden;
-                    pointer-events: none;
                   }
               apex_config:
                 chart:
                   sparkline:
                     enabled: true
+                  height: 100%
+                  width: 100%
                   animations:
                     enabled: false
                   background: transparent
@@ -1082,10 +1199,13 @@ views:
                 grid:
                   show: false
                   padding:
-                    left: 0
-                    right: 0
-                    top: 0
-                    bottom: 0
+                    left: 1
+                    right: 1
+                    top: 4
+                    bottom: 4
+                yaxis:
+                  show: false
+                  forceNiceScale: true
                 tooltip:
                   enabled: false
                 legend:
@@ -1108,7 +1228,7 @@ views:
                   extremas: false
               - entity: number.liana_soil_moisture_red_threshold
                 color: '#ffffff'
-                stroke_width: 1
+                stroke_width: 1.5
                 curve: stepline
                 group_by:
                   func: last
@@ -1131,12 +1251,18 @@ views:
                 loading: false
               card_mod:
                 style: |
-                  ha-card {
+                  :host {
                     position: absolute;
                     left: 47.778vw;
                     top: calc(33.333vh - 6.667vh - 10px);
                     width: 4.444vw;
                     height: 6.667vh;
+                    z-index: 3;
+                    pointer-events: none;
+                  }
+                  ha-card {
+                    width: 100%;
+                    height: 100%;
                     min-height: 0;
                     background: none !important;
                     border: none !important;
@@ -1144,12 +1270,13 @@ views:
                     padding: 0 !important;
                     margin: 0 !important;
                     overflow: hidden;
-                    pointer-events: none;
                   }
               apex_config:
                 chart:
                   sparkline:
                     enabled: true
+                  height: 100%
+                  width: 100%
                   animations:
                     enabled: false
                   background: transparent
@@ -1157,10 +1284,13 @@ views:
                 grid:
                   show: false
                   padding:
-                    left: 0
-                    right: 0
-                    top: 0
-                    bottom: 0
+                    left: 1
+                    right: 1
+                    top: 4
+                    bottom: 4
+                yaxis:
+                  show: false
+                  forceNiceScale: true
                 tooltip:
                   enabled: false
                 legend:
@@ -1183,7 +1313,7 @@ views:
                   extremas: false
               - entity: number.malcolm_ficus_soil_moisture_yellow_threshold
                 color: '#ffffff'
-                stroke_width: 1
+                stroke_width: 1.5
                 curve: stepline
                 group_by:
                   func: last
@@ -1206,12 +1336,18 @@ views:
                 loading: false
               card_mod:
                 style: |
-                  ha-card {
+                  :host {
                     position: absolute;
                     left: 47.778vw;
                     top: calc(33.333vh - 6.667vh - 10px);
                     width: 4.444vw;
                     height: 6.667vh;
+                    z-index: 3;
+                    pointer-events: none;
+                  }
+                  ha-card {
+                    width: 100%;
+                    height: 100%;
                     min-height: 0;
                     background: none !important;
                     border: none !important;
@@ -1219,12 +1355,13 @@ views:
                     padding: 0 !important;
                     margin: 0 !important;
                     overflow: hidden;
-                    pointer-events: none;
                   }
               apex_config:
                 chart:
                   sparkline:
                     enabled: true
+                  height: 100%
+                  width: 100%
                   animations:
                     enabled: false
                   background: transparent
@@ -1232,10 +1369,13 @@ views:
                 grid:
                   show: false
                   padding:
-                    left: 0
-                    right: 0
-                    top: 0
-                    bottom: 0
+                    left: 1
+                    right: 1
+                    top: 4
+                    bottom: 4
+                yaxis:
+                  show: false
+                  forceNiceScale: true
                 tooltip:
                   enabled: false
                 legend:
@@ -1258,7 +1398,7 @@ views:
                   extremas: false
               - entity: number.malcolm_ficus_soil_moisture_yellow_threshold
                 color: '#ffffff'
-                stroke_width: 1
+                stroke_width: 1.5
                 curve: stepline
                 group_by:
                   func: last
@@ -1269,7 +1409,7 @@ views:
                   extremas: false
               - entity: number.malcolm_ficus_soil_moisture_red_threshold
                 color: '#ffffff'
-                stroke_width: 1
+                stroke_width: 1.5
                 curve: stepline
                 group_by:
                   func: last
@@ -1292,12 +1432,18 @@ views:
                 loading: false
               card_mod:
                 style: |
-                  ha-card {
+                  :host {
                     position: absolute;
                     left: 47.778vw;
                     top: calc(33.333vh - 6.667vh - 10px);
                     width: 4.444vw;
                     height: 6.667vh;
+                    z-index: 3;
+                    pointer-events: none;
+                  }
+                  ha-card {
+                    width: 100%;
+                    height: 100%;
                     min-height: 0;
                     background: none !important;
                     border: none !important;
@@ -1305,12 +1451,13 @@ views:
                     padding: 0 !important;
                     margin: 0 !important;
                     overflow: hidden;
-                    pointer-events: none;
                   }
               apex_config:
                 chart:
                   sparkline:
                     enabled: true
+                  height: 100%
+                  width: 100%
                   animations:
                     enabled: false
                   background: transparent
@@ -1318,10 +1465,13 @@ views:
                 grid:
                   show: false
                   padding:
-                    left: 0
-                    right: 0
-                    top: 0
-                    bottom: 0
+                    left: 1
+                    right: 1
+                    top: 4
+                    bottom: 4
+                yaxis:
+                  show: false
+                  forceNiceScale: true
                 tooltip:
                   enabled: false
                 legend:
@@ -1344,7 +1494,7 @@ views:
                   extremas: false
               - entity: number.malcolm_ficus_soil_moisture_red_threshold
                 color: '#ffffff'
-                stroke_width: 1
+                stroke_width: 1.5
                 curve: stepline
                 group_by:
                   func: last
@@ -1367,12 +1517,18 @@ views:
                 loading: false
               card_mod:
                 style: |
-                  ha-card {
+                  :host {
                     position: absolute;
                     left: 58.889vw;
                     top: calc(33.333vh - 6.667vh - 10px);
                     width: 4.444vw;
                     height: 6.667vh;
+                    z-index: 3;
+                    pointer-events: none;
+                  }
+                  ha-card {
+                    width: 100%;
+                    height: 100%;
                     min-height: 0;
                     background: none !important;
                     border: none !important;
@@ -1380,12 +1536,13 @@ views:
                     padding: 0 !important;
                     margin: 0 !important;
                     overflow: hidden;
-                    pointer-events: none;
                   }
               apex_config:
                 chart:
                   sparkline:
                     enabled: true
+                  height: 100%
+                  width: 100%
                   animations:
                     enabled: false
                   background: transparent
@@ -1393,10 +1550,13 @@ views:
                 grid:
                   show: false
                   padding:
-                    left: 0
-                    right: 0
-                    top: 0
-                    bottom: 0
+                    left: 1
+                    right: 1
+                    top: 4
+                    bottom: 4
+                yaxis:
+                  show: false
+                  forceNiceScale: true
                 tooltip:
                   enabled: false
                 legend:
@@ -1419,7 +1579,7 @@ views:
                   extremas: false
               - entity: number.olive_tree_soil_moisture_yellow_threshold
                 color: '#ffffff'
-                stroke_width: 1
+                stroke_width: 1.5
                 curve: stepline
                 group_by:
                   func: last
@@ -1442,12 +1602,18 @@ views:
                 loading: false
               card_mod:
                 style: |
-                  ha-card {
+                  :host {
                     position: absolute;
                     left: 58.889vw;
                     top: calc(33.333vh - 6.667vh - 10px);
                     width: 4.444vw;
                     height: 6.667vh;
+                    z-index: 3;
+                    pointer-events: none;
+                  }
+                  ha-card {
+                    width: 100%;
+                    height: 100%;
                     min-height: 0;
                     background: none !important;
                     border: none !important;
@@ -1455,12 +1621,13 @@ views:
                     padding: 0 !important;
                     margin: 0 !important;
                     overflow: hidden;
-                    pointer-events: none;
                   }
               apex_config:
                 chart:
                   sparkline:
                     enabled: true
+                  height: 100%
+                  width: 100%
                   animations:
                     enabled: false
                   background: transparent
@@ -1468,10 +1635,13 @@ views:
                 grid:
                   show: false
                   padding:
-                    left: 0
-                    right: 0
-                    top: 0
-                    bottom: 0
+                    left: 1
+                    right: 1
+                    top: 4
+                    bottom: 4
+                yaxis:
+                  show: false
+                  forceNiceScale: true
                 tooltip:
                   enabled: false
                 legend:
@@ -1494,7 +1664,7 @@ views:
                   extremas: false
               - entity: number.olive_tree_soil_moisture_yellow_threshold
                 color: '#ffffff'
-                stroke_width: 1
+                stroke_width: 1.5
                 curve: stepline
                 group_by:
                   func: last
@@ -1505,7 +1675,7 @@ views:
                   extremas: false
               - entity: number.olive_tree_soil_moisture_red_threshold
                 color: '#ffffff'
-                stroke_width: 1
+                stroke_width: 1.5
                 curve: stepline
                 group_by:
                   func: last
@@ -1528,12 +1698,18 @@ views:
                 loading: false
               card_mod:
                 style: |
-                  ha-card {
+                  :host {
                     position: absolute;
                     left: 58.889vw;
                     top: calc(33.333vh - 6.667vh - 10px);
                     width: 4.444vw;
                     height: 6.667vh;
+                    z-index: 3;
+                    pointer-events: none;
+                  }
+                  ha-card {
+                    width: 100%;
+                    height: 100%;
                     min-height: 0;
                     background: none !important;
                     border: none !important;
@@ -1541,12 +1717,13 @@ views:
                     padding: 0 !important;
                     margin: 0 !important;
                     overflow: hidden;
-                    pointer-events: none;
                   }
               apex_config:
                 chart:
                   sparkline:
                     enabled: true
+                  height: 100%
+                  width: 100%
                   animations:
                     enabled: false
                   background: transparent
@@ -1554,10 +1731,13 @@ views:
                 grid:
                   show: false
                   padding:
-                    left: 0
-                    right: 0
-                    top: 0
-                    bottom: 0
+                    left: 1
+                    right: 1
+                    top: 4
+                    bottom: 4
+                yaxis:
+                  show: false
+                  forceNiceScale: true
                 tooltip:
                   enabled: false
                 legend:
@@ -1580,7 +1760,7 @@ views:
                   extremas: false
               - entity: number.olive_tree_soil_moisture_red_threshold
                 color: '#ffffff'
-                stroke_width: 1
+                stroke_width: 1.5
                 curve: stepline
                 group_by:
                   func: last
@@ -1603,12 +1783,18 @@ views:
                 loading: false
               card_mod:
                 style: |
-                  ha-card {
+                  :host {
                     position: absolute;
                     left: 70.000vw;
                     top: calc(33.333vh - 6.667vh - 10px);
                     width: 4.444vw;
                     height: 6.667vh;
+                    z-index: 3;
+                    pointer-events: none;
+                  }
+                  ha-card {
+                    width: 100%;
+                    height: 100%;
                     min-height: 0;
                     background: none !important;
                     border: none !important;
@@ -1616,12 +1802,13 @@ views:
                     padding: 0 !important;
                     margin: 0 !important;
                     overflow: hidden;
-                    pointer-events: none;
                   }
               apex_config:
                 chart:
                   sparkline:
                     enabled: true
+                  height: 100%
+                  width: 100%
                   animations:
                     enabled: false
                   background: transparent
@@ -1629,10 +1816,13 @@ views:
                 grid:
                   show: false
                   padding:
-                    left: 0
-                    right: 0
-                    top: 0
-                    bottom: 0
+                    left: 1
+                    right: 1
+                    top: 4
+                    bottom: 4
+                yaxis:
+                  show: false
+                  forceNiceScale: true
                 tooltip:
                   enabled: false
                 legend:
@@ -1655,7 +1845,7 @@ views:
                   extremas: false
               - entity: number.rubber_plant_soil_moisture_yellow_threshold
                 color: '#ffffff'
-                stroke_width: 1
+                stroke_width: 1.5
                 curve: stepline
                 group_by:
                   func: last
@@ -1678,12 +1868,18 @@ views:
                 loading: false
               card_mod:
                 style: |
-                  ha-card {
+                  :host {
                     position: absolute;
                     left: 70.000vw;
                     top: calc(33.333vh - 6.667vh - 10px);
                     width: 4.444vw;
                     height: 6.667vh;
+                    z-index: 3;
+                    pointer-events: none;
+                  }
+                  ha-card {
+                    width: 100%;
+                    height: 100%;
                     min-height: 0;
                     background: none !important;
                     border: none !important;
@@ -1691,12 +1887,13 @@ views:
                     padding: 0 !important;
                     margin: 0 !important;
                     overflow: hidden;
-                    pointer-events: none;
                   }
               apex_config:
                 chart:
                   sparkline:
                     enabled: true
+                  height: 100%
+                  width: 100%
                   animations:
                     enabled: false
                   background: transparent
@@ -1704,10 +1901,13 @@ views:
                 grid:
                   show: false
                   padding:
-                    left: 0
-                    right: 0
-                    top: 0
-                    bottom: 0
+                    left: 1
+                    right: 1
+                    top: 4
+                    bottom: 4
+                yaxis:
+                  show: false
+                  forceNiceScale: true
                 tooltip:
                   enabled: false
                 legend:
@@ -1730,7 +1930,7 @@ views:
                   extremas: false
               - entity: number.rubber_plant_soil_moisture_yellow_threshold
                 color: '#ffffff'
-                stroke_width: 1
+                stroke_width: 1.5
                 curve: stepline
                 group_by:
                   func: last
@@ -1741,7 +1941,7 @@ views:
                   extremas: false
               - entity: number.rubber_plant_soil_moisture_red_threshold
                 color: '#ffffff'
-                stroke_width: 1
+                stroke_width: 1.5
                 curve: stepline
                 group_by:
                   func: last
@@ -1764,12 +1964,18 @@ views:
                 loading: false
               card_mod:
                 style: |
-                  ha-card {
+                  :host {
                     position: absolute;
                     left: 70.000vw;
                     top: calc(33.333vh - 6.667vh - 10px);
                     width: 4.444vw;
                     height: 6.667vh;
+                    z-index: 3;
+                    pointer-events: none;
+                  }
+                  ha-card {
+                    width: 100%;
+                    height: 100%;
                     min-height: 0;
                     background: none !important;
                     border: none !important;
@@ -1777,12 +1983,13 @@ views:
                     padding: 0 !important;
                     margin: 0 !important;
                     overflow: hidden;
-                    pointer-events: none;
                   }
               apex_config:
                 chart:
                   sparkline:
                     enabled: true
+                  height: 100%
+                  width: 100%
                   animations:
                     enabled: false
                   background: transparent
@@ -1790,10 +1997,13 @@ views:
                 grid:
                   show: false
                   padding:
-                    left: 0
-                    right: 0
-                    top: 0
-                    bottom: 0
+                    left: 1
+                    right: 1
+                    top: 4
+                    bottom: 4
+                yaxis:
+                  show: false
+                  forceNiceScale: true
                 tooltip:
                   enabled: false
                 legend:
@@ -1816,7 +2026,7 @@ views:
                   extremas: false
               - entity: number.rubber_plant_soil_moisture_red_threshold
                 color: '#ffffff'
-                stroke_width: 1
+                stroke_width: 1.5
                 curve: stepline
                 group_by:
                   func: last
@@ -1839,12 +2049,18 @@ views:
                 loading: false
               card_mod:
                 style: |
-                  ha-card {
+                  :host {
                     position: absolute;
                     left: 81.111vw;
                     top: calc(33.333vh - 6.667vh - 10px);
                     width: 4.444vw;
                     height: 6.667vh;
+                    z-index: 3;
+                    pointer-events: none;
+                  }
+                  ha-card {
+                    width: 100%;
+                    height: 100%;
                     min-height: 0;
                     background: none !important;
                     border: none !important;
@@ -1852,12 +2068,13 @@ views:
                     padding: 0 !important;
                     margin: 0 !important;
                     overflow: hidden;
-                    pointer-events: none;
                   }
               apex_config:
                 chart:
                   sparkline:
                     enabled: true
+                  height: 100%
+                  width: 100%
                   animations:
                     enabled: false
                   background: transparent
@@ -1865,10 +2082,13 @@ views:
                 grid:
                   show: false
                   padding:
-                    left: 0
-                    right: 0
-                    top: 0
-                    bottom: 0
+                    left: 1
+                    right: 1
+                    top: 4
+                    bottom: 4
+                yaxis:
+                  show: false
+                  forceNiceScale: true
                 tooltip:
                   enabled: false
                 legend:
@@ -1891,7 +2111,7 @@ views:
                   extremas: false
               - entity: number.triangularis_ficus_soil_moisture_yellow_threshold
                 color: '#ffffff'
-                stroke_width: 1
+                stroke_width: 1.5
                 curve: stepline
                 group_by:
                   func: last
@@ -1914,12 +2134,18 @@ views:
                 loading: false
               card_mod:
                 style: |
-                  ha-card {
+                  :host {
                     position: absolute;
                     left: 81.111vw;
                     top: calc(33.333vh - 6.667vh - 10px);
                     width: 4.444vw;
                     height: 6.667vh;
+                    z-index: 3;
+                    pointer-events: none;
+                  }
+                  ha-card {
+                    width: 100%;
+                    height: 100%;
                     min-height: 0;
                     background: none !important;
                     border: none !important;
@@ -1927,12 +2153,13 @@ views:
                     padding: 0 !important;
                     margin: 0 !important;
                     overflow: hidden;
-                    pointer-events: none;
                   }
               apex_config:
                 chart:
                   sparkline:
                     enabled: true
+                  height: 100%
+                  width: 100%
                   animations:
                     enabled: false
                   background: transparent
@@ -1940,10 +2167,13 @@ views:
                 grid:
                   show: false
                   padding:
-                    left: 0
-                    right: 0
-                    top: 0
-                    bottom: 0
+                    left: 1
+                    right: 1
+                    top: 4
+                    bottom: 4
+                yaxis:
+                  show: false
+                  forceNiceScale: true
                 tooltip:
                   enabled: false
                 legend:
@@ -1966,7 +2196,7 @@ views:
                   extremas: false
               - entity: number.triangularis_ficus_soil_moisture_yellow_threshold
                 color: '#ffffff'
-                stroke_width: 1
+                stroke_width: 1.5
                 curve: stepline
                 group_by:
                   func: last
@@ -1977,7 +2207,7 @@ views:
                   extremas: false
               - entity: number.triangularis_ficus_soil_moisture_red_threshold
                 color: '#ffffff'
-                stroke_width: 1
+                stroke_width: 1.5
                 curve: stepline
                 group_by:
                   func: last
@@ -2000,12 +2230,18 @@ views:
                 loading: false
               card_mod:
                 style: |
-                  ha-card {
+                  :host {
                     position: absolute;
                     left: 81.111vw;
                     top: calc(33.333vh - 6.667vh - 10px);
                     width: 4.444vw;
                     height: 6.667vh;
+                    z-index: 3;
+                    pointer-events: none;
+                  }
+                  ha-card {
+                    width: 100%;
+                    height: 100%;
                     min-height: 0;
                     background: none !important;
                     border: none !important;
@@ -2013,12 +2249,13 @@ views:
                     padding: 0 !important;
                     margin: 0 !important;
                     overflow: hidden;
-                    pointer-events: none;
                   }
               apex_config:
                 chart:
                   sparkline:
                     enabled: true
+                  height: 100%
+                  width: 100%
                   animations:
                     enabled: false
                   background: transparent
@@ -2026,10 +2263,13 @@ views:
                 grid:
                   show: false
                   padding:
-                    left: 0
-                    right: 0
-                    top: 0
-                    bottom: 0
+                    left: 1
+                    right: 1
+                    top: 4
+                    bottom: 4
+                yaxis:
+                  show: false
+                  forceNiceScale: true
                 tooltip:
                   enabled: false
                 legend:
@@ -2052,7 +2292,7 @@ views:
                   extremas: false
               - entity: number.triangularis_ficus_soil_moisture_red_threshold
                 color: '#ffffff'
-                stroke_width: 1
+                stroke_width: 1.5
                 curve: stepline
                 group_by:
                   func: last
@@ -2075,12 +2315,18 @@ views:
                 loading: false
               card_mod:
                 style: |
-                  ha-card {
+                  :host {
                     position: absolute;
                     left: 92.222vw;
                     top: calc(33.333vh - 6.667vh - 10px);
                     width: 4.444vw;
                     height: 6.667vh;
+                    z-index: 3;
+                    pointer-events: none;
+                  }
+                  ha-card {
+                    width: 100%;
+                    height: 100%;
                     min-height: 0;
                     background: none !important;
                     border: none !important;
@@ -2088,12 +2334,13 @@ views:
                     padding: 0 !important;
                     margin: 0 !important;
                     overflow: hidden;
-                    pointer-events: none;
                   }
               apex_config:
                 chart:
                   sparkline:
                     enabled: true
+                  height: 100%
+                  width: 100%
                   animations:
                     enabled: false
                   background: transparent
@@ -2101,10 +2348,13 @@ views:
                 grid:
                   show: false
                   padding:
-                    left: 0
-                    right: 0
-                    top: 0
-                    bottom: 0
+                    left: 1
+                    right: 1
+                    top: 4
+                    bottom: 4
+                yaxis:
+                  show: false
+                  forceNiceScale: true
                 tooltip:
                   enabled: false
                 legend:
@@ -2127,7 +2377,7 @@ views:
                   extremas: false
               - entity: number.yucca_soil_moisture_yellow_threshold
                 color: '#ffffff'
-                stroke_width: 1
+                stroke_width: 1.5
                 curve: stepline
                 group_by:
                   func: last
@@ -2150,12 +2400,18 @@ views:
                 loading: false
               card_mod:
                 style: |
-                  ha-card {
+                  :host {
                     position: absolute;
                     left: 92.222vw;
                     top: calc(33.333vh - 6.667vh - 10px);
                     width: 4.444vw;
                     height: 6.667vh;
+                    z-index: 3;
+                    pointer-events: none;
+                  }
+                  ha-card {
+                    width: 100%;
+                    height: 100%;
                     min-height: 0;
                     background: none !important;
                     border: none !important;
@@ -2163,12 +2419,13 @@ views:
                     padding: 0 !important;
                     margin: 0 !important;
                     overflow: hidden;
-                    pointer-events: none;
                   }
               apex_config:
                 chart:
                   sparkline:
                     enabled: true
+                  height: 100%
+                  width: 100%
                   animations:
                     enabled: false
                   background: transparent
@@ -2176,10 +2433,13 @@ views:
                 grid:
                   show: false
                   padding:
-                    left: 0
-                    right: 0
-                    top: 0
-                    bottom: 0
+                    left: 1
+                    right: 1
+                    top: 4
+                    bottom: 4
+                yaxis:
+                  show: false
+                  forceNiceScale: true
                 tooltip:
                   enabled: false
                 legend:
@@ -2202,7 +2462,7 @@ views:
                   extremas: false
               - entity: number.yucca_soil_moisture_yellow_threshold
                 color: '#ffffff'
-                stroke_width: 1
+                stroke_width: 1.5
                 curve: stepline
                 group_by:
                   func: last
@@ -2213,7 +2473,7 @@ views:
                   extremas: false
               - entity: number.yucca_soil_moisture_red_threshold
                 color: '#ffffff'
-                stroke_width: 1
+                stroke_width: 1.5
                 curve: stepline
                 group_by:
                   func: last
@@ -2236,12 +2496,18 @@ views:
                 loading: false
               card_mod:
                 style: |
-                  ha-card {
+                  :host {
                     position: absolute;
                     left: 92.222vw;
                     top: calc(33.333vh - 6.667vh - 10px);
                     width: 4.444vw;
                     height: 6.667vh;
+                    z-index: 3;
+                    pointer-events: none;
+                  }
+                  ha-card {
+                    width: 100%;
+                    height: 100%;
                     min-height: 0;
                     background: none !important;
                     border: none !important;
@@ -2249,12 +2515,13 @@ views:
                     padding: 0 !important;
                     margin: 0 !important;
                     overflow: hidden;
-                    pointer-events: none;
                   }
               apex_config:
                 chart:
                   sparkline:
                     enabled: true
+                  height: 100%
+                  width: 100%
                   animations:
                     enabled: false
                   background: transparent
@@ -2262,10 +2529,13 @@ views:
                 grid:
                   show: false
                   padding:
-                    left: 0
-                    right: 0
-                    top: 0
-                    bottom: 0
+                    left: 1
+                    right: 1
+                    top: 4
+                    bottom: 4
+                yaxis:
+                  show: false
+                  forceNiceScale: true
                 tooltip:
                   enabled: false
                 legend:
@@ -2288,7 +2558,7 @@ views:
                   extremas: false
               - entity: number.yucca_soil_moisture_red_threshold
                 color: '#ffffff'
-                stroke_width: 1
+                stroke_width: 1.5
                 curve: stepline
                 group_by:
                   func: last
