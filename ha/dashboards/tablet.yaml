@@ -226,7 +226,15 @@ views:
                     bottom: 4
                 yaxis:
                   show: false
-                  forceNiceScale: true
+                  min: 20.0
+                  max: 54.0
+                  forceNiceScale: false
+                  labels:
+                    show: false
+                  axisBorder:
+                    show: false
+                  axisTicks:
+                    show: false
                 tooltip:
                   enabled: false
                 legend:
@@ -242,9 +250,6 @@ views:
                     borderWidth: 1.5
                     strokeDashArray: 0
                     opacity: 1
-              yaxis:
-              - min: ~21
-                max: ~29
               series:
               - entity: sensor.gw1200b_soil_moisture_1
                 color: '#ffffff'
@@ -310,7 +315,15 @@ views:
                     bottom: 4
                 yaxis:
                   show: false
-                  forceNiceScale: true
+                  min: 10.0
+                  max: 54.0
+                  forceNiceScale: false
+                  labels:
+                    show: false
+                  axisBorder:
+                    show: false
+                  axisTicks:
+                    show: false
                 tooltip:
                   enabled: false
                 legend:
@@ -331,9 +344,6 @@ views:
                     borderWidth: 1.5
                     strokeDashArray: 0
                     opacity: 1
-              yaxis:
-              - min: ~11
-                max: ~29
               series:
               - entity: sensor.gw1200b_soil_moisture_1
                 color: '#ffffff'
@@ -399,7 +409,15 @@ views:
                     bottom: 4
                 yaxis:
                   show: false
-                  forceNiceScale: true
+                  min: 10.0
+                  max: 54.0
+                  forceNiceScale: false
+                  labels:
+                    show: false
+                  axisBorder:
+                    show: false
+                  axisTicks:
+                    show: false
                 tooltip:
                   enabled: false
                 legend:
@@ -415,9 +433,6 @@ views:
                     borderWidth: 1.5
                     strokeDashArray: 0
                     opacity: 1
-              yaxis:
-              - min: ~11
-                max: ~19
               series:
               - entity: sensor.gw1200b_soil_moisture_1
                 color: '#ffffff'
@@ -483,7 +498,15 @@ views:
                     bottom: 4
                 yaxis:
                   show: false
-                  forceNiceScale: true
+                  min: 30.0
+                  max: 52.0
+                  forceNiceScale: false
+                  labels:
+                    show: false
+                  axisBorder:
+                    show: false
+                  axisTicks:
+                    show: false
                 tooltip:
                   enabled: false
                 legend:
@@ -499,9 +522,6 @@ views:
                     borderWidth: 1.5
                     strokeDashArray: 0
                     opacity: 1
-              yaxis:
-              - min: ~31
-                max: ~39
               series:
               - entity: sensor.gw1200b_soil_moisture_3
                 color: '#ffffff'
@@ -567,7 +587,15 @@ views:
                     bottom: 4
                 yaxis:
                   show: false
-                  forceNiceScale: true
+                  min: 13.0
+                  max: 52.0
+                  forceNiceScale: false
+                  labels:
+                    show: false
+                  axisBorder:
+                    show: false
+                  axisTicks:
+                    show: false
                 tooltip:
                   enabled: false
                 legend:
@@ -588,9 +616,6 @@ views:
                     borderWidth: 1.5
                     strokeDashArray: 0
                     opacity: 1
-              yaxis:
-              - min: ~14
-                max: ~39
               series:
               - entity: sensor.gw1200b_soil_moisture_3
                 color: '#ffffff'
@@ -656,7 +681,15 @@ views:
                     bottom: 4
                 yaxis:
                   show: false
-                  forceNiceScale: true
+                  min: 13.0
+                  max: 52.0
+                  forceNiceScale: false
+                  labels:
+                    show: false
+                  axisBorder:
+                    show: false
+                  axisTicks:
+                    show: false
                 tooltip:
                   enabled: false
                 legend:
@@ -672,9 +705,6 @@ views:
                     borderWidth: 1.5
                     strokeDashArray: 0
                     opacity: 1
-              yaxis:
-              - min: ~14
-                max: ~22
               series:
               - entity: sensor.gw1200b_soil_moisture_3
                 color: '#ffffff'
@@ -740,7 +770,15 @@ views:
                     bottom: 4
                 yaxis:
                   show: false
-                  forceNiceScale: true
+                  min: 28.0
+                  max: 80.0
+                  forceNiceScale: false
+                  labels:
+                    show: false
+                  axisBorder:
+                    show: false
+                  axisTicks:
+                    show: false
                 tooltip:
                   enabled: false
                 legend:
@@ -756,9 +794,6 @@ views:
                     borderWidth: 1.5
                     strokeDashArray: 0
                     opacity: 1
-              yaxis:
-              - min: ~31
-                max: ~39
               series:
               - entity: sensor.gw1200b_soil_moisture_8
                 color: '#ffffff'
@@ -824,7 +859,15 @@ views:
                     bottom: 4
                 yaxis:
                   show: false
-                  forceNiceScale: true
+                  min: 13.0
+                  max: 80.0
+                  forceNiceScale: false
+                  labels:
+                    show: false
+                  axisBorder:
+                    show: false
+                  axisTicks:
+                    show: false
                 tooltip:
                   enabled: false
                 legend:
@@ -845,9 +888,6 @@ views:
                     borderWidth: 1.5
                     strokeDashArray: 0
                     opacity: 1
-              yaxis:
-              - min: ~14
-                max: ~39
               series:
               - entity: sensor.gw1200b_soil_moisture_8
                 color: '#ffffff'
@@ -913,7 +953,15 @@ views:
                     bottom: 4
                 yaxis:
                   show: false
-                  forceNiceScale: true
+                  min: 13.0
+                  max: 80.0
+                  forceNiceScale: false
+                  labels:
+                    show: false
+                  axisBorder:
+                    show: false
+                  axisTicks:
+                    show: false
                 tooltip:
                   enabled: false
                 legend:
@@ -929,9 +977,6 @@ views:
                     borderWidth: 1.5
                     strokeDashArray: 0
                     opacity: 1
-              yaxis:
-              - min: ~14
-                max: ~22
               series:
               - entity: sensor.gw1200b_soil_moisture_8
                 color: '#ffffff'
@@ -997,7 +1042,15 @@ views:
                     bottom: 4
                 yaxis:
                   show: false
-                  forceNiceScale: true
+                  min: 26.0
+                  max: 50.0
+                  forceNiceScale: false
+                  labels:
+                    show: false
+                  axisBorder:
+                    show: false
+                  axisTicks:
+                    show: false
                 tooltip:
                   enabled: false
                 legend:
@@ -1013,9 +1066,6 @@ views:
                     borderWidth: 1.5
                     strokeDashArray: 0
                     opacity: 1
-              yaxis:
-              - min: ~41
-                max: ~49
               series:
               - entity: sensor.gw1200b_soil_moisture_7
                 color: '#ffffff'
@@ -1081,7 +1131,15 @@ views:
                     bottom: 4
                 yaxis:
                   show: false
-                  forceNiceScale: true
+                  min: 17.0
+                  max: 50.0
+                  forceNiceScale: false
+                  labels:
+                    show: false
+                  axisBorder:
+                    show: false
+                  axisTicks:
+                    show: false
                 tooltip:
                   enabled: false
                 legend:
@@ -1102,9 +1160,6 @@ views:
                     borderWidth: 1.5
                     strokeDashArray: 0
                     opacity: 1
-              yaxis:
-              - min: ~18
-                max: ~49
               series:
               - entity: sensor.gw1200b_soil_moisture_7
                 color: '#ffffff'
@@ -1170,7 +1225,15 @@ views:
                     bottom: 4
                 yaxis:
                   show: false
-                  forceNiceScale: true
+                  min: 17.0
+                  max: 42.0
+                  forceNiceScale: false
+                  labels:
+                    show: false
+                  axisBorder:
+                    show: false
+                  axisTicks:
+                    show: false
                 tooltip:
                   enabled: false
                 legend:
@@ -1186,9 +1249,6 @@ views:
                     borderWidth: 1.5
                     strokeDashArray: 0
                     opacity: 1
-              yaxis:
-              - min: ~18
-                max: ~26
               series:
               - entity: sensor.gw1200b_soil_moisture_7
                 color: '#ffffff'
@@ -1254,7 +1314,15 @@ views:
                     bottom: 4
                 yaxis:
                   show: false
-                  forceNiceScale: true
+                  min: 18.0
+                  max: 43.0
+                  forceNiceScale: false
+                  labels:
+                    show: false
+                  axisBorder:
+                    show: false
+                  axisTicks:
+                    show: false
                 tooltip:
                   enabled: false
                 legend:
@@ -1270,9 +1338,6 @@ views:
                     borderWidth: 1.5
                     strokeDashArray: 0
                     opacity: 1
-              yaxis:
-              - min: ~31
-                max: ~39
               series:
               - entity: sensor.gw1200b_soil_moisture_6
                 color: '#ffffff'
@@ -1338,7 +1403,15 @@ views:
                     bottom: 4
                 yaxis:
                   show: false
-                  forceNiceScale: true
+                  min: 13.0
+                  max: 43.0
+                  forceNiceScale: false
+                  labels:
+                    show: false
+                  axisBorder:
+                    show: false
+                  axisTicks:
+                    show: false
                 tooltip:
                   enabled: false
                 legend:
@@ -1359,9 +1432,6 @@ views:
                     borderWidth: 1.5
                     strokeDashArray: 0
                     opacity: 1
-              yaxis:
-              - min: ~14
-                max: ~39
               series:
               - entity: sensor.gw1200b_soil_moisture_6
                 color: '#ffffff'
@@ -1427,7 +1497,15 @@ views:
                     bottom: 4
                 yaxis:
                   show: false
-                  forceNiceScale: true
+                  min: 13.0
+                  max: 43.0
+                  forceNiceScale: false
+                  labels:
+                    show: false
+                  axisBorder:
+                    show: false
+                  axisTicks:
+                    show: false
                 tooltip:
                   enabled: false
                 legend:
@@ -1443,9 +1521,6 @@ views:
                     borderWidth: 1.5
                     strokeDashArray: 0
                     opacity: 1
-              yaxis:
-              - min: ~14
-                max: ~22
               series:
               - entity: sensor.gw1200b_soil_moisture_6
                 color: '#ffffff'
@@ -1511,7 +1586,15 @@ views:
                     bottom: 4
                 yaxis:
                   show: false
-                  forceNiceScale: true
+                  min: 20.0
+                  max: 48.0
+                  forceNiceScale: false
+                  labels:
+                    show: false
+                  axisBorder:
+                    show: false
+                  axisTicks:
+                    show: false
                 tooltip:
                   enabled: false
                 legend:
@@ -1527,9 +1610,6 @@ views:
                     borderWidth: 1.5
                     strokeDashArray: 0
                     opacity: 1
-              yaxis:
-              - min: ~21
-                max: ~29
               series:
               - entity: sensor.gw1200b_soil_moisture_4
                 color: '#ffffff'
@@ -1595,7 +1675,15 @@ views:
                     bottom: 4
                 yaxis:
                   show: false
-                  forceNiceScale: true
+                  min: 7.0
+                  max: 48.0
+                  forceNiceScale: false
+                  labels:
+                    show: false
+                  axisBorder:
+                    show: false
+                  axisTicks:
+                    show: false
                 tooltip:
                   enabled: false
                 legend:
@@ -1616,9 +1704,6 @@ views:
                     borderWidth: 1.5
                     strokeDashArray: 0
                     opacity: 1
-              yaxis:
-              - min: ~8
-                max: ~29
               series:
               - entity: sensor.gw1200b_soil_moisture_4
                 color: '#ffffff'
@@ -1684,7 +1769,15 @@ views:
                     bottom: 4
                 yaxis:
                   show: false
-                  forceNiceScale: true
+                  min: 7.0
+                  max: 48.0
+                  forceNiceScale: false
+                  labels:
+                    show: false
+                  axisBorder:
+                    show: false
+                  axisTicks:
+                    show: false
                 tooltip:
                   enabled: false
                 legend:
@@ -1700,9 +1793,6 @@ views:
                     borderWidth: 1.5
                     strokeDashArray: 0
                     opacity: 1
-              yaxis:
-              - min: ~8
-                max: ~16
               series:
               - entity: sensor.gw1200b_soil_moisture_4
                 color: '#ffffff'
@@ -1768,7 +1858,15 @@ views:
                     bottom: 4
                 yaxis:
                   show: false
-                  forceNiceScale: true
+                  min: 26.0
+                  max: 48.0
+                  forceNiceScale: false
+                  labels:
+                    show: false
+                  axisBorder:
+                    show: false
+                  axisTicks:
+                    show: false
                 tooltip:
                   enabled: false
                 legend:
@@ -1784,9 +1882,6 @@ views:
                     borderWidth: 1.5
                     strokeDashArray: 0
                     opacity: 1
-              yaxis:
-              - min: ~31
-                max: ~39
               series:
               - entity: sensor.gw1200b_soil_moisture_2
                 color: '#ffffff'
@@ -1852,7 +1947,15 @@ views:
                     bottom: 4
                 yaxis:
                   show: false
-                  forceNiceScale: true
+                  min: 13.0
+                  max: 48.0
+                  forceNiceScale: false
+                  labels:
+                    show: false
+                  axisBorder:
+                    show: false
+                  axisTicks:
+                    show: false
                 tooltip:
                   enabled: false
                 legend:
@@ -1873,9 +1976,6 @@ views:
                     borderWidth: 1.5
                     strokeDashArray: 0
                     opacity: 1
-              yaxis:
-              - min: ~14
-                max: ~39
               series:
               - entity: sensor.gw1200b_soil_moisture_2
                 color: '#ffffff'
@@ -1941,7 +2041,15 @@ views:
                     bottom: 4
                 yaxis:
                   show: false
-                  forceNiceScale: true
+                  min: 13.0
+                  max: 48.0
+                  forceNiceScale: false
+                  labels:
+                    show: false
+                  axisBorder:
+                    show: false
+                  axisTicks:
+                    show: false
                 tooltip:
                   enabled: false
                 legend:
@@ -1957,9 +2065,6 @@ views:
                     borderWidth: 1.5
                     strokeDashArray: 0
                     opacity: 1
-              yaxis:
-              - min: ~14
-                max: ~22
               series:
               - entity: sensor.gw1200b_soil_moisture_2
                 color: '#ffffff'
@@ -2025,7 +2130,15 @@ views:
                     bottom: 4
                 yaxis:
                   show: false
-                  forceNiceScale: true
+                  min: 30.0
+                  max: 71.0
+                  forceNiceScale: false
+                  labels:
+                    show: false
+                  axisBorder:
+                    show: false
+                  axisTicks:
+                    show: false
                 tooltip:
                   enabled: false
                 legend:
@@ -2041,9 +2154,6 @@ views:
                     borderWidth: 1.5
                     strokeDashArray: 0
                     opacity: 1
-              yaxis:
-              - min: ~31
-                max: ~39
               series:
               - entity: sensor.gw1200b_soil_moisture_5
                 color: '#ffffff'
@@ -2109,7 +2219,15 @@ views:
                     bottom: 4
                 yaxis:
                   show: false
-                  forceNiceScale: true
+                  min: 13.0
+                  max: 71.0
+                  forceNiceScale: false
+                  labels:
+                    show: false
+                  axisBorder:
+                    show: false
+                  axisTicks:
+                    show: false
                 tooltip:
                   enabled: false
                 legend:
@@ -2130,9 +2248,6 @@ views:
                     borderWidth: 1.5
                     strokeDashArray: 0
                     opacity: 1
-              yaxis:
-              - min: ~14
-                max: ~39
               series:
               - entity: sensor.gw1200b_soil_moisture_5
                 color: '#ffffff'
@@ -2198,7 +2313,15 @@ views:
                     bottom: 4
                 yaxis:
                   show: false
-                  forceNiceScale: true
+                  min: 13.0
+                  max: 71.0
+                  forceNiceScale: false
+                  labels:
+                    show: false
+                  axisBorder:
+                    show: false
+                  axisTicks:
+                    show: false
                 tooltip:
                   enabled: false
                 legend:
@@ -2214,9 +2337,6 @@ views:
                     borderWidth: 1.5
                     strokeDashArray: 0
                     opacity: 1
-              yaxis:
-              - min: ~14
-                max: ~22
               series:
               - entity: sensor.gw1200b_soil_moisture_5
                 color: '#ffffff'
@@ -2282,7 +2402,15 @@ views:
                     bottom: 4
                 yaxis:
                   show: false
-                  forceNiceScale: true
+                  min: 15.0
+                  max: 53.0
+                  forceNiceScale: false
+                  labels:
+                    show: false
+                  axisBorder:
+                    show: false
+                  axisTicks:
+                    show: false
                 tooltip:
                   enabled: false
                 legend:
@@ -2298,9 +2426,6 @@ views:
                     borderWidth: 1.5
                     strokeDashArray: 0
                     opacity: 1
-              yaxis:
-              - min: ~16
-                max: ~24
               series:
               - entity: sensor.gw1200b_soil_moisture_9
                 color: '#ffffff'
@@ -2366,7 +2491,15 @@ views:
                     bottom: 4
                 yaxis:
                   show: false
-                  forceNiceScale: true
+                  min: 5.0
+                  max: 53.0
+                  forceNiceScale: false
+                  labels:
+                    show: false
+                  axisBorder:
+                    show: false
+                  axisTicks:
+                    show: false
                 tooltip:
                   enabled: false
                 legend:
@@ -2387,9 +2520,6 @@ views:
                     borderWidth: 1.5
                     strokeDashArray: 0
                     opacity: 1
-              yaxis:
-              - min: ~6
-                max: ~24
               series:
               - entity: sensor.gw1200b_soil_moisture_9
                 color: '#ffffff'
@@ -2455,7 +2585,15 @@ views:
                     bottom: 4
                 yaxis:
                   show: false
-                  forceNiceScale: true
+                  min: 5.0
+                  max: 53.0
+                  forceNiceScale: false
+                  labels:
+                    show: false
+                  axisBorder:
+                    show: false
+                  axisTicks:
+                    show: false
                 tooltip:
                   enabled: false
                 legend:
@@ -2471,9 +2609,6 @@ views:
                     borderWidth: 1.5
                     strokeDashArray: 0
                     opacity: 1
-              yaxis:
-              - min: ~6
-                max: ~14
               series:
               - entity: sensor.gw1200b_soil_moisture_9
                 color: '#ffffff'
