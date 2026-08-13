@@ -235,6 +235,16 @@ views:
                   enabled: false
                 markers:
                   size: 0
+                annotations:
+                  yaxis:
+                  - y: 25.0
+                    borderColor: '#ffffff'
+                    borderWidth: 1.5
+                    strokeDashArray: 0
+                    opacity: 1
+              yaxis:
+              - min: ~21
+                max: ~29
               series:
               - entity: sensor.gw1200b_soil_moisture_1
                 color: '#ffffff'
@@ -243,19 +253,6 @@ views:
                 statistics:
                   type: mean
                   period: hour
-                show:
-                  legend_value: false
-                  in_header: false
-                  extremas: false
-              - entity: number.dracaena_soil_moisture_yellow_threshold
-                color: '#ffffff'
-                stroke_width: 1.5
-                curve: stepline
-                group_by:
-                  func: last
-                  duration: 1h
-                  fill: last
-                  start_with_last: true
                 show:
                   legend_value: false
                   in_header: false
@@ -322,6 +319,21 @@ views:
                   enabled: false
                 markers:
                   size: 0
+                annotations:
+                  yaxis:
+                  - y: 25.0
+                    borderColor: '#ffffff'
+                    borderWidth: 1.5
+                    strokeDashArray: 0
+                    opacity: 1
+                  - y: 15.0
+                    borderColor: '#ffffff'
+                    borderWidth: 1.5
+                    strokeDashArray: 0
+                    opacity: 1
+              yaxis:
+              - min: ~11
+                max: ~29
               series:
               - entity: sensor.gw1200b_soil_moisture_1
                 color: '#ffffff'
@@ -330,32 +342,6 @@ views:
                 statistics:
                   type: mean
                   period: hour
-                show:
-                  legend_value: false
-                  in_header: false
-                  extremas: false
-              - entity: number.dracaena_soil_moisture_yellow_threshold
-                color: '#ffffff'
-                stroke_width: 1.5
-                curve: stepline
-                group_by:
-                  func: last
-                  duration: 1h
-                  fill: last
-                  start_with_last: true
-                show:
-                  legend_value: false
-                  in_header: false
-                  extremas: false
-              - entity: number.dracaena_soil_moisture_red_threshold
-                color: '#ffffff'
-                stroke_width: 1.5
-                curve: stepline
-                group_by:
-                  func: last
-                  duration: 1h
-                  fill: last
-                  start_with_last: true
                 show:
                   legend_value: false
                   in_header: false
@@ -422,6 +408,16 @@ views:
                   enabled: false
                 markers:
                   size: 0
+                annotations:
+                  yaxis:
+                  - y: 15.0
+                    borderColor: '#ffffff'
+                    borderWidth: 1.5
+                    strokeDashArray: 0
+                    opacity: 1
+              yaxis:
+              - min: ~11
+                max: ~19
               series:
               - entity: sensor.gw1200b_soil_moisture_1
                 color: '#ffffff'
@@ -434,19 +430,6 @@ views:
                   legend_value: false
                   in_header: false
                   extremas: false
-              - entity: number.dracaena_soil_moisture_red_threshold
-                color: '#ffffff'
-                stroke_width: 1.5
-                curve: stepline
-                group_by:
-                  func: last
-                  duration: 1h
-                  fill: last
-                  start_with_last: true
-                show:
-                  legend_value: false
-                  in_header: false
-                  extremas: false
           - type: conditional
             conditions:
             - entity: sensor.ficus_robusta_darker_soil_moisture_zone
@@ -509,6 +492,16 @@ views:
                   enabled: false
                 markers:
                   size: 0
+                annotations:
+                  yaxis:
+                  - y: 35.0
+                    borderColor: '#ffffff'
+                    borderWidth: 1.5
+                    strokeDashArray: 0
+                    opacity: 1
+              yaxis:
+              - min: ~31
+                max: ~39
               series:
               - entity: sensor.gw1200b_soil_moisture_3
                 color: '#ffffff'
@@ -517,19 +510,6 @@ views:
                 statistics:
                   type: mean
                   period: hour
-                show:
-                  legend_value: false
-                  in_header: false
-                  extremas: false
-              - entity: number.ficus_robusta_darker_soil_moisture_yellow_threshold
-                color: '#ffffff'
-                stroke_width: 1.5
-                curve: stepline
-                group_by:
-                  func: last
-                  duration: 1h
-                  fill: last
-                  start_with_last: true
                 show:
                   legend_value: false
                   in_header: false
@@ -596,6 +576,21 @@ views:
                   enabled: false
                 markers:
                   size: 0
+                annotations:
+                  yaxis:
+                  - y: 35.0
+                    borderColor: '#ffffff'
+                    borderWidth: 1.5
+                    strokeDashArray: 0
+                    opacity: 1
+                  - y: 18.0
+                    borderColor: '#ffffff'
+                    borderWidth: 1.5
+                    strokeDashArray: 0
+                    opacity: 1
+              yaxis:
+              - min: ~14
+                max: ~39
               series:
               - entity: sensor.gw1200b_soil_moisture_3
                 color: '#ffffff'
@@ -604,32 +599,6 @@ views:
                 statistics:
                   type: mean
                   period: hour
-                show:
-                  legend_value: false
-                  in_header: false
-                  extremas: false
-              - entity: number.ficus_robusta_darker_soil_moisture_yellow_threshold
-                color: '#ffffff'
-                stroke_width: 1.5
-                curve: stepline
-                group_by:
-                  func: last
-                  duration: 1h
-                  fill: last
-                  start_with_last: true
-                show:
-                  legend_value: false
-                  in_header: false
-                  extremas: false
-              - entity: number.ficus_robusta_darker_soil_moisture_red_threshold
-                color: '#ffffff'
-                stroke_width: 1.5
-                curve: stepline
-                group_by:
-                  func: last
-                  duration: 1h
-                  fill: last
-                  start_with_last: true
                 show:
                   legend_value: false
                   in_header: false
@@ -696,6 +665,16 @@ views:
                   enabled: false
                 markers:
                   size: 0
+                annotations:
+                  yaxis:
+                  - y: 18.0
+                    borderColor: '#ffffff'
+                    borderWidth: 1.5
+                    strokeDashArray: 0
+                    opacity: 1
+              yaxis:
+              - min: ~14
+                max: ~22
               series:
               - entity: sensor.gw1200b_soil_moisture_3
                 color: '#ffffff'
@@ -708,19 +687,6 @@ views:
                   legend_value: false
                   in_header: false
                   extremas: false
-              - entity: number.ficus_robusta_darker_soil_moisture_red_threshold
-                color: '#ffffff'
-                stroke_width: 1.5
-                curve: stepline
-                group_by:
-                  func: last
-                  duration: 1h
-                  fill: last
-                  start_with_last: true
-                show:
-                  legend_value: false
-                  in_header: false
-                  extremas: false
           - type: conditional
             conditions:
             - entity: sensor.ficus_tineke_lighter_soil_moisture_zone
@@ -783,6 +749,16 @@ views:
                   enabled: false
                 markers:
                   size: 0
+                annotations:
+                  yaxis:
+                  - y: 35.0
+                    borderColor: '#ffffff'
+                    borderWidth: 1.5
+                    strokeDashArray: 0
+                    opacity: 1
+              yaxis:
+              - min: ~31
+                max: ~39
               series:
               - entity: sensor.gw1200b_soil_moisture_8
                 color: '#ffffff'
@@ -791,19 +767,6 @@ views:
                 statistics:
                   type: mean
                   period: hour
-                show:
-                  legend_value: false
-                  in_header: false
-                  extremas: false
-              - entity: number.ficus_tineke_lighter_soil_moisture_yellow_threshold
-                color: '#ffffff'
-                stroke_width: 1.5
-                curve: stepline
-                group_by:
-                  func: last
-                  duration: 1h
-                  fill: last
-                  start_with_last: true
                 show:
                   legend_value: false
                   in_header: false
@@ -870,6 +833,21 @@ views:
                   enabled: false
                 markers:
                   size: 0
+                annotations:
+                  yaxis:
+                  - y: 35.0
+                    borderColor: '#ffffff'
+                    borderWidth: 1.5
+                    strokeDashArray: 0
+                    opacity: 1
+                  - y: 18.0
+                    borderColor: '#ffffff'
+                    borderWidth: 1.5
+                    strokeDashArray: 0
+                    opacity: 1
+              yaxis:
+              - min: ~14
+                max: ~39
               series:
               - entity: sensor.gw1200b_soil_moisture_8
                 color: '#ffffff'
@@ -878,32 +856,6 @@ views:
                 statistics:
                   type: mean
                   period: hour
-                show:
-                  legend_value: false
-                  in_header: false
-                  extremas: false
-              - entity: number.ficus_tineke_lighter_soil_moisture_yellow_threshold
-                color: '#ffffff'
-                stroke_width: 1.5
-                curve: stepline
-                group_by:
-                  func: last
-                  duration: 1h
-                  fill: last
-                  start_with_last: true
-                show:
-                  legend_value: false
-                  in_header: false
-                  extremas: false
-              - entity: number.ficus_tineke_lighter_soil_moisture_red_threshold
-                color: '#ffffff'
-                stroke_width: 1.5
-                curve: stepline
-                group_by:
-                  func: last
-                  duration: 1h
-                  fill: last
-                  start_with_last: true
                 show:
                   legend_value: false
                   in_header: false
@@ -970,6 +922,16 @@ views:
                   enabled: false
                 markers:
                   size: 0
+                annotations:
+                  yaxis:
+                  - y: 18.0
+                    borderColor: '#ffffff'
+                    borderWidth: 1.5
+                    strokeDashArray: 0
+                    opacity: 1
+              yaxis:
+              - min: ~14
+                max: ~22
               series:
               - entity: sensor.gw1200b_soil_moisture_8
                 color: '#ffffff'
@@ -982,19 +944,6 @@ views:
                   legend_value: false
                   in_header: false
                   extremas: false
-              - entity: number.ficus_tineke_lighter_soil_moisture_red_threshold
-                color: '#ffffff'
-                stroke_width: 1.5
-                curve: stepline
-                group_by:
-                  func: last
-                  duration: 1h
-                  fill: last
-                  start_with_last: true
-                show:
-                  legend_value: false
-                  in_header: false
-                  extremas: false
           - type: conditional
             conditions:
             - entity: sensor.liana_soil_moisture_zone
@@ -1057,6 +1006,16 @@ views:
                   enabled: false
                 markers:
                   size: 0
+                annotations:
+                  yaxis:
+                  - y: 45.0
+                    borderColor: '#ffffff'
+                    borderWidth: 1.5
+                    strokeDashArray: 0
+                    opacity: 1
+              yaxis:
+              - min: ~41
+                max: ~49
               series:
               - entity: sensor.gw1200b_soil_moisture_7
                 color: '#ffffff'
@@ -1065,19 +1024,6 @@ views:
                 statistics:
                   type: mean
                   period: hour
-                show:
-                  legend_value: false
-                  in_header: false
-                  extremas: false
-              - entity: number.liana_soil_moisture_yellow_threshold
-                color: '#ffffff'
-                stroke_width: 1.5
-                curve: stepline
-                group_by:
-                  func: last
-                  duration: 1h
-                  fill: last
-                  start_with_last: true
                 show:
                   legend_value: false
                   in_header: false
@@ -1144,6 +1090,21 @@ views:
                   enabled: false
                 markers:
                   size: 0
+                annotations:
+                  yaxis:
+                  - y: 45.0
+                    borderColor: '#ffffff'
+                    borderWidth: 1.5
+                    strokeDashArray: 0
+                    opacity: 1
+                  - y: 22.0
+                    borderColor: '#ffffff'
+                    borderWidth: 1.5
+                    strokeDashArray: 0
+                    opacity: 1
+              yaxis:
+              - min: ~18
+                max: ~49
               series:
               - entity: sensor.gw1200b_soil_moisture_7
                 color: '#ffffff'
@@ -1152,32 +1113,6 @@ views:
                 statistics:
                   type: mean
                   period: hour
-                show:
-                  legend_value: false
-                  in_header: false
-                  extremas: false
-              - entity: number.liana_soil_moisture_yellow_threshold
-                color: '#ffffff'
-                stroke_width: 1.5
-                curve: stepline
-                group_by:
-                  func: last
-                  duration: 1h
-                  fill: last
-                  start_with_last: true
-                show:
-                  legend_value: false
-                  in_header: false
-                  extremas: false
-              - entity: number.liana_soil_moisture_red_threshold
-                color: '#ffffff'
-                stroke_width: 1.5
-                curve: stepline
-                group_by:
-                  func: last
-                  duration: 1h
-                  fill: last
-                  start_with_last: true
                 show:
                   legend_value: false
                   in_header: false
@@ -1244,6 +1179,16 @@ views:
                   enabled: false
                 markers:
                   size: 0
+                annotations:
+                  yaxis:
+                  - y: 22.0
+                    borderColor: '#ffffff'
+                    borderWidth: 1.5
+                    strokeDashArray: 0
+                    opacity: 1
+              yaxis:
+              - min: ~18
+                max: ~26
               series:
               - entity: sensor.gw1200b_soil_moisture_7
                 color: '#ffffff'
@@ -1256,19 +1201,6 @@ views:
                   legend_value: false
                   in_header: false
                   extremas: false
-              - entity: number.liana_soil_moisture_red_threshold
-                color: '#ffffff'
-                stroke_width: 1.5
-                curve: stepline
-                group_by:
-                  func: last
-                  duration: 1h
-                  fill: last
-                  start_with_last: true
-                show:
-                  legend_value: false
-                  in_header: false
-                  extremas: false
           - type: conditional
             conditions:
             - entity: sensor.malcolm_ficus_soil_moisture_zone
@@ -1331,6 +1263,16 @@ views:
                   enabled: false
                 markers:
                   size: 0
+                annotations:
+                  yaxis:
+                  - y: 35.0
+                    borderColor: '#ffffff'
+                    borderWidth: 1.5
+                    strokeDashArray: 0
+                    opacity: 1
+              yaxis:
+              - min: ~31
+                max: ~39
               series:
               - entity: sensor.gw1200b_soil_moisture_6
                 color: '#ffffff'
@@ -1339,19 +1281,6 @@ views:
                 statistics:
                   type: mean
                   period: hour
-                show:
-                  legend_value: false
-                  in_header: false
-                  extremas: false
-              - entity: number.malcolm_ficus_soil_moisture_yellow_threshold
-                color: '#ffffff'
-                stroke_width: 1.5
-                curve: stepline
-                group_by:
-                  func: last
-                  duration: 1h
-                  fill: last
-                  start_with_last: true
                 show:
                   legend_value: false
                   in_header: false
@@ -1418,6 +1347,21 @@ views:
                   enabled: false
                 markers:
                   size: 0
+                annotations:
+                  yaxis:
+                  - y: 35.0
+                    borderColor: '#ffffff'
+                    borderWidth: 1.5
+                    strokeDashArray: 0
+                    opacity: 1
+                  - y: 18.0
+                    borderColor: '#ffffff'
+                    borderWidth: 1.5
+                    strokeDashArray: 0
+                    opacity: 1
+              yaxis:
+              - min: ~14
+                max: ~39
               series:
               - entity: sensor.gw1200b_soil_moisture_6
                 color: '#ffffff'
@@ -1426,32 +1370,6 @@ views:
                 statistics:
                   type: mean
                   period: hour
-                show:
-                  legend_value: false
-                  in_header: false
-                  extremas: false
-              - entity: number.malcolm_ficus_soil_moisture_yellow_threshold
-                color: '#ffffff'
-                stroke_width: 1.5
-                curve: stepline
-                group_by:
-                  func: last
-                  duration: 1h
-                  fill: last
-                  start_with_last: true
-                show:
-                  legend_value: false
-                  in_header: false
-                  extremas: false
-              - entity: number.malcolm_ficus_soil_moisture_red_threshold
-                color: '#ffffff'
-                stroke_width: 1.5
-                curve: stepline
-                group_by:
-                  func: last
-                  duration: 1h
-                  fill: last
-                  start_with_last: true
                 show:
                   legend_value: false
                   in_header: false
@@ -1518,6 +1436,16 @@ views:
                   enabled: false
                 markers:
                   size: 0
+                annotations:
+                  yaxis:
+                  - y: 18.0
+                    borderColor: '#ffffff'
+                    borderWidth: 1.5
+                    strokeDashArray: 0
+                    opacity: 1
+              yaxis:
+              - min: ~14
+                max: ~22
               series:
               - entity: sensor.gw1200b_soil_moisture_6
                 color: '#ffffff'
@@ -1530,19 +1458,6 @@ views:
                   legend_value: false
                   in_header: false
                   extremas: false
-              - entity: number.malcolm_ficus_soil_moisture_red_threshold
-                color: '#ffffff'
-                stroke_width: 1.5
-                curve: stepline
-                group_by:
-                  func: last
-                  duration: 1h
-                  fill: last
-                  start_with_last: true
-                show:
-                  legend_value: false
-                  in_header: false
-                  extremas: false
           - type: conditional
             conditions:
             - entity: sensor.olive_tree_soil_moisture_zone
@@ -1605,6 +1520,16 @@ views:
                   enabled: false
                 markers:
                   size: 0
+                annotations:
+                  yaxis:
+                  - y: 25.0
+                    borderColor: '#ffffff'
+                    borderWidth: 1.5
+                    strokeDashArray: 0
+                    opacity: 1
+              yaxis:
+              - min: ~21
+                max: ~29
               series:
               - entity: sensor.gw1200b_soil_moisture_4
                 color: '#ffffff'
@@ -1613,19 +1538,6 @@ views:
                 statistics:
                   type: mean
                   period: hour
-                show:
-                  legend_value: false
-                  in_header: false
-                  extremas: false
-              - entity: number.olive_tree_soil_moisture_yellow_threshold
-                color: '#ffffff'
-                stroke_width: 1.5
-                curve: stepline
-                group_by:
-                  func: last
-                  duration: 1h
-                  fill: last
-                  start_with_last: true
                 show:
                   legend_value: false
                   in_header: false
@@ -1692,6 +1604,21 @@ views:
                   enabled: false
                 markers:
                   size: 0
+                annotations:
+                  yaxis:
+                  - y: 25.0
+                    borderColor: '#ffffff'
+                    borderWidth: 1.5
+                    strokeDashArray: 0
+                    opacity: 1
+                  - y: 12.0
+                    borderColor: '#ffffff'
+                    borderWidth: 1.5
+                    strokeDashArray: 0
+                    opacity: 1
+              yaxis:
+              - min: ~8
+                max: ~29
               series:
               - entity: sensor.gw1200b_soil_moisture_4
                 color: '#ffffff'
@@ -1700,32 +1627,6 @@ views:
                 statistics:
                   type: mean
                   period: hour
-                show:
-                  legend_value: false
-                  in_header: false
-                  extremas: false
-              - entity: number.olive_tree_soil_moisture_yellow_threshold
-                color: '#ffffff'
-                stroke_width: 1.5
-                curve: stepline
-                group_by:
-                  func: last
-                  duration: 1h
-                  fill: last
-                  start_with_last: true
-                show:
-                  legend_value: false
-                  in_header: false
-                  extremas: false
-              - entity: number.olive_tree_soil_moisture_red_threshold
-                color: '#ffffff'
-                stroke_width: 1.5
-                curve: stepline
-                group_by:
-                  func: last
-                  duration: 1h
-                  fill: last
-                  start_with_last: true
                 show:
                   legend_value: false
                   in_header: false
@@ -1792,6 +1693,16 @@ views:
                   enabled: false
                 markers:
                   size: 0
+                annotations:
+                  yaxis:
+                  - y: 12.0
+                    borderColor: '#ffffff'
+                    borderWidth: 1.5
+                    strokeDashArray: 0
+                    opacity: 1
+              yaxis:
+              - min: ~8
+                max: ~16
               series:
               - entity: sensor.gw1200b_soil_moisture_4
                 color: '#ffffff'
@@ -1804,19 +1715,6 @@ views:
                   legend_value: false
                   in_header: false
                   extremas: false
-              - entity: number.olive_tree_soil_moisture_red_threshold
-                color: '#ffffff'
-                stroke_width: 1.5
-                curve: stepline
-                group_by:
-                  func: last
-                  duration: 1h
-                  fill: last
-                  start_with_last: true
-                show:
-                  legend_value: false
-                  in_header: false
-                  extremas: false
           - type: conditional
             conditions:
             - entity: sensor.rubber_plant_soil_moisture_zone
@@ -1879,6 +1777,16 @@ views:
                   enabled: false
                 markers:
                   size: 0
+                annotations:
+                  yaxis:
+                  - y: 35.0
+                    borderColor: '#ffffff'
+                    borderWidth: 1.5
+                    strokeDashArray: 0
+                    opacity: 1
+              yaxis:
+              - min: ~31
+                max: ~39
               series:
               - entity: sensor.gw1200b_soil_moisture_2
                 color: '#ffffff'
@@ -1887,19 +1795,6 @@ views:
                 statistics:
                   type: mean
                   period: hour
-                show:
-                  legend_value: false
-                  in_header: false
-                  extremas: false
-              - entity: number.rubber_plant_soil_moisture_yellow_threshold
-                color: '#ffffff'
-                stroke_width: 1.5
-                curve: stepline
-                group_by:
-                  func: last
-                  duration: 1h
-                  fill: last
-                  start_with_last: true
                 show:
                   legend_value: false
                   in_header: false
@@ -1966,6 +1861,21 @@ views:
                   enabled: false
                 markers:
                   size: 0
+                annotations:
+                  yaxis:
+                  - y: 35.0
+                    borderColor: '#ffffff'
+                    borderWidth: 1.5
+                    strokeDashArray: 0
+                    opacity: 1
+                  - y: 18.0
+                    borderColor: '#ffffff'
+                    borderWidth: 1.5
+                    strokeDashArray: 0
+                    opacity: 1
+              yaxis:
+              - min: ~14
+                max: ~39
               series:
               - entity: sensor.gw1200b_soil_moisture_2
                 color: '#ffffff'
@@ -1974,32 +1884,6 @@ views:
                 statistics:
                   type: mean
                   period: hour
-                show:
-                  legend_value: false
-                  in_header: false
-                  extremas: false
-              - entity: number.rubber_plant_soil_moisture_yellow_threshold
-                color: '#ffffff'
-                stroke_width: 1.5
-                curve: stepline
-                group_by:
-                  func: last
-                  duration: 1h
-                  fill: last
-                  start_with_last: true
-                show:
-                  legend_value: false
-                  in_header: false
-                  extremas: false
-              - entity: number.rubber_plant_soil_moisture_red_threshold
-                color: '#ffffff'
-                stroke_width: 1.5
-                curve: stepline
-                group_by:
-                  func: last
-                  duration: 1h
-                  fill: last
-                  start_with_last: true
                 show:
                   legend_value: false
                   in_header: false
@@ -2066,6 +1950,16 @@ views:
                   enabled: false
                 markers:
                   size: 0
+                annotations:
+                  yaxis:
+                  - y: 18.0
+                    borderColor: '#ffffff'
+                    borderWidth: 1.5
+                    strokeDashArray: 0
+                    opacity: 1
+              yaxis:
+              - min: ~14
+                max: ~22
               series:
               - entity: sensor.gw1200b_soil_moisture_2
                 color: '#ffffff'
@@ -2078,19 +1972,6 @@ views:
                   legend_value: false
                   in_header: false
                   extremas: false
-              - entity: number.rubber_plant_soil_moisture_red_threshold
-                color: '#ffffff'
-                stroke_width: 1.5
-                curve: stepline
-                group_by:
-                  func: last
-                  duration: 1h
-                  fill: last
-                  start_with_last: true
-                show:
-                  legend_value: false
-                  in_header: false
-                  extremas: false
           - type: conditional
             conditions:
             - entity: sensor.triangularis_ficus_soil_moisture_zone
@@ -2153,6 +2034,16 @@ views:
                   enabled: false
                 markers:
                   size: 0
+                annotations:
+                  yaxis:
+                  - y: 35.0
+                    borderColor: '#ffffff'
+                    borderWidth: 1.5
+                    strokeDashArray: 0
+                    opacity: 1
+              yaxis:
+              - min: ~31
+                max: ~39
               series:
               - entity: sensor.gw1200b_soil_moisture_5
                 color: '#ffffff'
@@ -2161,19 +2052,6 @@ views:
                 statistics:
                   type: mean
                   period: hour
-                show:
-                  legend_value: false
-                  in_header: false
-                  extremas: false
-              - entity: number.triangularis_ficus_soil_moisture_yellow_threshold
-                color: '#ffffff'
-                stroke_width: 1.5
-                curve: stepline
-                group_by:
-                  func: last
-                  duration: 1h
-                  fill: last
-                  start_with_last: true
                 show:
                   legend_value: false
                   in_header: false
@@ -2240,6 +2118,21 @@ views:
                   enabled: false
                 markers:
                   size: 0
+                annotations:
+                  yaxis:
+                  - y: 35.0
+                    borderColor: '#ffffff'
+                    borderWidth: 1.5
+                    strokeDashArray: 0
+                    opacity: 1
+                  - y: 18.0
+                    borderColor: '#ffffff'
+                    borderWidth: 1.5
+                    strokeDashArray: 0
+                    opacity: 1
+              yaxis:
+              - min: ~14
+                max: ~39
               series:
               - entity: sensor.gw1200b_soil_moisture_5
                 color: '#ffffff'
@@ -2248,32 +2141,6 @@ views:
                 statistics:
                   type: mean
                   period: hour
-                show:
-                  legend_value: false
-                  in_header: false
-                  extremas: false
-              - entity: number.triangularis_ficus_soil_moisture_yellow_threshold
-                color: '#ffffff'
-                stroke_width: 1.5
-                curve: stepline
-                group_by:
-                  func: last
-                  duration: 1h
-                  fill: last
-                  start_with_last: true
-                show:
-                  legend_value: false
-                  in_header: false
-                  extremas: false
-              - entity: number.triangularis_ficus_soil_moisture_red_threshold
-                color: '#ffffff'
-                stroke_width: 1.5
-                curve: stepline
-                group_by:
-                  func: last
-                  duration: 1h
-                  fill: last
-                  start_with_last: true
                 show:
                   legend_value: false
                   in_header: false
@@ -2340,6 +2207,16 @@ views:
                   enabled: false
                 markers:
                   size: 0
+                annotations:
+                  yaxis:
+                  - y: 18.0
+                    borderColor: '#ffffff'
+                    borderWidth: 1.5
+                    strokeDashArray: 0
+                    opacity: 1
+              yaxis:
+              - min: ~14
+                max: ~22
               series:
               - entity: sensor.gw1200b_soil_moisture_5
                 color: '#ffffff'
@@ -2348,19 +2225,6 @@ views:
                 statistics:
                   type: mean
                   period: hour
-                show:
-                  legend_value: false
-                  in_header: false
-                  extremas: false
-              - entity: number.triangularis_ficus_soil_moisture_red_threshold
-                color: '#ffffff'
-                stroke_width: 1.5
-                curve: stepline
-                group_by:
-                  func: last
-                  duration: 1h
-                  fill: last
-                  start_with_last: true
                 show:
                   legend_value: false
                   in_header: false
@@ -2427,6 +2291,16 @@ views:
                   enabled: false
                 markers:
                   size: 0
+                annotations:
+                  yaxis:
+                  - y: 20.0
+                    borderColor: '#ffffff'
+                    borderWidth: 1.5
+                    strokeDashArray: 0
+                    opacity: 1
+              yaxis:
+              - min: ~16
+                max: ~24
               series:
               - entity: sensor.gw1200b_soil_moisture_9
                 color: '#ffffff'
@@ -2435,19 +2309,6 @@ views:
                 statistics:
                   type: mean
                   period: hour
-                show:
-                  legend_value: false
-                  in_header: false
-                  extremas: false
-              - entity: number.yucca_soil_moisture_yellow_threshold
-                color: '#ffffff'
-                stroke_width: 1.5
-                curve: stepline
-                group_by:
-                  func: last
-                  duration: 1h
-                  fill: last
-                  start_with_last: true
                 show:
                   legend_value: false
                   in_header: false
@@ -2514,6 +2375,21 @@ views:
                   enabled: false
                 markers:
                   size: 0
+                annotations:
+                  yaxis:
+                  - y: 20.0
+                    borderColor: '#ffffff'
+                    borderWidth: 1.5
+                    strokeDashArray: 0
+                    opacity: 1
+                  - y: 10.0
+                    borderColor: '#ffffff'
+                    borderWidth: 1.5
+                    strokeDashArray: 0
+                    opacity: 1
+              yaxis:
+              - min: ~6
+                max: ~24
               series:
               - entity: sensor.gw1200b_soil_moisture_9
                 color: '#ffffff'
@@ -2522,32 +2398,6 @@ views:
                 statistics:
                   type: mean
                   period: hour
-                show:
-                  legend_value: false
-                  in_header: false
-                  extremas: false
-              - entity: number.yucca_soil_moisture_yellow_threshold
-                color: '#ffffff'
-                stroke_width: 1.5
-                curve: stepline
-                group_by:
-                  func: last
-                  duration: 1h
-                  fill: last
-                  start_with_last: true
-                show:
-                  legend_value: false
-                  in_header: false
-                  extremas: false
-              - entity: number.yucca_soil_moisture_red_threshold
-                color: '#ffffff'
-                stroke_width: 1.5
-                curve: stepline
-                group_by:
-                  func: last
-                  duration: 1h
-                  fill: last
-                  start_with_last: true
                 show:
                   legend_value: false
                   in_header: false
@@ -2614,6 +2464,16 @@ views:
                   enabled: false
                 markers:
                   size: 0
+                annotations:
+                  yaxis:
+                  - y: 10.0
+                    borderColor: '#ffffff'
+                    borderWidth: 1.5
+                    strokeDashArray: 0
+                    opacity: 1
+              yaxis:
+              - min: ~6
+                max: ~14
               series:
               - entity: sensor.gw1200b_soil_moisture_9
                 color: '#ffffff'
@@ -2622,19 +2482,6 @@ views:
                 statistics:
                   type: mean
                   period: hour
-                show:
-                  legend_value: false
-                  in_header: false
-                  extremas: false
-              - entity: number.yucca_soil_moisture_red_threshold
-                color: '#ffffff'
-                stroke_width: 1.5
-                curve: stepline
-                group_by:
-                  func: last
-                  duration: 1h
-                  fill: last
-                  start_with_last: true
                 show:
                   legend_value: false
                   in_header: false
