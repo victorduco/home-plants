@@ -191,8 +191,8 @@ views:
                     position: absolute;
                     left: 3.333vw;
                     top: calc(33.333vh - 6.667vh - 10px);
-                    width: 4.444vw;
-                    height: 6.667vh;
+                    width: 57px;
+                    height: 53px;
                     z-index: 3;
                     pointer-events: none;
                   }
@@ -211,8 +211,8 @@ views:
                 chart:
                   sparkline:
                     enabled: true
-                  height: 100%
-                  width: 100%
+                  height: 53
+                  width: 57
                   animations:
                     enabled: false
                   background: transparent
@@ -222,10 +222,10 @@ views:
                   padding:
                     left: 1
                     right: 1
-                    top: 4
-                    bottom: 4
+                    top: 2
+                    bottom: 2
                 yaxis:
-                  show: false
+                - show: false
                   min: 20.0
                   max: 54.0
                   forceNiceScale: false
@@ -280,8 +280,8 @@ views:
                     position: absolute;
                     left: 3.333vw;
                     top: calc(33.333vh - 6.667vh - 10px);
-                    width: 4.444vw;
-                    height: 6.667vh;
+                    width: 57px;
+                    height: 53px;
                     z-index: 3;
                     pointer-events: none;
                   }
@@ -300,8 +300,8 @@ views:
                 chart:
                   sparkline:
                     enabled: true
-                  height: 100%
-                  width: 100%
+                  height: 53
+                  width: 57
                   animations:
                     enabled: false
                   background: transparent
@@ -311,10 +311,10 @@ views:
                   padding:
                     left: 1
                     right: 1
-                    top: 4
-                    bottom: 4
+                    top: 2
+                    bottom: 2
                 yaxis:
-                  show: false
+                - show: false
                   min: 10.0
                   max: 54.0
                   forceNiceScale: false
@@ -374,8 +374,8 @@ views:
                     position: absolute;
                     left: 3.333vw;
                     top: calc(33.333vh - 6.667vh - 10px);
-                    width: 4.444vw;
-                    height: 6.667vh;
+                    width: 57px;
+                    height: 53px;
                     z-index: 3;
                     pointer-events: none;
                   }
@@ -394,8 +394,8 @@ views:
                 chart:
                   sparkline:
                     enabled: true
-                  height: 100%
-                  width: 100%
+                  height: 53
+                  width: 57
                   animations:
                     enabled: false
                   background: transparent
@@ -405,10 +405,10 @@ views:
                   padding:
                     left: 1
                     right: 1
-                    top: 4
-                    bottom: 4
+                    top: 2
+                    bottom: 2
                 yaxis:
-                  show: false
+                - show: false
                   min: 10.0
                   max: 54.0
                   forceNiceScale: false
@@ -463,8 +463,8 @@ views:
                     position: absolute;
                     left: 14.444vw;
                     top: calc(33.333vh - 6.667vh - 10px);
-                    width: 4.444vw;
-                    height: 6.667vh;
+                    width: 57px;
+                    height: 53px;
                     z-index: 3;
                     pointer-events: none;
                   }
@@ -483,8 +483,8 @@ views:
                 chart:
                   sparkline:
                     enabled: true
-                  height: 100%
-                  width: 100%
+                  height: 53
+                  width: 57
                   animations:
                     enabled: false
                   background: transparent
@@ -494,10 +494,10 @@ views:
                   padding:
                     left: 1
                     right: 1
-                    top: 4
-                    bottom: 4
+                    top: 2
+                    bottom: 2
                 yaxis:
-                  show: false
+                - show: false
                   min: 30.0
                   max: 52.0
                   forceNiceScale: false
@@ -552,8 +552,8 @@ views:
                     position: absolute;
                     left: 14.444vw;
                     top: calc(33.333vh - 6.667vh - 10px);
-                    width: 4.444vw;
-                    height: 6.667vh;
+                    width: 57px;
+                    height: 53px;
                     z-index: 3;
                     pointer-events: none;
                   }
@@ -572,8 +572,8 @@ views:
                 chart:
                   sparkline:
                     enabled: true
-                  height: 100%
-                  width: 100%
+                  height: 53
+                  width: 57
                   animations:
                     enabled: false
                   background: transparent
@@ -583,10 +583,10 @@ views:
                   padding:
                     left: 1
                     right: 1
-                    top: 4
-                    bottom: 4
+                    top: 2
+                    bottom: 2
                 yaxis:
-                  show: false
+                - show: false
                   min: 13.0
                   max: 52.0
                   forceNiceScale: false
@@ -646,8 +646,8 @@ views:
                     position: absolute;
                     left: 14.444vw;
                     top: calc(33.333vh - 6.667vh - 10px);
-                    width: 4.444vw;
-                    height: 6.667vh;
+                    width: 57px;
+                    height: 53px;
                     z-index: 3;
                     pointer-events: none;
                   }
@@ -666,8 +666,8 @@ views:
                 chart:
                   sparkline:
                     enabled: true
-                  height: 100%
-                  width: 100%
+                  height: 53
+                  width: 57
                   animations:
                     enabled: false
                   background: transparent
@@ -677,10 +677,10 @@ views:
                   padding:
                     left: 1
                     right: 1
-                    top: 4
-                    bottom: 4
+                    top: 2
+                    bottom: 2
                 yaxis:
-                  show: false
+                - show: false
                   min: 13.0
                   max: 52.0
                   forceNiceScale: false
@@ -735,8 +735,8 @@ views:
                     position: absolute;
                     left: 25.556vw;
                     top: calc(33.333vh - 6.667vh - 10px);
-                    width: 4.444vw;
-                    height: 6.667vh;
+                    width: 57px;
+                    height: 53px;
                     z-index: 3;
                     pointer-events: none;
                   }
@@ -755,8 +755,8 @@ views:
                 chart:
                   sparkline:
                     enabled: true
-                  height: 100%
-                  width: 100%
+                  height: 53
+                  width: 57
                   animations:
                     enabled: false
                   background: transparent
@@ -766,10 +766,10 @@ views:
                   padding:
                     left: 1
                     right: 1
-                    top: 4
-                    bottom: 4
+                    top: 2
+                    bottom: 2
                 yaxis:
-                  show: false
+                - show: false
                   min: 28.0
                   max: 80.0
                   forceNiceScale: false
@@ -824,8 +824,8 @@ views:
                     position: absolute;
                     left: 25.556vw;
                     top: calc(33.333vh - 6.667vh - 10px);
-                    width: 4.444vw;
-                    height: 6.667vh;
+                    width: 57px;
+                    height: 53px;
                     z-index: 3;
                     pointer-events: none;
                   }
@@ -844,8 +844,8 @@ views:
                 chart:
                   sparkline:
                     enabled: true
-                  height: 100%
-                  width: 100%
+                  height: 53
+                  width: 57
                   animations:
                     enabled: false
                   background: transparent
@@ -855,10 +855,10 @@ views:
                   padding:
                     left: 1
                     right: 1
-                    top: 4
-                    bottom: 4
+                    top: 2
+                    bottom: 2
                 yaxis:
-                  show: false
+                - show: false
                   min: 13.0
                   max: 80.0
                   forceNiceScale: false
@@ -918,8 +918,8 @@ views:
                     position: absolute;
                     left: 25.556vw;
                     top: calc(33.333vh - 6.667vh - 10px);
-                    width: 4.444vw;
-                    height: 6.667vh;
+                    width: 57px;
+                    height: 53px;
                     z-index: 3;
                     pointer-events: none;
                   }
@@ -938,8 +938,8 @@ views:
                 chart:
                   sparkline:
                     enabled: true
-                  height: 100%
-                  width: 100%
+                  height: 53
+                  width: 57
                   animations:
                     enabled: false
                   background: transparent
@@ -949,10 +949,10 @@ views:
                   padding:
                     left: 1
                     right: 1
-                    top: 4
-                    bottom: 4
+                    top: 2
+                    bottom: 2
                 yaxis:
-                  show: false
+                - show: false
                   min: 13.0
                   max: 80.0
                   forceNiceScale: false
@@ -1007,8 +1007,8 @@ views:
                     position: absolute;
                     left: 36.667vw;
                     top: calc(33.333vh - 6.667vh - 10px);
-                    width: 4.444vw;
-                    height: 6.667vh;
+                    width: 57px;
+                    height: 53px;
                     z-index: 3;
                     pointer-events: none;
                   }
@@ -1027,8 +1027,8 @@ views:
                 chart:
                   sparkline:
                     enabled: true
-                  height: 100%
-                  width: 100%
+                  height: 53
+                  width: 57
                   animations:
                     enabled: false
                   background: transparent
@@ -1038,10 +1038,10 @@ views:
                   padding:
                     left: 1
                     right: 1
-                    top: 4
-                    bottom: 4
+                    top: 2
+                    bottom: 2
                 yaxis:
-                  show: false
+                - show: false
                   min: 26.0
                   max: 50.0
                   forceNiceScale: false
@@ -1096,8 +1096,8 @@ views:
                     position: absolute;
                     left: 36.667vw;
                     top: calc(33.333vh - 6.667vh - 10px);
-                    width: 4.444vw;
-                    height: 6.667vh;
+                    width: 57px;
+                    height: 53px;
                     z-index: 3;
                     pointer-events: none;
                   }
@@ -1116,8 +1116,8 @@ views:
                 chart:
                   sparkline:
                     enabled: true
-                  height: 100%
-                  width: 100%
+                  height: 53
+                  width: 57
                   animations:
                     enabled: false
                   background: transparent
@@ -1127,10 +1127,10 @@ views:
                   padding:
                     left: 1
                     right: 1
-                    top: 4
-                    bottom: 4
+                    top: 2
+                    bottom: 2
                 yaxis:
-                  show: false
+                - show: false
                   min: 17.0
                   max: 50.0
                   forceNiceScale: false
@@ -1190,8 +1190,8 @@ views:
                     position: absolute;
                     left: 36.667vw;
                     top: calc(33.333vh - 6.667vh - 10px);
-                    width: 4.444vw;
-                    height: 6.667vh;
+                    width: 57px;
+                    height: 53px;
                     z-index: 3;
                     pointer-events: none;
                   }
@@ -1210,8 +1210,8 @@ views:
                 chart:
                   sparkline:
                     enabled: true
-                  height: 100%
-                  width: 100%
+                  height: 53
+                  width: 57
                   animations:
                     enabled: false
                   background: transparent
@@ -1221,10 +1221,10 @@ views:
                   padding:
                     left: 1
                     right: 1
-                    top: 4
-                    bottom: 4
+                    top: 2
+                    bottom: 2
                 yaxis:
-                  show: false
+                - show: false
                   min: 17.0
                   max: 42.0
                   forceNiceScale: false
@@ -1279,8 +1279,8 @@ views:
                     position: absolute;
                     left: 47.778vw;
                     top: calc(33.333vh - 6.667vh - 10px);
-                    width: 4.444vw;
-                    height: 6.667vh;
+                    width: 57px;
+                    height: 53px;
                     z-index: 3;
                     pointer-events: none;
                   }
@@ -1299,8 +1299,8 @@ views:
                 chart:
                   sparkline:
                     enabled: true
-                  height: 100%
-                  width: 100%
+                  height: 53
+                  width: 57
                   animations:
                     enabled: false
                   background: transparent
@@ -1310,10 +1310,10 @@ views:
                   padding:
                     left: 1
                     right: 1
-                    top: 4
-                    bottom: 4
+                    top: 2
+                    bottom: 2
                 yaxis:
-                  show: false
+                - show: false
                   min: 18.0
                   max: 43.0
                   forceNiceScale: false
@@ -1368,8 +1368,8 @@ views:
                     position: absolute;
                     left: 47.778vw;
                     top: calc(33.333vh - 6.667vh - 10px);
-                    width: 4.444vw;
-                    height: 6.667vh;
+                    width: 57px;
+                    height: 53px;
                     z-index: 3;
                     pointer-events: none;
                   }
@@ -1388,8 +1388,8 @@ views:
                 chart:
                   sparkline:
                     enabled: true
-                  height: 100%
-                  width: 100%
+                  height: 53
+                  width: 57
                   animations:
                     enabled: false
                   background: transparent
@@ -1399,10 +1399,10 @@ views:
                   padding:
                     left: 1
                     right: 1
-                    top: 4
-                    bottom: 4
+                    top: 2
+                    bottom: 2
                 yaxis:
-                  show: false
+                - show: false
                   min: 13.0
                   max: 43.0
                   forceNiceScale: false
@@ -1462,8 +1462,8 @@ views:
                     position: absolute;
                     left: 47.778vw;
                     top: calc(33.333vh - 6.667vh - 10px);
-                    width: 4.444vw;
-                    height: 6.667vh;
+                    width: 57px;
+                    height: 53px;
                     z-index: 3;
                     pointer-events: none;
                   }
@@ -1482,8 +1482,8 @@ views:
                 chart:
                   sparkline:
                     enabled: true
-                  height: 100%
-                  width: 100%
+                  height: 53
+                  width: 57
                   animations:
                     enabled: false
                   background: transparent
@@ -1493,10 +1493,10 @@ views:
                   padding:
                     left: 1
                     right: 1
-                    top: 4
-                    bottom: 4
+                    top: 2
+                    bottom: 2
                 yaxis:
-                  show: false
+                - show: false
                   min: 13.0
                   max: 43.0
                   forceNiceScale: false
@@ -1551,8 +1551,8 @@ views:
                     position: absolute;
                     left: 58.889vw;
                     top: calc(33.333vh - 6.667vh - 10px);
-                    width: 4.444vw;
-                    height: 6.667vh;
+                    width: 57px;
+                    height: 53px;
                     z-index: 3;
                     pointer-events: none;
                   }
@@ -1571,8 +1571,8 @@ views:
                 chart:
                   sparkline:
                     enabled: true
-                  height: 100%
-                  width: 100%
+                  height: 53
+                  width: 57
                   animations:
                     enabled: false
                   background: transparent
@@ -1582,10 +1582,10 @@ views:
                   padding:
                     left: 1
                     right: 1
-                    top: 4
-                    bottom: 4
+                    top: 2
+                    bottom: 2
                 yaxis:
-                  show: false
+                - show: false
                   min: 20.0
                   max: 48.0
                   forceNiceScale: false
@@ -1640,8 +1640,8 @@ views:
                     position: absolute;
                     left: 58.889vw;
                     top: calc(33.333vh - 6.667vh - 10px);
-                    width: 4.444vw;
-                    height: 6.667vh;
+                    width: 57px;
+                    height: 53px;
                     z-index: 3;
                     pointer-events: none;
                   }
@@ -1660,8 +1660,8 @@ views:
                 chart:
                   sparkline:
                     enabled: true
-                  height: 100%
-                  width: 100%
+                  height: 53
+                  width: 57
                   animations:
                     enabled: false
                   background: transparent
@@ -1671,10 +1671,10 @@ views:
                   padding:
                     left: 1
                     right: 1
-                    top: 4
-                    bottom: 4
+                    top: 2
+                    bottom: 2
                 yaxis:
-                  show: false
+                - show: false
                   min: 7.0
                   max: 48.0
                   forceNiceScale: false
@@ -1734,8 +1734,8 @@ views:
                     position: absolute;
                     left: 58.889vw;
                     top: calc(33.333vh - 6.667vh - 10px);
-                    width: 4.444vw;
-                    height: 6.667vh;
+                    width: 57px;
+                    height: 53px;
                     z-index: 3;
                     pointer-events: none;
                   }
@@ -1754,8 +1754,8 @@ views:
                 chart:
                   sparkline:
                     enabled: true
-                  height: 100%
-                  width: 100%
+                  height: 53
+                  width: 57
                   animations:
                     enabled: false
                   background: transparent
@@ -1765,10 +1765,10 @@ views:
                   padding:
                     left: 1
                     right: 1
-                    top: 4
-                    bottom: 4
+                    top: 2
+                    bottom: 2
                 yaxis:
-                  show: false
+                - show: false
                   min: 7.0
                   max: 48.0
                   forceNiceScale: false
@@ -1823,8 +1823,8 @@ views:
                     position: absolute;
                     left: 70.000vw;
                     top: calc(33.333vh - 6.667vh - 10px);
-                    width: 4.444vw;
-                    height: 6.667vh;
+                    width: 57px;
+                    height: 53px;
                     z-index: 3;
                     pointer-events: none;
                   }
@@ -1843,8 +1843,8 @@ views:
                 chart:
                   sparkline:
                     enabled: true
-                  height: 100%
-                  width: 100%
+                  height: 53
+                  width: 57
                   animations:
                     enabled: false
                   background: transparent
@@ -1854,10 +1854,10 @@ views:
                   padding:
                     left: 1
                     right: 1
-                    top: 4
-                    bottom: 4
+                    top: 2
+                    bottom: 2
                 yaxis:
-                  show: false
+                - show: false
                   min: 26.0
                   max: 48.0
                   forceNiceScale: false
@@ -1912,8 +1912,8 @@ views:
                     position: absolute;
                     left: 70.000vw;
                     top: calc(33.333vh - 6.667vh - 10px);
-                    width: 4.444vw;
-                    height: 6.667vh;
+                    width: 57px;
+                    height: 53px;
                     z-index: 3;
                     pointer-events: none;
                   }
@@ -1932,8 +1932,8 @@ views:
                 chart:
                   sparkline:
                     enabled: true
-                  height: 100%
-                  width: 100%
+                  height: 53
+                  width: 57
                   animations:
                     enabled: false
                   background: transparent
@@ -1943,10 +1943,10 @@ views:
                   padding:
                     left: 1
                     right: 1
-                    top: 4
-                    bottom: 4
+                    top: 2
+                    bottom: 2
                 yaxis:
-                  show: false
+                - show: false
                   min: 13.0
                   max: 48.0
                   forceNiceScale: false
@@ -2006,8 +2006,8 @@ views:
                     position: absolute;
                     left: 70.000vw;
                     top: calc(33.333vh - 6.667vh - 10px);
-                    width: 4.444vw;
-                    height: 6.667vh;
+                    width: 57px;
+                    height: 53px;
                     z-index: 3;
                     pointer-events: none;
                   }
@@ -2026,8 +2026,8 @@ views:
                 chart:
                   sparkline:
                     enabled: true
-                  height: 100%
-                  width: 100%
+                  height: 53
+                  width: 57
                   animations:
                     enabled: false
                   background: transparent
@@ -2037,10 +2037,10 @@ views:
                   padding:
                     left: 1
                     right: 1
-                    top: 4
-                    bottom: 4
+                    top: 2
+                    bottom: 2
                 yaxis:
-                  show: false
+                - show: false
                   min: 13.0
                   max: 48.0
                   forceNiceScale: false
@@ -2095,8 +2095,8 @@ views:
                     position: absolute;
                     left: 81.111vw;
                     top: calc(33.333vh - 6.667vh - 10px);
-                    width: 4.444vw;
-                    height: 6.667vh;
+                    width: 57px;
+                    height: 53px;
                     z-index: 3;
                     pointer-events: none;
                   }
@@ -2115,8 +2115,8 @@ views:
                 chart:
                   sparkline:
                     enabled: true
-                  height: 100%
-                  width: 100%
+                  height: 53
+                  width: 57
                   animations:
                     enabled: false
                   background: transparent
@@ -2126,10 +2126,10 @@ views:
                   padding:
                     left: 1
                     right: 1
-                    top: 4
-                    bottom: 4
+                    top: 2
+                    bottom: 2
                 yaxis:
-                  show: false
+                - show: false
                   min: 30.0
                   max: 71.0
                   forceNiceScale: false
@@ -2184,8 +2184,8 @@ views:
                     position: absolute;
                     left: 81.111vw;
                     top: calc(33.333vh - 6.667vh - 10px);
-                    width: 4.444vw;
-                    height: 6.667vh;
+                    width: 57px;
+                    height: 53px;
                     z-index: 3;
                     pointer-events: none;
                   }
@@ -2204,8 +2204,8 @@ views:
                 chart:
                   sparkline:
                     enabled: true
-                  height: 100%
-                  width: 100%
+                  height: 53
+                  width: 57
                   animations:
                     enabled: false
                   background: transparent
@@ -2215,10 +2215,10 @@ views:
                   padding:
                     left: 1
                     right: 1
-                    top: 4
-                    bottom: 4
+                    top: 2
+                    bottom: 2
                 yaxis:
-                  show: false
+                - show: false
                   min: 13.0
                   max: 71.0
                   forceNiceScale: false
@@ -2278,8 +2278,8 @@ views:
                     position: absolute;
                     left: 81.111vw;
                     top: calc(33.333vh - 6.667vh - 10px);
-                    width: 4.444vw;
-                    height: 6.667vh;
+                    width: 57px;
+                    height: 53px;
                     z-index: 3;
                     pointer-events: none;
                   }
@@ -2298,8 +2298,8 @@ views:
                 chart:
                   sparkline:
                     enabled: true
-                  height: 100%
-                  width: 100%
+                  height: 53
+                  width: 57
                   animations:
                     enabled: false
                   background: transparent
@@ -2309,10 +2309,10 @@ views:
                   padding:
                     left: 1
                     right: 1
-                    top: 4
-                    bottom: 4
+                    top: 2
+                    bottom: 2
                 yaxis:
-                  show: false
+                - show: false
                   min: 13.0
                   max: 71.0
                   forceNiceScale: false
@@ -2367,8 +2367,8 @@ views:
                     position: absolute;
                     left: 92.222vw;
                     top: calc(33.333vh - 6.667vh - 10px);
-                    width: 4.444vw;
-                    height: 6.667vh;
+                    width: 57px;
+                    height: 53px;
                     z-index: 3;
                     pointer-events: none;
                   }
@@ -2387,8 +2387,8 @@ views:
                 chart:
                   sparkline:
                     enabled: true
-                  height: 100%
-                  width: 100%
+                  height: 53
+                  width: 57
                   animations:
                     enabled: false
                   background: transparent
@@ -2398,10 +2398,10 @@ views:
                   padding:
                     left: 1
                     right: 1
-                    top: 4
-                    bottom: 4
+                    top: 2
+                    bottom: 2
                 yaxis:
-                  show: false
+                - show: false
                   min: 15.0
                   max: 53.0
                   forceNiceScale: false
@@ -2456,8 +2456,8 @@ views:
                     position: absolute;
                     left: 92.222vw;
                     top: calc(33.333vh - 6.667vh - 10px);
-                    width: 4.444vw;
-                    height: 6.667vh;
+                    width: 57px;
+                    height: 53px;
                     z-index: 3;
                     pointer-events: none;
                   }
@@ -2476,8 +2476,8 @@ views:
                 chart:
                   sparkline:
                     enabled: true
-                  height: 100%
-                  width: 100%
+                  height: 53
+                  width: 57
                   animations:
                     enabled: false
                   background: transparent
@@ -2487,10 +2487,10 @@ views:
                   padding:
                     left: 1
                     right: 1
-                    top: 4
-                    bottom: 4
+                    top: 2
+                    bottom: 2
                 yaxis:
-                  show: false
+                - show: false
                   min: 5.0
                   max: 53.0
                   forceNiceScale: false
@@ -2550,8 +2550,8 @@ views:
                     position: absolute;
                     left: 92.222vw;
                     top: calc(33.333vh - 6.667vh - 10px);
-                    width: 4.444vw;
-                    height: 6.667vh;
+                    width: 57px;
+                    height: 53px;
                     z-index: 3;
                     pointer-events: none;
                   }
@@ -2570,8 +2570,8 @@ views:
                 chart:
                   sparkline:
                     enabled: true
-                  height: 100%
-                  width: 100%
+                  height: 53
+                  width: 57
                   animations:
                     enabled: false
                   background: transparent
@@ -2581,10 +2581,10 @@ views:
                   padding:
                     left: 1
                     right: 1
-                    top: 4
-                    bottom: 4
+                    top: 2
+                    bottom: 2
                 yaxis:
-                  show: false
+                - show: false
                   min: 5.0
                   max: 53.0
                   forceNiceScale: false
