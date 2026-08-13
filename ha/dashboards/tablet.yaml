@@ -13,153 +13,2287 @@ views:
         .ha-scrollbar,
         #view { padding: 0 !important; margin: 0 !important; }
     cards:
-      - type: custom:html-template-card
-        ignore_line_breaks: true
+      - type: vertical-stack
         card_mod:
           style: |
-            ha-card { padding: 0 !important; }
-        content: |
-          <style>
-            :host, html, body { margin: 0; padding: 0; height: 100%; width: 100%; overflow: hidden; }
-            hui-view, .ha-scrollbar, #view { padding: 0 !important; margin: 0 !important; }
-            .tablet-wrap {
-              width: 100vw;
-              height: 100vh;
-              background: #111;
-              display: grid;
-              grid-template-columns: repeat(9, 1fr);
-              grid-template-rows: repeat(3, 1fr);
-              gap: 0;
-              box-sizing: border-box;
-            }
-            .cell {
-              display: flex;
-              flex-direction: column;
-              align-items: center;
-              justify-content: flex-start;
-              padding: 8px 4px;
+            #root {
               position: relative;
-              border: 1px solid rgba(255,255,255,0.2);
+              height: 100vh;
+              margin: 0 !important;
             }
-            .cell-label {
-              color: #fff;
-              font-family: sans-serif;
-              font-weight: 400;
-              font-size: clamp(0.7rem, 1.3vw, 1.1rem);
-              text-align: center;
-              padding: 0 4px;
-            }
-            .cell-hint {
-              position: absolute;
-              bottom: 8px;
-              color: #fff;
-              font-family: sans-serif;
-              font-size: clamp(0.7rem, 1.3vw, 1.1rem);
-              font-weight: 400;
-              text-align: center;
-            }
-            .green  { background: #00a85e; }
-            .yellow { background: #d4a800; color: rgba(0,0,0,0.7) !important; }
-            .red    { background: #cb2535; }
-            .stale  { background: #555; color: #fff !important; }
-          </style>
+            #root > * { margin: 0 !important; }
+        cards:
+          - type: custom:html-template-card
+            ignore_line_breaks: true
+            card_mod:
+              style: |
+                ha-card { padding: 0 !important; }
+            content: |
+              <style>
+                :host, html, body { margin: 0; padding: 0; height: 100%; width: 100%; overflow: hidden; }
+                hui-view, .ha-scrollbar, #view { padding: 0 !important; margin: 0 !important; }
+                .tablet-wrap {
+                  width: 100vw;
+                  height: 100vh;
+                  background: #111;
+                  display: grid;
+                  grid-template-columns: repeat(9, 1fr);
+                  grid-template-rows: repeat(3, 1fr);
+                  gap: 0;
+                  box-sizing: border-box;
+                }
+                .cell {
+                  display: flex;
+                  flex-direction: column;
+                  align-items: center;
+                  justify-content: flex-start;
+                  padding: 8px 4px;
+                  position: relative;
+                  border: 1px solid rgba(255,255,255,0.2);
+                }
+                .cell-label {
+                  color: #fff;
+                  font-family: sans-serif;
+                  font-weight: 400;
+                  font-size: clamp(0.7rem, 1.3vw, 1.1rem);
+                  text-align: center;
+                  padding: 0 4px;
+                }
+                .cell-hint {
+                  position: absolute;
+                  bottom: 8px;
+                  color: #fff;
+                  font-family: sans-serif;
+                  font-size: clamp(0.7rem, 1.3vw, 1.1rem);
+                  font-weight: 400;
+                  text-align: center;
+                }
+                .green  { background: #00a85e; }
+                .yellow { background: #d4a800; color: rgba(0,0,0,0.7) !important; }
+                .red    { background: #cb2535; }
+                .stale  { background: #555; color: #fff !important; }
+              </style>
 
-          {% set plants = [
-            ('dracaena',              'Dracaena'),
-            ('ficus_robusta_darker','Ficus Robusta'),
-            ('ficus_tineke_lighter', 'Ficus Tineke'),
-            ('liana',                 'Liana'),
-            ('malcolm_ficus',         'Malcolm Ficus'),
-            ('olive_tree',            'Olive Tree'),
-            ('rubber_plant',          'Rubber Plant'),
-            ('triangularis_ficus',    'Triangularis'),
-            ('yucca',                 'Yucca'),
-          ] %}
-          {% set mv = {'dracaena':'sensor.dracaena_soil_moisture_state','ficus_robusta_darker':'sensor.ficus_robusta_darker_soil_moisture_state','ficus_tineke_lighter':'sensor.ficus_tineke_lighter_soil_moisture_state','liana':'sensor.liana_moisture','malcolm_ficus':'sensor.malcolm_ficus_moisture','olive_tree':'sensor.olive_tree_moisture','rubber_plant':'sensor.rubber_plant_moisture','triangularis_ficus':'sensor.triangularis_ficus_moisture','yucca':'sensor.yucca_moisture'} %}
+              {% set plants = [
+                ('dracaena',              'Dracaena'),
+                ('ficus_robusta_darker','Ficus Robusta'),
+                ('ficus_tineke_lighter', 'Ficus Tineke'),
+                ('liana',                 'Liana'),
+                ('malcolm_ficus',         'Malcolm Ficus'),
+                ('olive_tree',            'Olive Tree'),
+                ('rubber_plant',          'Rubber Plant'),
+                ('triangularis_ficus',    'Triangularis'),
+                ('yucca',                 'Yucca'),
+              ] %}
+              {% set mv = {'dracaena':'sensor.dracaena_soil_moisture_state','ficus_robusta_darker':'sensor.ficus_robusta_darker_soil_moisture_state','ficus_tineke_lighter':'sensor.ficus_tineke_lighter_soil_moisture_state','liana':'sensor.liana_moisture','malcolm_ficus':'sensor.malcolm_ficus_moisture','olive_tree':'sensor.olive_tree_moisture','rubber_plant':'sensor.rubber_plant_moisture','triangularis_ficus':'sensor.triangularis_ficus_moisture','yucca':'sensor.yucca_moisture'} %}
 
-          <div class="tablet-wrap">
+              <div class="tablet-wrap">
 
-            {# Row 1: soil moisture #}
-            {% for (p, name) in plants %}
-              {% set zone  = states('sensor.' ~ p ~ '_soil_moisture_zone') %}
-              {% set val   = states(mv[p]) | float(-1) %}
-              {% set yth   = states('number.' ~ p ~ '_soil_moisture_yellow_threshold') | float(0) %}
-              {% set rth   = states('number.' ~ p ~ '_soil_moisture_red_threshold') | float(0) %}
-              {% set cls   = 'green' if zone == 'green' else ('yellow' if zone == 'yellow' else ('stale' if zone == 'stale' else 'red')) %}
-              {% set diff  = (val - yth) | round(0) | int if val >= 0 else none %}
-              <div class="cell {{ cls }}">
-                <span class="cell-label">{{ name }}</span>
-                {% if cls == 'red' %}
-                  {% if val < 0 %}
-                    <span class="cell-hint">~ no data</span>
-                  {% elif diff < 0 %}
-                    <span class="cell-hint">~ {{ diff }}%</span>
+                {# Row 1: soil moisture #}
+                {% for (p, name) in plants %}
+                  {% set zone  = states('sensor.' ~ p ~ '_soil_moisture_zone') %}
+                  {% set val   = states(mv[p]) | float(-1) %}
+                  {% set yth   = states('number.' ~ p ~ '_soil_moisture_yellow_threshold') | float(0) %}
+                  {% set rth   = states('number.' ~ p ~ '_soil_moisture_red_threshold') | float(0) %}
+                  {% set cls   = 'green' if zone == 'green' else ('yellow' if zone == 'yellow' else ('stale' if zone == 'stale' else 'red')) %}
+                  {% set diff  = (val - yth) | round(0) | int if val >= 0 else none %}
+                  <div class="cell {{ cls }}">
+                    <span class="cell-label">{{ name }}</span>
+                    {% if cls == 'red' %}
+                      {% if val < 0 %}
+                        <span class="cell-hint">~ no data</span>
+                      {% elif diff < 0 %}
+                        <span class="cell-hint">~ {{ diff }}%</span>
+                      {% else %}
+                        <span class="cell-hint">~ +{{ diff }}%</span>
+                      {% endif %}
+                    {% elif cls == 'stale' %}
+                      <span class="cell-hint">⚠ stale</span>
+                    {% endif %}
+                  </div>
+                {% endfor %}
+
+                {# Row 2: air humidity #}
+                {% for (p, name) in plants %}
+                  {% set zone  = states('sensor.' ~ p ~ '_air_humidity_zone') %}
+                  {% set val_air = states('sensor.' ~ p ~ '_air_humidity_meter') | float(-1) %}
+                  {% set val = val_air if val_air >= 0 else states('sensor.' ~ p ~ '_humidity_meter') | float(-1) %}
+                  {% set hmin  = states('number.' ~ p ~ '_air_humidity_min') | float(0) %}
+                  {% set hmax  = states('number.' ~ p ~ '_air_humidity_max') | float(0) %}
+                  {% set cls   = 'green' if zone == 'green' else ('yellow' if zone == 'yellow' else ('stale' if zone == 'stale' else 'red')) %}
+                  {% if val < hmin %}
+                    {% set diff = (val - hmin) | round(0) | int %}
+                  {% elif val > hmax %}
+                    {% set diff = (val - hmax) | round(0) | int %}
                   {% else %}
-                    <span class="cell-hint">~ +{{ diff }}%</span>
+                    {% set diff = none %}
                   {% endif %}
-                {% elif cls == 'stale' %}
-                  <span class="cell-hint">⚠ stale</span>
-                {% endif %}
-              </div>
-            {% endfor %}
+                  <div class="cell {{ cls }}">
+                    {% if cls == 'red' %}
+                      {% if val < 0 %}
+                        <span class="cell-hint">% no data</span>
+                      {% elif diff is not none and diff < 0 %}
+                        <span class="cell-hint">% {{ diff }}%</span>
+                      {% elif diff is not none %}
+                        <span class="cell-hint">% +{{ diff }}%</span>
+                      {% endif %}
+                    {% elif cls == 'stale' %}
+                      <span class="cell-hint">⚠ stale</span>
+                    {% endif %}
+                  </div>
+                {% endfor %}
 
-            {# Row 2: air humidity #}
-            {% for (p, name) in plants %}
-              {% set zone  = states('sensor.' ~ p ~ '_air_humidity_zone') %}
-              {% set val_air = states('sensor.' ~ p ~ '_air_humidity_meter') | float(-1) %}
-              {% set val = val_air if val_air >= 0 else states('sensor.' ~ p ~ '_humidity_meter') | float(-1) %}
-              {% set hmin  = states('number.' ~ p ~ '_air_humidity_min') | float(0) %}
-              {% set hmax  = states('number.' ~ p ~ '_air_humidity_max') | float(0) %}
-              {% set cls   = 'green' if zone == 'green' else ('yellow' if zone == 'yellow' else ('stale' if zone == 'stale' else 'red')) %}
-              {% if val < hmin %}
-                {% set diff = (val - hmin) | round(0) | int %}
-              {% elif val > hmax %}
-                {% set diff = (val - hmax) | round(0) | int %}
-              {% else %}
-                {% set diff = none %}
-              {% endif %}
-              <div class="cell {{ cls }}">
-                {% if cls == 'red' %}
-                  {% if val < 0 %}
-                    <span class="cell-hint">% no data</span>
-                  {% elif diff is not none and diff < 0 %}
-                    <span class="cell-hint">% {{ diff }}%</span>
-                  {% elif diff is not none %}
-                    <span class="cell-hint">% +{{ diff }}%</span>
+                {# Row 3: temperature #}
+                {% for (p, name) in plants %}
+                  {% set zone  = states('sensor.' ~ p ~ '_air_temperature_zone') %}
+                  {% set val   = states('sensor.' ~ p ~ '_air_temperature_meter') | float(-1) %}
+                  {% set tmin  = states('number.' ~ p ~ '_air_temperature_min') | float(0) %}
+                  {% set tmax  = states('number.' ~ p ~ '_air_temperature_max') | float(0) %}
+                  {% set cls   = 'green' if zone == 'green' else ('yellow' if zone == 'yellow' else ('stale' if zone == 'stale' else 'red')) %}
+                  {% if val < tmin %}
+                    {% set diff = (val - tmin) | round(1) %}
+                  {% elif val > tmax %}
+                    {% set diff = (val - tmax) | round(1) %}
+                  {% else %}
+                    {% set diff = none %}
                   {% endif %}
-                {% elif cls == 'stale' %}
-                  <span class="cell-hint">⚠ stale</span>
-                {% endif %}
-              </div>
-            {% endfor %}
+                  <div class="cell {{ cls }}">
+                    {% if cls == 'red' %}
+                      {% if val < 0 %}
+                        <span class="cell-hint">° no data</span>
+                      {% elif diff is not none and diff < 0 %}
+                        <span class="cell-hint">° {{ diff }}°F</span>
+                      {% elif diff is not none %}
+                        <span class="cell-hint">° +{{ diff }}°F</span>
+                      {% endif %}
+                    {% elif cls == 'stale' %}
+                      <span class="cell-hint">⚠ stale</span>
+                    {% endif %}
+                  </div>
+                {% endfor %}
 
-            {# Row 3: temperature #}
-            {% for (p, name) in plants %}
-              {% set zone  = states('sensor.' ~ p ~ '_air_temperature_zone') %}
-              {% set val   = states('sensor.' ~ p ~ '_air_temperature_meter') | float(-1) %}
-              {% set tmin  = states('number.' ~ p ~ '_air_temperature_min') | float(0) %}
-              {% set tmax  = states('number.' ~ p ~ '_air_temperature_max') | float(0) %}
-              {% set cls   = 'green' if zone == 'green' else ('yellow' if zone == 'yellow' else ('stale' if zone == 'stale' else 'red')) %}
-              {% if val < tmin %}
-                {% set diff = (val - tmin) | round(1) %}
-              {% elif val > tmax %}
-                {% set diff = (val - tmax) | round(1) %}
-              {% else %}
-                {% set diff = none %}
-              {% endif %}
-              <div class="cell {{ cls }}">
-                {% if cls == 'red' %}
-                  {% if val < 0 %}
-                    <span class="cell-hint">° no data</span>
-                  {% elif diff is not none and diff < 0 %}
-                    <span class="cell-hint">° {{ diff }}°F</span>
-                  {% elif diff is not none %}
-                    <span class="cell-hint">° +{{ diff }}°F</span>
-                  {% endif %}
-                {% elif cls == 'stale' %}
-                  <span class="cell-hint">⚠ stale</span>
-                {% endif %}
               </div>
-            {% endfor %}
-
-          </div>
+          - type: conditional
+            conditions:
+            - entity: sensor.dracaena_soil_moisture_zone
+              state: green
+            card:
+              type: custom:apexcharts-card
+              graph_span: 7d
+              chart_type: line
+              header:
+                show: false
+              show:
+                loading: false
+              card_mod:
+                style: |
+                  ha-card {
+                    position: absolute;
+                    left: 3.333vw;
+                    top: calc(33.333vh - 6.667vh - 10px);
+                    width: 4.444vw;
+                    height: 6.667vh;
+                    min-height: 0;
+                    background: none !important;
+                    border: none !important;
+                    box-shadow: none !important;
+                    padding: 0 !important;
+                    margin: 0 !important;
+                    overflow: hidden;
+                    pointer-events: none;
+                  }
+              apex_config:
+                chart:
+                  sparkline:
+                    enabled: true
+                  animations:
+                    enabled: false
+                  background: transparent
+                  parentHeightOffset: 0
+                grid:
+                  show: false
+                  padding:
+                    left: 0
+                    right: 0
+                    top: 0
+                    bottom: 0
+                tooltip:
+                  enabled: false
+                legend:
+                  show: false
+                dataLabels:
+                  enabled: false
+                markers:
+                  size: 0
+              series:
+              - entity: sensor.dracaena_soil_moisture_state
+                color: '#ffffff'
+                stroke_width: 1.6
+                curve: smooth
+                group_by:
+                  func: avg
+                  duration: 1h
+                show:
+                  legend_value: false
+                  in_header: false
+                  extremas: false
+              - entity: number.dracaena_soil_moisture_yellow_threshold
+                color: '#ffffff'
+                stroke_width: 1
+                curve: stepline
+                group_by:
+                  func: last
+                  duration: 1h
+                show:
+                  legend_value: false
+                  in_header: false
+                  extremas: false
+          - type: conditional
+            conditions:
+            - entity: sensor.dracaena_soil_moisture_zone
+              state: yellow
+            card:
+              type: custom:apexcharts-card
+              graph_span: 7d
+              chart_type: line
+              header:
+                show: false
+              show:
+                loading: false
+              card_mod:
+                style: |
+                  ha-card {
+                    position: absolute;
+                    left: 3.333vw;
+                    top: calc(33.333vh - 6.667vh - 10px);
+                    width: 4.444vw;
+                    height: 6.667vh;
+                    min-height: 0;
+                    background: none !important;
+                    border: none !important;
+                    box-shadow: none !important;
+                    padding: 0 !important;
+                    margin: 0 !important;
+                    overflow: hidden;
+                    pointer-events: none;
+                  }
+              apex_config:
+                chart:
+                  sparkline:
+                    enabled: true
+                  animations:
+                    enabled: false
+                  background: transparent
+                  parentHeightOffset: 0
+                grid:
+                  show: false
+                  padding:
+                    left: 0
+                    right: 0
+                    top: 0
+                    bottom: 0
+                tooltip:
+                  enabled: false
+                legend:
+                  show: false
+                dataLabels:
+                  enabled: false
+                markers:
+                  size: 0
+              series:
+              - entity: sensor.dracaena_soil_moisture_state
+                color: '#ffffff'
+                stroke_width: 1.6
+                curve: smooth
+                group_by:
+                  func: avg
+                  duration: 1h
+                show:
+                  legend_value: false
+                  in_header: false
+                  extremas: false
+              - entity: number.dracaena_soil_moisture_yellow_threshold
+                color: '#ffffff'
+                stroke_width: 1
+                curve: stepline
+                group_by:
+                  func: last
+                  duration: 1h
+                show:
+                  legend_value: false
+                  in_header: false
+                  extremas: false
+              - entity: number.dracaena_soil_moisture_red_threshold
+                color: '#ffffff'
+                stroke_width: 1
+                curve: stepline
+                group_by:
+                  func: last
+                  duration: 1h
+                show:
+                  legend_value: false
+                  in_header: false
+                  extremas: false
+          - type: conditional
+            conditions:
+            - entity: sensor.dracaena_soil_moisture_zone
+              state: red
+            card:
+              type: custom:apexcharts-card
+              graph_span: 7d
+              chart_type: line
+              header:
+                show: false
+              show:
+                loading: false
+              card_mod:
+                style: |
+                  ha-card {
+                    position: absolute;
+                    left: 3.333vw;
+                    top: calc(33.333vh - 6.667vh - 10px);
+                    width: 4.444vw;
+                    height: 6.667vh;
+                    min-height: 0;
+                    background: none !important;
+                    border: none !important;
+                    box-shadow: none !important;
+                    padding: 0 !important;
+                    margin: 0 !important;
+                    overflow: hidden;
+                    pointer-events: none;
+                  }
+              apex_config:
+                chart:
+                  sparkline:
+                    enabled: true
+                  animations:
+                    enabled: false
+                  background: transparent
+                  parentHeightOffset: 0
+                grid:
+                  show: false
+                  padding:
+                    left: 0
+                    right: 0
+                    top: 0
+                    bottom: 0
+                tooltip:
+                  enabled: false
+                legend:
+                  show: false
+                dataLabels:
+                  enabled: false
+                markers:
+                  size: 0
+              series:
+              - entity: sensor.dracaena_soil_moisture_state
+                color: '#ffffff'
+                stroke_width: 1.6
+                curve: smooth
+                group_by:
+                  func: avg
+                  duration: 1h
+                show:
+                  legend_value: false
+                  in_header: false
+                  extremas: false
+              - entity: number.dracaena_soil_moisture_red_threshold
+                color: '#ffffff'
+                stroke_width: 1
+                curve: stepline
+                group_by:
+                  func: last
+                  duration: 1h
+                show:
+                  legend_value: false
+                  in_header: false
+                  extremas: false
+          - type: conditional
+            conditions:
+            - entity: sensor.ficus_robusta_darker_soil_moisture_zone
+              state: green
+            card:
+              type: custom:apexcharts-card
+              graph_span: 7d
+              chart_type: line
+              header:
+                show: false
+              show:
+                loading: false
+              card_mod:
+                style: |
+                  ha-card {
+                    position: absolute;
+                    left: 14.444vw;
+                    top: calc(33.333vh - 6.667vh - 10px);
+                    width: 4.444vw;
+                    height: 6.667vh;
+                    min-height: 0;
+                    background: none !important;
+                    border: none !important;
+                    box-shadow: none !important;
+                    padding: 0 !important;
+                    margin: 0 !important;
+                    overflow: hidden;
+                    pointer-events: none;
+                  }
+              apex_config:
+                chart:
+                  sparkline:
+                    enabled: true
+                  animations:
+                    enabled: false
+                  background: transparent
+                  parentHeightOffset: 0
+                grid:
+                  show: false
+                  padding:
+                    left: 0
+                    right: 0
+                    top: 0
+                    bottom: 0
+                tooltip:
+                  enabled: false
+                legend:
+                  show: false
+                dataLabels:
+                  enabled: false
+                markers:
+                  size: 0
+              series:
+              - entity: sensor.ficus_robusta_darker_soil_moisture_state
+                color: '#ffffff'
+                stroke_width: 1.6
+                curve: smooth
+                group_by:
+                  func: avg
+                  duration: 1h
+                show:
+                  legend_value: false
+                  in_header: false
+                  extremas: false
+              - entity: number.ficus_robusta_darker_soil_moisture_yellow_threshold
+                color: '#ffffff'
+                stroke_width: 1
+                curve: stepline
+                group_by:
+                  func: last
+                  duration: 1h
+                show:
+                  legend_value: false
+                  in_header: false
+                  extremas: false
+          - type: conditional
+            conditions:
+            - entity: sensor.ficus_robusta_darker_soil_moisture_zone
+              state: yellow
+            card:
+              type: custom:apexcharts-card
+              graph_span: 7d
+              chart_type: line
+              header:
+                show: false
+              show:
+                loading: false
+              card_mod:
+                style: |
+                  ha-card {
+                    position: absolute;
+                    left: 14.444vw;
+                    top: calc(33.333vh - 6.667vh - 10px);
+                    width: 4.444vw;
+                    height: 6.667vh;
+                    min-height: 0;
+                    background: none !important;
+                    border: none !important;
+                    box-shadow: none !important;
+                    padding: 0 !important;
+                    margin: 0 !important;
+                    overflow: hidden;
+                    pointer-events: none;
+                  }
+              apex_config:
+                chart:
+                  sparkline:
+                    enabled: true
+                  animations:
+                    enabled: false
+                  background: transparent
+                  parentHeightOffset: 0
+                grid:
+                  show: false
+                  padding:
+                    left: 0
+                    right: 0
+                    top: 0
+                    bottom: 0
+                tooltip:
+                  enabled: false
+                legend:
+                  show: false
+                dataLabels:
+                  enabled: false
+                markers:
+                  size: 0
+              series:
+              - entity: sensor.ficus_robusta_darker_soil_moisture_state
+                color: '#ffffff'
+                stroke_width: 1.6
+                curve: smooth
+                group_by:
+                  func: avg
+                  duration: 1h
+                show:
+                  legend_value: false
+                  in_header: false
+                  extremas: false
+              - entity: number.ficus_robusta_darker_soil_moisture_yellow_threshold
+                color: '#ffffff'
+                stroke_width: 1
+                curve: stepline
+                group_by:
+                  func: last
+                  duration: 1h
+                show:
+                  legend_value: false
+                  in_header: false
+                  extremas: false
+              - entity: number.ficus_robusta_darker_soil_moisture_red_threshold
+                color: '#ffffff'
+                stroke_width: 1
+                curve: stepline
+                group_by:
+                  func: last
+                  duration: 1h
+                show:
+                  legend_value: false
+                  in_header: false
+                  extremas: false
+          - type: conditional
+            conditions:
+            - entity: sensor.ficus_robusta_darker_soil_moisture_zone
+              state: red
+            card:
+              type: custom:apexcharts-card
+              graph_span: 7d
+              chart_type: line
+              header:
+                show: false
+              show:
+                loading: false
+              card_mod:
+                style: |
+                  ha-card {
+                    position: absolute;
+                    left: 14.444vw;
+                    top: calc(33.333vh - 6.667vh - 10px);
+                    width: 4.444vw;
+                    height: 6.667vh;
+                    min-height: 0;
+                    background: none !important;
+                    border: none !important;
+                    box-shadow: none !important;
+                    padding: 0 !important;
+                    margin: 0 !important;
+                    overflow: hidden;
+                    pointer-events: none;
+                  }
+              apex_config:
+                chart:
+                  sparkline:
+                    enabled: true
+                  animations:
+                    enabled: false
+                  background: transparent
+                  parentHeightOffset: 0
+                grid:
+                  show: false
+                  padding:
+                    left: 0
+                    right: 0
+                    top: 0
+                    bottom: 0
+                tooltip:
+                  enabled: false
+                legend:
+                  show: false
+                dataLabels:
+                  enabled: false
+                markers:
+                  size: 0
+              series:
+              - entity: sensor.ficus_robusta_darker_soil_moisture_state
+                color: '#ffffff'
+                stroke_width: 1.6
+                curve: smooth
+                group_by:
+                  func: avg
+                  duration: 1h
+                show:
+                  legend_value: false
+                  in_header: false
+                  extremas: false
+              - entity: number.ficus_robusta_darker_soil_moisture_red_threshold
+                color: '#ffffff'
+                stroke_width: 1
+                curve: stepline
+                group_by:
+                  func: last
+                  duration: 1h
+                show:
+                  legend_value: false
+                  in_header: false
+                  extremas: false
+          - type: conditional
+            conditions:
+            - entity: sensor.ficus_tineke_lighter_soil_moisture_zone
+              state: green
+            card:
+              type: custom:apexcharts-card
+              graph_span: 7d
+              chart_type: line
+              header:
+                show: false
+              show:
+                loading: false
+              card_mod:
+                style: |
+                  ha-card {
+                    position: absolute;
+                    left: 25.556vw;
+                    top: calc(33.333vh - 6.667vh - 10px);
+                    width: 4.444vw;
+                    height: 6.667vh;
+                    min-height: 0;
+                    background: none !important;
+                    border: none !important;
+                    box-shadow: none !important;
+                    padding: 0 !important;
+                    margin: 0 !important;
+                    overflow: hidden;
+                    pointer-events: none;
+                  }
+              apex_config:
+                chart:
+                  sparkline:
+                    enabled: true
+                  animations:
+                    enabled: false
+                  background: transparent
+                  parentHeightOffset: 0
+                grid:
+                  show: false
+                  padding:
+                    left: 0
+                    right: 0
+                    top: 0
+                    bottom: 0
+                tooltip:
+                  enabled: false
+                legend:
+                  show: false
+                dataLabels:
+                  enabled: false
+                markers:
+                  size: 0
+              series:
+              - entity: sensor.ficus_tineke_lighter_soil_moisture_state
+                color: '#ffffff'
+                stroke_width: 1.6
+                curve: smooth
+                group_by:
+                  func: avg
+                  duration: 1h
+                show:
+                  legend_value: false
+                  in_header: false
+                  extremas: false
+              - entity: number.ficus_tineke_lighter_soil_moisture_yellow_threshold
+                color: '#ffffff'
+                stroke_width: 1
+                curve: stepline
+                group_by:
+                  func: last
+                  duration: 1h
+                show:
+                  legend_value: false
+                  in_header: false
+                  extremas: false
+          - type: conditional
+            conditions:
+            - entity: sensor.ficus_tineke_lighter_soil_moisture_zone
+              state: yellow
+            card:
+              type: custom:apexcharts-card
+              graph_span: 7d
+              chart_type: line
+              header:
+                show: false
+              show:
+                loading: false
+              card_mod:
+                style: |
+                  ha-card {
+                    position: absolute;
+                    left: 25.556vw;
+                    top: calc(33.333vh - 6.667vh - 10px);
+                    width: 4.444vw;
+                    height: 6.667vh;
+                    min-height: 0;
+                    background: none !important;
+                    border: none !important;
+                    box-shadow: none !important;
+                    padding: 0 !important;
+                    margin: 0 !important;
+                    overflow: hidden;
+                    pointer-events: none;
+                  }
+              apex_config:
+                chart:
+                  sparkline:
+                    enabled: true
+                  animations:
+                    enabled: false
+                  background: transparent
+                  parentHeightOffset: 0
+                grid:
+                  show: false
+                  padding:
+                    left: 0
+                    right: 0
+                    top: 0
+                    bottom: 0
+                tooltip:
+                  enabled: false
+                legend:
+                  show: false
+                dataLabels:
+                  enabled: false
+                markers:
+                  size: 0
+              series:
+              - entity: sensor.ficus_tineke_lighter_soil_moisture_state
+                color: '#ffffff'
+                stroke_width: 1.6
+                curve: smooth
+                group_by:
+                  func: avg
+                  duration: 1h
+                show:
+                  legend_value: false
+                  in_header: false
+                  extremas: false
+              - entity: number.ficus_tineke_lighter_soil_moisture_yellow_threshold
+                color: '#ffffff'
+                stroke_width: 1
+                curve: stepline
+                group_by:
+                  func: last
+                  duration: 1h
+                show:
+                  legend_value: false
+                  in_header: false
+                  extremas: false
+              - entity: number.ficus_tineke_lighter_soil_moisture_red_threshold
+                color: '#ffffff'
+                stroke_width: 1
+                curve: stepline
+                group_by:
+                  func: last
+                  duration: 1h
+                show:
+                  legend_value: false
+                  in_header: false
+                  extremas: false
+          - type: conditional
+            conditions:
+            - entity: sensor.ficus_tineke_lighter_soil_moisture_zone
+              state: red
+            card:
+              type: custom:apexcharts-card
+              graph_span: 7d
+              chart_type: line
+              header:
+                show: false
+              show:
+                loading: false
+              card_mod:
+                style: |
+                  ha-card {
+                    position: absolute;
+                    left: 25.556vw;
+                    top: calc(33.333vh - 6.667vh - 10px);
+                    width: 4.444vw;
+                    height: 6.667vh;
+                    min-height: 0;
+                    background: none !important;
+                    border: none !important;
+                    box-shadow: none !important;
+                    padding: 0 !important;
+                    margin: 0 !important;
+                    overflow: hidden;
+                    pointer-events: none;
+                  }
+              apex_config:
+                chart:
+                  sparkline:
+                    enabled: true
+                  animations:
+                    enabled: false
+                  background: transparent
+                  parentHeightOffset: 0
+                grid:
+                  show: false
+                  padding:
+                    left: 0
+                    right: 0
+                    top: 0
+                    bottom: 0
+                tooltip:
+                  enabled: false
+                legend:
+                  show: false
+                dataLabels:
+                  enabled: false
+                markers:
+                  size: 0
+              series:
+              - entity: sensor.ficus_tineke_lighter_soil_moisture_state
+                color: '#ffffff'
+                stroke_width: 1.6
+                curve: smooth
+                group_by:
+                  func: avg
+                  duration: 1h
+                show:
+                  legend_value: false
+                  in_header: false
+                  extremas: false
+              - entity: number.ficus_tineke_lighter_soil_moisture_red_threshold
+                color: '#ffffff'
+                stroke_width: 1
+                curve: stepline
+                group_by:
+                  func: last
+                  duration: 1h
+                show:
+                  legend_value: false
+                  in_header: false
+                  extremas: false
+          - type: conditional
+            conditions:
+            - entity: sensor.liana_soil_moisture_zone
+              state: green
+            card:
+              type: custom:apexcharts-card
+              graph_span: 7d
+              chart_type: line
+              header:
+                show: false
+              show:
+                loading: false
+              card_mod:
+                style: |
+                  ha-card {
+                    position: absolute;
+                    left: 36.667vw;
+                    top: calc(33.333vh - 6.667vh - 10px);
+                    width: 4.444vw;
+                    height: 6.667vh;
+                    min-height: 0;
+                    background: none !important;
+                    border: none !important;
+                    box-shadow: none !important;
+                    padding: 0 !important;
+                    margin: 0 !important;
+                    overflow: hidden;
+                    pointer-events: none;
+                  }
+              apex_config:
+                chart:
+                  sparkline:
+                    enabled: true
+                  animations:
+                    enabled: false
+                  background: transparent
+                  parentHeightOffset: 0
+                grid:
+                  show: false
+                  padding:
+                    left: 0
+                    right: 0
+                    top: 0
+                    bottom: 0
+                tooltip:
+                  enabled: false
+                legend:
+                  show: false
+                dataLabels:
+                  enabled: false
+                markers:
+                  size: 0
+              series:
+              - entity: sensor.liana_moisture
+                color: '#ffffff'
+                stroke_width: 1.6
+                curve: smooth
+                group_by:
+                  func: avg
+                  duration: 1h
+                show:
+                  legend_value: false
+                  in_header: false
+                  extremas: false
+              - entity: number.liana_soil_moisture_yellow_threshold
+                color: '#ffffff'
+                stroke_width: 1
+                curve: stepline
+                group_by:
+                  func: last
+                  duration: 1h
+                show:
+                  legend_value: false
+                  in_header: false
+                  extremas: false
+          - type: conditional
+            conditions:
+            - entity: sensor.liana_soil_moisture_zone
+              state: yellow
+            card:
+              type: custom:apexcharts-card
+              graph_span: 7d
+              chart_type: line
+              header:
+                show: false
+              show:
+                loading: false
+              card_mod:
+                style: |
+                  ha-card {
+                    position: absolute;
+                    left: 36.667vw;
+                    top: calc(33.333vh - 6.667vh - 10px);
+                    width: 4.444vw;
+                    height: 6.667vh;
+                    min-height: 0;
+                    background: none !important;
+                    border: none !important;
+                    box-shadow: none !important;
+                    padding: 0 !important;
+                    margin: 0 !important;
+                    overflow: hidden;
+                    pointer-events: none;
+                  }
+              apex_config:
+                chart:
+                  sparkline:
+                    enabled: true
+                  animations:
+                    enabled: false
+                  background: transparent
+                  parentHeightOffset: 0
+                grid:
+                  show: false
+                  padding:
+                    left: 0
+                    right: 0
+                    top: 0
+                    bottom: 0
+                tooltip:
+                  enabled: false
+                legend:
+                  show: false
+                dataLabels:
+                  enabled: false
+                markers:
+                  size: 0
+              series:
+              - entity: sensor.liana_moisture
+                color: '#ffffff'
+                stroke_width: 1.6
+                curve: smooth
+                group_by:
+                  func: avg
+                  duration: 1h
+                show:
+                  legend_value: false
+                  in_header: false
+                  extremas: false
+              - entity: number.liana_soil_moisture_yellow_threshold
+                color: '#ffffff'
+                stroke_width: 1
+                curve: stepline
+                group_by:
+                  func: last
+                  duration: 1h
+                show:
+                  legend_value: false
+                  in_header: false
+                  extremas: false
+              - entity: number.liana_soil_moisture_red_threshold
+                color: '#ffffff'
+                stroke_width: 1
+                curve: stepline
+                group_by:
+                  func: last
+                  duration: 1h
+                show:
+                  legend_value: false
+                  in_header: false
+                  extremas: false
+          - type: conditional
+            conditions:
+            - entity: sensor.liana_soil_moisture_zone
+              state: red
+            card:
+              type: custom:apexcharts-card
+              graph_span: 7d
+              chart_type: line
+              header:
+                show: false
+              show:
+                loading: false
+              card_mod:
+                style: |
+                  ha-card {
+                    position: absolute;
+                    left: 36.667vw;
+                    top: calc(33.333vh - 6.667vh - 10px);
+                    width: 4.444vw;
+                    height: 6.667vh;
+                    min-height: 0;
+                    background: none !important;
+                    border: none !important;
+                    box-shadow: none !important;
+                    padding: 0 !important;
+                    margin: 0 !important;
+                    overflow: hidden;
+                    pointer-events: none;
+                  }
+              apex_config:
+                chart:
+                  sparkline:
+                    enabled: true
+                  animations:
+                    enabled: false
+                  background: transparent
+                  parentHeightOffset: 0
+                grid:
+                  show: false
+                  padding:
+                    left: 0
+                    right: 0
+                    top: 0
+                    bottom: 0
+                tooltip:
+                  enabled: false
+                legend:
+                  show: false
+                dataLabels:
+                  enabled: false
+                markers:
+                  size: 0
+              series:
+              - entity: sensor.liana_moisture
+                color: '#ffffff'
+                stroke_width: 1.6
+                curve: smooth
+                group_by:
+                  func: avg
+                  duration: 1h
+                show:
+                  legend_value: false
+                  in_header: false
+                  extremas: false
+              - entity: number.liana_soil_moisture_red_threshold
+                color: '#ffffff'
+                stroke_width: 1
+                curve: stepline
+                group_by:
+                  func: last
+                  duration: 1h
+                show:
+                  legend_value: false
+                  in_header: false
+                  extremas: false
+          - type: conditional
+            conditions:
+            - entity: sensor.malcolm_ficus_soil_moisture_zone
+              state: green
+            card:
+              type: custom:apexcharts-card
+              graph_span: 7d
+              chart_type: line
+              header:
+                show: false
+              show:
+                loading: false
+              card_mod:
+                style: |
+                  ha-card {
+                    position: absolute;
+                    left: 47.778vw;
+                    top: calc(33.333vh - 6.667vh - 10px);
+                    width: 4.444vw;
+                    height: 6.667vh;
+                    min-height: 0;
+                    background: none !important;
+                    border: none !important;
+                    box-shadow: none !important;
+                    padding: 0 !important;
+                    margin: 0 !important;
+                    overflow: hidden;
+                    pointer-events: none;
+                  }
+              apex_config:
+                chart:
+                  sparkline:
+                    enabled: true
+                  animations:
+                    enabled: false
+                  background: transparent
+                  parentHeightOffset: 0
+                grid:
+                  show: false
+                  padding:
+                    left: 0
+                    right: 0
+                    top: 0
+                    bottom: 0
+                tooltip:
+                  enabled: false
+                legend:
+                  show: false
+                dataLabels:
+                  enabled: false
+                markers:
+                  size: 0
+              series:
+              - entity: sensor.malcolm_ficus_moisture
+                color: '#ffffff'
+                stroke_width: 1.6
+                curve: smooth
+                group_by:
+                  func: avg
+                  duration: 1h
+                show:
+                  legend_value: false
+                  in_header: false
+                  extremas: false
+              - entity: number.malcolm_ficus_soil_moisture_yellow_threshold
+                color: '#ffffff'
+                stroke_width: 1
+                curve: stepline
+                group_by:
+                  func: last
+                  duration: 1h
+                show:
+                  legend_value: false
+                  in_header: false
+                  extremas: false
+          - type: conditional
+            conditions:
+            - entity: sensor.malcolm_ficus_soil_moisture_zone
+              state: yellow
+            card:
+              type: custom:apexcharts-card
+              graph_span: 7d
+              chart_type: line
+              header:
+                show: false
+              show:
+                loading: false
+              card_mod:
+                style: |
+                  ha-card {
+                    position: absolute;
+                    left: 47.778vw;
+                    top: calc(33.333vh - 6.667vh - 10px);
+                    width: 4.444vw;
+                    height: 6.667vh;
+                    min-height: 0;
+                    background: none !important;
+                    border: none !important;
+                    box-shadow: none !important;
+                    padding: 0 !important;
+                    margin: 0 !important;
+                    overflow: hidden;
+                    pointer-events: none;
+                  }
+              apex_config:
+                chart:
+                  sparkline:
+                    enabled: true
+                  animations:
+                    enabled: false
+                  background: transparent
+                  parentHeightOffset: 0
+                grid:
+                  show: false
+                  padding:
+                    left: 0
+                    right: 0
+                    top: 0
+                    bottom: 0
+                tooltip:
+                  enabled: false
+                legend:
+                  show: false
+                dataLabels:
+                  enabled: false
+                markers:
+                  size: 0
+              series:
+              - entity: sensor.malcolm_ficus_moisture
+                color: '#ffffff'
+                stroke_width: 1.6
+                curve: smooth
+                group_by:
+                  func: avg
+                  duration: 1h
+                show:
+                  legend_value: false
+                  in_header: false
+                  extremas: false
+              - entity: number.malcolm_ficus_soil_moisture_yellow_threshold
+                color: '#ffffff'
+                stroke_width: 1
+                curve: stepline
+                group_by:
+                  func: last
+                  duration: 1h
+                show:
+                  legend_value: false
+                  in_header: false
+                  extremas: false
+              - entity: number.malcolm_ficus_soil_moisture_red_threshold
+                color: '#ffffff'
+                stroke_width: 1
+                curve: stepline
+                group_by:
+                  func: last
+                  duration: 1h
+                show:
+                  legend_value: false
+                  in_header: false
+                  extremas: false
+          - type: conditional
+            conditions:
+            - entity: sensor.malcolm_ficus_soil_moisture_zone
+              state: red
+            card:
+              type: custom:apexcharts-card
+              graph_span: 7d
+              chart_type: line
+              header:
+                show: false
+              show:
+                loading: false
+              card_mod:
+                style: |
+                  ha-card {
+                    position: absolute;
+                    left: 47.778vw;
+                    top: calc(33.333vh - 6.667vh - 10px);
+                    width: 4.444vw;
+                    height: 6.667vh;
+                    min-height: 0;
+                    background: none !important;
+                    border: none !important;
+                    box-shadow: none !important;
+                    padding: 0 !important;
+                    margin: 0 !important;
+                    overflow: hidden;
+                    pointer-events: none;
+                  }
+              apex_config:
+                chart:
+                  sparkline:
+                    enabled: true
+                  animations:
+                    enabled: false
+                  background: transparent
+                  parentHeightOffset: 0
+                grid:
+                  show: false
+                  padding:
+                    left: 0
+                    right: 0
+                    top: 0
+                    bottom: 0
+                tooltip:
+                  enabled: false
+                legend:
+                  show: false
+                dataLabels:
+                  enabled: false
+                markers:
+                  size: 0
+              series:
+              - entity: sensor.malcolm_ficus_moisture
+                color: '#ffffff'
+                stroke_width: 1.6
+                curve: smooth
+                group_by:
+                  func: avg
+                  duration: 1h
+                show:
+                  legend_value: false
+                  in_header: false
+                  extremas: false
+              - entity: number.malcolm_ficus_soil_moisture_red_threshold
+                color: '#ffffff'
+                stroke_width: 1
+                curve: stepline
+                group_by:
+                  func: last
+                  duration: 1h
+                show:
+                  legend_value: false
+                  in_header: false
+                  extremas: false
+          - type: conditional
+            conditions:
+            - entity: sensor.olive_tree_soil_moisture_zone
+              state: green
+            card:
+              type: custom:apexcharts-card
+              graph_span: 7d
+              chart_type: line
+              header:
+                show: false
+              show:
+                loading: false
+              card_mod:
+                style: |
+                  ha-card {
+                    position: absolute;
+                    left: 58.889vw;
+                    top: calc(33.333vh - 6.667vh - 10px);
+                    width: 4.444vw;
+                    height: 6.667vh;
+                    min-height: 0;
+                    background: none !important;
+                    border: none !important;
+                    box-shadow: none !important;
+                    padding: 0 !important;
+                    margin: 0 !important;
+                    overflow: hidden;
+                    pointer-events: none;
+                  }
+              apex_config:
+                chart:
+                  sparkline:
+                    enabled: true
+                  animations:
+                    enabled: false
+                  background: transparent
+                  parentHeightOffset: 0
+                grid:
+                  show: false
+                  padding:
+                    left: 0
+                    right: 0
+                    top: 0
+                    bottom: 0
+                tooltip:
+                  enabled: false
+                legend:
+                  show: false
+                dataLabels:
+                  enabled: false
+                markers:
+                  size: 0
+              series:
+              - entity: sensor.olive_tree_moisture
+                color: '#ffffff'
+                stroke_width: 1.6
+                curve: smooth
+                group_by:
+                  func: avg
+                  duration: 1h
+                show:
+                  legend_value: false
+                  in_header: false
+                  extremas: false
+              - entity: number.olive_tree_soil_moisture_yellow_threshold
+                color: '#ffffff'
+                stroke_width: 1
+                curve: stepline
+                group_by:
+                  func: last
+                  duration: 1h
+                show:
+                  legend_value: false
+                  in_header: false
+                  extremas: false
+          - type: conditional
+            conditions:
+            - entity: sensor.olive_tree_soil_moisture_zone
+              state: yellow
+            card:
+              type: custom:apexcharts-card
+              graph_span: 7d
+              chart_type: line
+              header:
+                show: false
+              show:
+                loading: false
+              card_mod:
+                style: |
+                  ha-card {
+                    position: absolute;
+                    left: 58.889vw;
+                    top: calc(33.333vh - 6.667vh - 10px);
+                    width: 4.444vw;
+                    height: 6.667vh;
+                    min-height: 0;
+                    background: none !important;
+                    border: none !important;
+                    box-shadow: none !important;
+                    padding: 0 !important;
+                    margin: 0 !important;
+                    overflow: hidden;
+                    pointer-events: none;
+                  }
+              apex_config:
+                chart:
+                  sparkline:
+                    enabled: true
+                  animations:
+                    enabled: false
+                  background: transparent
+                  parentHeightOffset: 0
+                grid:
+                  show: false
+                  padding:
+                    left: 0
+                    right: 0
+                    top: 0
+                    bottom: 0
+                tooltip:
+                  enabled: false
+                legend:
+                  show: false
+                dataLabels:
+                  enabled: false
+                markers:
+                  size: 0
+              series:
+              - entity: sensor.olive_tree_moisture
+                color: '#ffffff'
+                stroke_width: 1.6
+                curve: smooth
+                group_by:
+                  func: avg
+                  duration: 1h
+                show:
+                  legend_value: false
+                  in_header: false
+                  extremas: false
+              - entity: number.olive_tree_soil_moisture_yellow_threshold
+                color: '#ffffff'
+                stroke_width: 1
+                curve: stepline
+                group_by:
+                  func: last
+                  duration: 1h
+                show:
+                  legend_value: false
+                  in_header: false
+                  extremas: false
+              - entity: number.olive_tree_soil_moisture_red_threshold
+                color: '#ffffff'
+                stroke_width: 1
+                curve: stepline
+                group_by:
+                  func: last
+                  duration: 1h
+                show:
+                  legend_value: false
+                  in_header: false
+                  extremas: false
+          - type: conditional
+            conditions:
+            - entity: sensor.olive_tree_soil_moisture_zone
+              state: red
+            card:
+              type: custom:apexcharts-card
+              graph_span: 7d
+              chart_type: line
+              header:
+                show: false
+              show:
+                loading: false
+              card_mod:
+                style: |
+                  ha-card {
+                    position: absolute;
+                    left: 58.889vw;
+                    top: calc(33.333vh - 6.667vh - 10px);
+                    width: 4.444vw;
+                    height: 6.667vh;
+                    min-height: 0;
+                    background: none !important;
+                    border: none !important;
+                    box-shadow: none !important;
+                    padding: 0 !important;
+                    margin: 0 !important;
+                    overflow: hidden;
+                    pointer-events: none;
+                  }
+              apex_config:
+                chart:
+                  sparkline:
+                    enabled: true
+                  animations:
+                    enabled: false
+                  background: transparent
+                  parentHeightOffset: 0
+                grid:
+                  show: false
+                  padding:
+                    left: 0
+                    right: 0
+                    top: 0
+                    bottom: 0
+                tooltip:
+                  enabled: false
+                legend:
+                  show: false
+                dataLabels:
+                  enabled: false
+                markers:
+                  size: 0
+              series:
+              - entity: sensor.olive_tree_moisture
+                color: '#ffffff'
+                stroke_width: 1.6
+                curve: smooth
+                group_by:
+                  func: avg
+                  duration: 1h
+                show:
+                  legend_value: false
+                  in_header: false
+                  extremas: false
+              - entity: number.olive_tree_soil_moisture_red_threshold
+                color: '#ffffff'
+                stroke_width: 1
+                curve: stepline
+                group_by:
+                  func: last
+                  duration: 1h
+                show:
+                  legend_value: false
+                  in_header: false
+                  extremas: false
+          - type: conditional
+            conditions:
+            - entity: sensor.rubber_plant_soil_moisture_zone
+              state: green
+            card:
+              type: custom:apexcharts-card
+              graph_span: 7d
+              chart_type: line
+              header:
+                show: false
+              show:
+                loading: false
+              card_mod:
+                style: |
+                  ha-card {
+                    position: absolute;
+                    left: 70.000vw;
+                    top: calc(33.333vh - 6.667vh - 10px);
+                    width: 4.444vw;
+                    height: 6.667vh;
+                    min-height: 0;
+                    background: none !important;
+                    border: none !important;
+                    box-shadow: none !important;
+                    padding: 0 !important;
+                    margin: 0 !important;
+                    overflow: hidden;
+                    pointer-events: none;
+                  }
+              apex_config:
+                chart:
+                  sparkline:
+                    enabled: true
+                  animations:
+                    enabled: false
+                  background: transparent
+                  parentHeightOffset: 0
+                grid:
+                  show: false
+                  padding:
+                    left: 0
+                    right: 0
+                    top: 0
+                    bottom: 0
+                tooltip:
+                  enabled: false
+                legend:
+                  show: false
+                dataLabels:
+                  enabled: false
+                markers:
+                  size: 0
+              series:
+              - entity: sensor.rubber_plant_moisture
+                color: '#ffffff'
+                stroke_width: 1.6
+                curve: smooth
+                group_by:
+                  func: avg
+                  duration: 1h
+                show:
+                  legend_value: false
+                  in_header: false
+                  extremas: false
+              - entity: number.rubber_plant_soil_moisture_yellow_threshold
+                color: '#ffffff'
+                stroke_width: 1
+                curve: stepline
+                group_by:
+                  func: last
+                  duration: 1h
+                show:
+                  legend_value: false
+                  in_header: false
+                  extremas: false
+          - type: conditional
+            conditions:
+            - entity: sensor.rubber_plant_soil_moisture_zone
+              state: yellow
+            card:
+              type: custom:apexcharts-card
+              graph_span: 7d
+              chart_type: line
+              header:
+                show: false
+              show:
+                loading: false
+              card_mod:
+                style: |
+                  ha-card {
+                    position: absolute;
+                    left: 70.000vw;
+                    top: calc(33.333vh - 6.667vh - 10px);
+                    width: 4.444vw;
+                    height: 6.667vh;
+                    min-height: 0;
+                    background: none !important;
+                    border: none !important;
+                    box-shadow: none !important;
+                    padding: 0 !important;
+                    margin: 0 !important;
+                    overflow: hidden;
+                    pointer-events: none;
+                  }
+              apex_config:
+                chart:
+                  sparkline:
+                    enabled: true
+                  animations:
+                    enabled: false
+                  background: transparent
+                  parentHeightOffset: 0
+                grid:
+                  show: false
+                  padding:
+                    left: 0
+                    right: 0
+                    top: 0
+                    bottom: 0
+                tooltip:
+                  enabled: false
+                legend:
+                  show: false
+                dataLabels:
+                  enabled: false
+                markers:
+                  size: 0
+              series:
+              - entity: sensor.rubber_plant_moisture
+                color: '#ffffff'
+                stroke_width: 1.6
+                curve: smooth
+                group_by:
+                  func: avg
+                  duration: 1h
+                show:
+                  legend_value: false
+                  in_header: false
+                  extremas: false
+              - entity: number.rubber_plant_soil_moisture_yellow_threshold
+                color: '#ffffff'
+                stroke_width: 1
+                curve: stepline
+                group_by:
+                  func: last
+                  duration: 1h
+                show:
+                  legend_value: false
+                  in_header: false
+                  extremas: false
+              - entity: number.rubber_plant_soil_moisture_red_threshold
+                color: '#ffffff'
+                stroke_width: 1
+                curve: stepline
+                group_by:
+                  func: last
+                  duration: 1h
+                show:
+                  legend_value: false
+                  in_header: false
+                  extremas: false
+          - type: conditional
+            conditions:
+            - entity: sensor.rubber_plant_soil_moisture_zone
+              state: red
+            card:
+              type: custom:apexcharts-card
+              graph_span: 7d
+              chart_type: line
+              header:
+                show: false
+              show:
+                loading: false
+              card_mod:
+                style: |
+                  ha-card {
+                    position: absolute;
+                    left: 70.000vw;
+                    top: calc(33.333vh - 6.667vh - 10px);
+                    width: 4.444vw;
+                    height: 6.667vh;
+                    min-height: 0;
+                    background: none !important;
+                    border: none !important;
+                    box-shadow: none !important;
+                    padding: 0 !important;
+                    margin: 0 !important;
+                    overflow: hidden;
+                    pointer-events: none;
+                  }
+              apex_config:
+                chart:
+                  sparkline:
+                    enabled: true
+                  animations:
+                    enabled: false
+                  background: transparent
+                  parentHeightOffset: 0
+                grid:
+                  show: false
+                  padding:
+                    left: 0
+                    right: 0
+                    top: 0
+                    bottom: 0
+                tooltip:
+                  enabled: false
+                legend:
+                  show: false
+                dataLabels:
+                  enabled: false
+                markers:
+                  size: 0
+              series:
+              - entity: sensor.rubber_plant_moisture
+                color: '#ffffff'
+                stroke_width: 1.6
+                curve: smooth
+                group_by:
+                  func: avg
+                  duration: 1h
+                show:
+                  legend_value: false
+                  in_header: false
+                  extremas: false
+              - entity: number.rubber_plant_soil_moisture_red_threshold
+                color: '#ffffff'
+                stroke_width: 1
+                curve: stepline
+                group_by:
+                  func: last
+                  duration: 1h
+                show:
+                  legend_value: false
+                  in_header: false
+                  extremas: false
+          - type: conditional
+            conditions:
+            - entity: sensor.triangularis_ficus_soil_moisture_zone
+              state: green
+            card:
+              type: custom:apexcharts-card
+              graph_span: 7d
+              chart_type: line
+              header:
+                show: false
+              show:
+                loading: false
+              card_mod:
+                style: |
+                  ha-card {
+                    position: absolute;
+                    left: 81.111vw;
+                    top: calc(33.333vh - 6.667vh - 10px);
+                    width: 4.444vw;
+                    height: 6.667vh;
+                    min-height: 0;
+                    background: none !important;
+                    border: none !important;
+                    box-shadow: none !important;
+                    padding: 0 !important;
+                    margin: 0 !important;
+                    overflow: hidden;
+                    pointer-events: none;
+                  }
+              apex_config:
+                chart:
+                  sparkline:
+                    enabled: true
+                  animations:
+                    enabled: false
+                  background: transparent
+                  parentHeightOffset: 0
+                grid:
+                  show: false
+                  padding:
+                    left: 0
+                    right: 0
+                    top: 0
+                    bottom: 0
+                tooltip:
+                  enabled: false
+                legend:
+                  show: false
+                dataLabels:
+                  enabled: false
+                markers:
+                  size: 0
+              series:
+              - entity: sensor.triangularis_ficus_moisture
+                color: '#ffffff'
+                stroke_width: 1.6
+                curve: smooth
+                group_by:
+                  func: avg
+                  duration: 1h
+                show:
+                  legend_value: false
+                  in_header: false
+                  extremas: false
+              - entity: number.triangularis_ficus_soil_moisture_yellow_threshold
+                color: '#ffffff'
+                stroke_width: 1
+                curve: stepline
+                group_by:
+                  func: last
+                  duration: 1h
+                show:
+                  legend_value: false
+                  in_header: false
+                  extremas: false
+          - type: conditional
+            conditions:
+            - entity: sensor.triangularis_ficus_soil_moisture_zone
+              state: yellow
+            card:
+              type: custom:apexcharts-card
+              graph_span: 7d
+              chart_type: line
+              header:
+                show: false
+              show:
+                loading: false
+              card_mod:
+                style: |
+                  ha-card {
+                    position: absolute;
+                    left: 81.111vw;
+                    top: calc(33.333vh - 6.667vh - 10px);
+                    width: 4.444vw;
+                    height: 6.667vh;
+                    min-height: 0;
+                    background: none !important;
+                    border: none !important;
+                    box-shadow: none !important;
+                    padding: 0 !important;
+                    margin: 0 !important;
+                    overflow: hidden;
+                    pointer-events: none;
+                  }
+              apex_config:
+                chart:
+                  sparkline:
+                    enabled: true
+                  animations:
+                    enabled: false
+                  background: transparent
+                  parentHeightOffset: 0
+                grid:
+                  show: false
+                  padding:
+                    left: 0
+                    right: 0
+                    top: 0
+                    bottom: 0
+                tooltip:
+                  enabled: false
+                legend:
+                  show: false
+                dataLabels:
+                  enabled: false
+                markers:
+                  size: 0
+              series:
+              - entity: sensor.triangularis_ficus_moisture
+                color: '#ffffff'
+                stroke_width: 1.6
+                curve: smooth
+                group_by:
+                  func: avg
+                  duration: 1h
+                show:
+                  legend_value: false
+                  in_header: false
+                  extremas: false
+              - entity: number.triangularis_ficus_soil_moisture_yellow_threshold
+                color: '#ffffff'
+                stroke_width: 1
+                curve: stepline
+                group_by:
+                  func: last
+                  duration: 1h
+                show:
+                  legend_value: false
+                  in_header: false
+                  extremas: false
+              - entity: number.triangularis_ficus_soil_moisture_red_threshold
+                color: '#ffffff'
+                stroke_width: 1
+                curve: stepline
+                group_by:
+                  func: last
+                  duration: 1h
+                show:
+                  legend_value: false
+                  in_header: false
+                  extremas: false
+          - type: conditional
+            conditions:
+            - entity: sensor.triangularis_ficus_soil_moisture_zone
+              state: red
+            card:
+              type: custom:apexcharts-card
+              graph_span: 7d
+              chart_type: line
+              header:
+                show: false
+              show:
+                loading: false
+              card_mod:
+                style: |
+                  ha-card {
+                    position: absolute;
+                    left: 81.111vw;
+                    top: calc(33.333vh - 6.667vh - 10px);
+                    width: 4.444vw;
+                    height: 6.667vh;
+                    min-height: 0;
+                    background: none !important;
+                    border: none !important;
+                    box-shadow: none !important;
+                    padding: 0 !important;
+                    margin: 0 !important;
+                    overflow: hidden;
+                    pointer-events: none;
+                  }
+              apex_config:
+                chart:
+                  sparkline:
+                    enabled: true
+                  animations:
+                    enabled: false
+                  background: transparent
+                  parentHeightOffset: 0
+                grid:
+                  show: false
+                  padding:
+                    left: 0
+                    right: 0
+                    top: 0
+                    bottom: 0
+                tooltip:
+                  enabled: false
+                legend:
+                  show: false
+                dataLabels:
+                  enabled: false
+                markers:
+                  size: 0
+              series:
+              - entity: sensor.triangularis_ficus_moisture
+                color: '#ffffff'
+                stroke_width: 1.6
+                curve: smooth
+                group_by:
+                  func: avg
+                  duration: 1h
+                show:
+                  legend_value: false
+                  in_header: false
+                  extremas: false
+              - entity: number.triangularis_ficus_soil_moisture_red_threshold
+                color: '#ffffff'
+                stroke_width: 1
+                curve: stepline
+                group_by:
+                  func: last
+                  duration: 1h
+                show:
+                  legend_value: false
+                  in_header: false
+                  extremas: false
+          - type: conditional
+            conditions:
+            - entity: sensor.yucca_soil_moisture_zone
+              state: green
+            card:
+              type: custom:apexcharts-card
+              graph_span: 7d
+              chart_type: line
+              header:
+                show: false
+              show:
+                loading: false
+              card_mod:
+                style: |
+                  ha-card {
+                    position: absolute;
+                    left: 92.222vw;
+                    top: calc(33.333vh - 6.667vh - 10px);
+                    width: 4.444vw;
+                    height: 6.667vh;
+                    min-height: 0;
+                    background: none !important;
+                    border: none !important;
+                    box-shadow: none !important;
+                    padding: 0 !important;
+                    margin: 0 !important;
+                    overflow: hidden;
+                    pointer-events: none;
+                  }
+              apex_config:
+                chart:
+                  sparkline:
+                    enabled: true
+                  animations:
+                    enabled: false
+                  background: transparent
+                  parentHeightOffset: 0
+                grid:
+                  show: false
+                  padding:
+                    left: 0
+                    right: 0
+                    top: 0
+                    bottom: 0
+                tooltip:
+                  enabled: false
+                legend:
+                  show: false
+                dataLabels:
+                  enabled: false
+                markers:
+                  size: 0
+              series:
+              - entity: sensor.yucca_moisture
+                color: '#ffffff'
+                stroke_width: 1.6
+                curve: smooth
+                group_by:
+                  func: avg
+                  duration: 1h
+                show:
+                  legend_value: false
+                  in_header: false
+                  extremas: false
+              - entity: number.yucca_soil_moisture_yellow_threshold
+                color: '#ffffff'
+                stroke_width: 1
+                curve: stepline
+                group_by:
+                  func: last
+                  duration: 1h
+                show:
+                  legend_value: false
+                  in_header: false
+                  extremas: false
+          - type: conditional
+            conditions:
+            - entity: sensor.yucca_soil_moisture_zone
+              state: yellow
+            card:
+              type: custom:apexcharts-card
+              graph_span: 7d
+              chart_type: line
+              header:
+                show: false
+              show:
+                loading: false
+              card_mod:
+                style: |
+                  ha-card {
+                    position: absolute;
+                    left: 92.222vw;
+                    top: calc(33.333vh - 6.667vh - 10px);
+                    width: 4.444vw;
+                    height: 6.667vh;
+                    min-height: 0;
+                    background: none !important;
+                    border: none !important;
+                    box-shadow: none !important;
+                    padding: 0 !important;
+                    margin: 0 !important;
+                    overflow: hidden;
+                    pointer-events: none;
+                  }
+              apex_config:
+                chart:
+                  sparkline:
+                    enabled: true
+                  animations:
+                    enabled: false
+                  background: transparent
+                  parentHeightOffset: 0
+                grid:
+                  show: false
+                  padding:
+                    left: 0
+                    right: 0
+                    top: 0
+                    bottom: 0
+                tooltip:
+                  enabled: false
+                legend:
+                  show: false
+                dataLabels:
+                  enabled: false
+                markers:
+                  size: 0
+              series:
+              - entity: sensor.yucca_moisture
+                color: '#ffffff'
+                stroke_width: 1.6
+                curve: smooth
+                group_by:
+                  func: avg
+                  duration: 1h
+                show:
+                  legend_value: false
+                  in_header: false
+                  extremas: false
+              - entity: number.yucca_soil_moisture_yellow_threshold
+                color: '#ffffff'
+                stroke_width: 1
+                curve: stepline
+                group_by:
+                  func: last
+                  duration: 1h
+                show:
+                  legend_value: false
+                  in_header: false
+                  extremas: false
+              - entity: number.yucca_soil_moisture_red_threshold
+                color: '#ffffff'
+                stroke_width: 1
+                curve: stepline
+                group_by:
+                  func: last
+                  duration: 1h
+                show:
+                  legend_value: false
+                  in_header: false
+                  extremas: false
+          - type: conditional
+            conditions:
+            - entity: sensor.yucca_soil_moisture_zone
+              state: red
+            card:
+              type: custom:apexcharts-card
+              graph_span: 7d
+              chart_type: line
+              header:
+                show: false
+              show:
+                loading: false
+              card_mod:
+                style: |
+                  ha-card {
+                    position: absolute;
+                    left: 92.222vw;
+                    top: calc(33.333vh - 6.667vh - 10px);
+                    width: 4.444vw;
+                    height: 6.667vh;
+                    min-height: 0;
+                    background: none !important;
+                    border: none !important;
+                    box-shadow: none !important;
+                    padding: 0 !important;
+                    margin: 0 !important;
+                    overflow: hidden;
+                    pointer-events: none;
+                  }
+              apex_config:
+                chart:
+                  sparkline:
+                    enabled: true
+                  animations:
+                    enabled: false
+                  background: transparent
+                  parentHeightOffset: 0
+                grid:
+                  show: false
+                  padding:
+                    left: 0
+                    right: 0
+                    top: 0
+                    bottom: 0
+                tooltip:
+                  enabled: false
+                legend:
+                  show: false
+                dataLabels:
+                  enabled: false
+                markers:
+                  size: 0
+              series:
+              - entity: sensor.yucca_moisture
+                color: '#ffffff'
+                stroke_width: 1.6
+                curve: smooth
+                group_by:
+                  func: avg
+                  duration: 1h
+                show:
+                  legend_value: false
+                  in_header: false
+                  extremas: false
+              - entity: number.yucca_soil_moisture_red_threshold
+                color: '#ffffff'
+                stroke_width: 1
+                curve: stepline
+                group_by:
+                  func: last
+                  duration: 1h
+                show:
+                  legend_value: false
+                  in_header: false
+                  extremas: false
