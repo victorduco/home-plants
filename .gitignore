@@ -64,6 +64,9 @@ tmp/
 temp/
 *.tmp
 
+# Secrets (never commit)
+secrets/
+
 # LangGraph agent
 langgraph-app/__pycache__/
 langgraph-app/**/__pycache__/
